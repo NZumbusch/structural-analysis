@@ -62,7 +62,7 @@
 
 <div class="grid">
   <details class="help" open={!app.isMobile}>
-    <summary>{t('an.syntax')}</summary>
+    <summary class="light"><span class="chev" aria-hidden="true"></span>{t('an.syntax')}</summary>
     <p class="hint">{t('an.keysHelp')}</p>
   </details>
 
@@ -121,6 +121,5 @@
 
 <style>
   .grid { display: grid; gap: 10px; }
-  .help summary { cursor: pointer; font-size: 0.9rem; color: var(--muted); padding: 2px 0; }
   .kindsel { flex: 0 0 auto; width: auto; max-width: 150px; min-height: 32px; padding: 2px 6px; }
 </style>

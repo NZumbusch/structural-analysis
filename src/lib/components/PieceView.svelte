@@ -47,7 +47,7 @@
       <span class="hint">{t('piece.subtitleHint')}</span>
     </label>
     <details class="prov">
-      <summary>{t('piece.provenance')}</summary>
+      <summary class="light"><span class="chev" aria-hidden="true"></span>{t('piece.provenance')}</summary>
       <div class="provbody">
         <label class="field">
           <span>{t('piece.source')}</span>
@@ -86,7 +86,6 @@
   }
   .form { padding: 16px; display: grid; gap: 12px; }
   .side { display: grid; gap: 8px; min-width: 0; position: sticky; top: calc(var(--header-h) + var(--tabs-h) + 12px); }
-  .prov summary { cursor: pointer; color: var(--muted); font-size: 0.9rem; padding: 4px 0; }
   .provbody { display: grid; gap: 10px; margin-top: 6px; }
   .two { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
   @media (max-width: 860px) {

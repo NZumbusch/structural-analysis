@@ -69,7 +69,7 @@
     <label class="check"><input type="checkbox" bind:checked={piece.style.transparentBackground} />{t('st.transparent')}</label>
     <label class="check"><input type="checkbox" bind:checked={piece.style.hatch} />{t('st.hatch')}</label>
     <details class="cmyk">
-      <summary>{t('st.cmyk')}</summary>
+      <summary class="light"><span class="chev" aria-hidden="true"></span>{t('st.cmyk')}</summary>
       <table>
         <tbody>
           {#each colorKeys as key (key)}
@@ -204,7 +204,7 @@
       <span class="hint">{t('st.enharmonicHint')}</span>
     </label>
     <details class="rowsdetails">
-      <summary>{t('st.rowNames')}</summary>
+      <summary class="light"><span class="chev" aria-hidden="true"></span>{t('st.rowNames')}</summary>
       <div class="rownames">
         {#each rowList as r (r)}
           <label class="rn">
@@ -251,11 +251,9 @@
   .color { display: flex; align-items: center; gap: 8px; font-size: 0.9rem; }
   .check { display: flex; align-items: center; gap: 8px; font-size: 0.95rem; }
   .shows { display: grid; gap: 8px 12px; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); }
-  .cmyk summary { cursor: pointer; font-size: 0.9rem; color: var(--muted); padding: 4px 0; }
   .cmyk table { display: block; overflow-x: auto; border-collapse: collapse; width: 100%; font-size: 0.85rem; margin: 6px 0; }
   .cmyk td { padding: 3px 6px 3px 0; white-space: nowrap; }
   .cmyk i { display: block; width: 16px; height: 16px; border-radius: 4px; border: 1px solid var(--border); }
-  .rowsdetails summary { cursor: pointer; font-size: 0.9rem; color: var(--muted); padding: 4px 0; }
   .rownames { display: grid; gap: 6px; margin-top: 6px; }
   .rn { display: grid; grid-template-columns: 34px 1fr; gap: 8px; align-items: center; }
   .two { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }

@@ -123,3 +123,7 @@ details > summary.head::-webkit-details-marker, details.card > summary::-webkit-
 .chev { flex: none; width: 7px; height: 7px; margin: 0 7px 0 3px; border-right: 2px solid var(--muted); border-bottom: 2px solid var(--muted); transform: rotate(-45deg); transition: transform 0.15s; }
 details[open] > summary .chev { transform: rotate(45deg); }
 details > summary h3 { margin: 0; }
+
+/* Small inline toggles inside a card (same chevron, no card padding) */
+summary.light { display: flex; align-items: center; padding: 4px 0; cursor: pointer; list-style: none; user-select: none; color: var(--muted); font-size: 0.9rem; }
+summary.light::-webkit-details-marker { display: none; }
