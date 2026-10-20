@@ -5,6 +5,7 @@
   import { app } from '../stores/app.svelte';
   import ChartPreview from './ChartPreview.svelte';
   import Panel from './Panel.svelte';
+  import ValidationPanel from './ValidationPanel.svelte';
   import AnnotationsEditor from './editors/AnnotationsEditor.svelte';
   import HighlightsEditor from './editors/HighlightsEditor.svelte';
   import PassingEditor from './editors/PassingEditor.svelte';
@@ -33,6 +34,7 @@
 
 <div class="layout">
   <section class="inputs" class:hide={pane !== 'input'}>
+    <ValidationPanel {piece} />
     <Panel title={t('an.keys')} count={piece.segments.length} open reveal={kind === 'segment'}>
       <SegmentsEditor {piece} />
     </Panel>

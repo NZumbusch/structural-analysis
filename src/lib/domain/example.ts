@@ -64,6 +64,7 @@ export function createExample(): Piece {
         center: key('c'),
         meter: { beats: 4, unit: 4 },
         pickup: 0,
+        distanceMeasure: 'rows',
         subtitle: '',
         lastBar: 120,
         notes: '',

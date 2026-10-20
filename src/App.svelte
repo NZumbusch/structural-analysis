@@ -6,6 +6,7 @@
   import SetupView from './lib/components/SetupView.svelte';
   import StatsView from './lib/components/StatsView.svelte';
   import { displayTitle } from './lib/domain/piece';
+  import { validate } from './lib/domain/validate';
   import { onMount } from 'svelte';
   import { downloadBlob, projectBlob } from './lib/export/files';
   import { codeFromHash, decodePiece } from './lib/export/share';
@@ -26,6 +27,17 @@
   let saveTimer: ReturnType<typeof setTimeout> | undefined;
 
   const piece = $derived(app.piece);
+  /** Problems (not hints) per tab, shown as a small badge. */
+  const badges = $derived.by(() => {
+    const out: Partial<Record<Tab, number>> = {};
+    if (!piece) return out;
+    for (const i of validate(piece)) {
+      if (i.severity === 'info') continue;
+      const tab: Tab = i.target?.kind === 'event' ? 'setup' : 'analysis';
+      out[tab] = (out[tab] ?? 0) + 1;
+    }
+    return out;
+  });
 
   // Track history and autosave whenever the open piece changes.
   $effect(() => {
@@ -141,6 +153,7 @@
     >
       <span class="ico" aria-hidden="true">{tab.icon}</span>
       <span>{t(`tab.${tab.id}` as TKey)}</span>
+      {#if badges[tab.id]}<span class="badge" title={t('val.title')}>{badges[tab.id]}</span>{/if}
     </button>
   {/each}
 </nav>
@@ -214,6 +227,7 @@
   .tab.active { color: var(--text); border-bottom-color: var(--accent); font-weight: 700; }
   .tab.disabled { opacity: 0.4; }
   .ico { font-size: 1.1rem; }
+  .badge { min-width: 18px; height: 18px; padding: 0 5px; border-radius: 9px; background: var(--danger); color: #fff; font-size: 0.7rem; font-weight: 700; line-height: 18px; text-align: center; }
 
   .toolbar {
     position: sticky; top: calc(var(--header-h) + var(--tabs-h)); z-index: 18;

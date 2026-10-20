@@ -127,6 +127,8 @@ export interface PieceMeta {
   meter: Meter;
   /** Length of an anacrusis in beats (0 = none); it counts as bar 0. */
   pickup: number;
+  /** How the statistics measure the distance between keys. */
+  distanceMeasure: 'rows' | 'tonic' | 'steps';
   /** Empty = generated automatically. */
   subtitle: string;
   /** Null = derived from the last segment. */

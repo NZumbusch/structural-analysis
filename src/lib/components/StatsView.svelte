@@ -1,14 +1,16 @@
 <script lang="ts">
-  import { chartDistance, chartKeys, chartProfile, chartSections, keyDisplay, type KeyOrder } from '../analysis/charts';
+  import { chartDistance, chartKeys, chartProfile, chartSections, keyDisplay, unitPlural, type KeyOrder } from '../analysis/charts';
   import { formatNumber, formatPercent, type Column } from '../analysis/csv';
   import { computeStats, type DistanceStat, type KeyStat, type Modulation, type SectionStat } from '../analysis/stats';
   import { rowLabel } from '../domain/keys';
   import { hasRepeats, meterMap } from '../domain/structure';
+  import { buildCaption } from '../analysis/caption';
   import { fileSlug } from '../domain/piece';
+  import { DISTANCE_MEASURES } from '../domain/distance';
   import { formatPos } from '../domain/positions';
   import type { Piece } from '../domain/types';
   import { app } from '../stores/app.svelte';
-  import { t } from '../i18n/index.svelte';
+  import { t, type TKey } from '../i18n/index.svelte';
   import ChartCard from './ChartCard.svelte';
   import DataTable from './DataTable.svelte';
 
@@ -17,8 +19,10 @@
   let order = $state<KeyOrder>('duration');
   let signed = $state(false);
   let countRepeats = $state(false);
+  let exactHome = $state(false);
 
   const stats = $derived(computeStats(piece, { countRepeats }));
+  const method = $derived(buildCaption(piece, { countRepeats }).method);
   const s = $derived(stats.summary);
   const lang = $derived(app.prefs.uiLang);
   const meter = $derived(meterMap(piece));
@@ -72,17 +76,27 @@
     { key: 'keys', label: t('tbl.keysN'), value: (r) => r.keys, align: 'right' },
   ]);
 
+  async function copyMethod() {
+    try {
+      await navigator.clipboard.writeText(method);
+      app.notify(t('cap.copied'));
+    } catch {
+      app.notify(t('ex.copyFailed'));
+    }
+  }
+
   const cards = $derived([
     { label: t('stats.bars'), value: String(s.pieceBars), hint: s.gapBars > 0 ? t('stats.gap', { n: num(s.gapBars) }) : '' },
     { label: t('stats.keysCount'), value: String(s.distinctKeys), hint: '' },
     { label: t('stats.modulations'), value: String(s.modulations), hint: '' },
     {
       label: t('stats.farthest'),
-      value: s.farthest ? t('stats.fifths', { n: s.maxDistance }) : '–',
+      value: s.farthest ? t('stats.fifths', { n: s.maxDistance, unit: unitPlural(stats.measure, piece.style.language) }) : '–',
       hint: s.farthest ? `${keyDisplay(s.farthest.key, piece)} · ${t('common.bar')} ${pos(s.farthest.pos)}` : '',
     },
-    { label: t('stats.meanDist'), value: num(s.meanDistance), hint: t('stats.fifthsUnit') },
-    { label: t('stats.home'), value: pct(s.homeShare), hint: '' },
+    { label: t('stats.meanDist'), value: num(s.meanDistance), hint: t('stats.fifthsUnit', { unit: unitPlural(stats.measure, piece.style.language) }) },
+    { label: t('stats.home'), value: pct(s.homeShare), hint: t(`stats.homeHint.${stats.measure}` as TKey) },
+    ...(exactHome ? [{ label: t('stats.exactHome'), value: pct(s.exactHomeShare), hint: keyDisplay(piece.meta.center, piece) }] : []),
     { label: t('stats.majorMinor'), value: `${pct(s.majorShare)} / ${pct(s.minorShare)}`, hint: '' },
     { label: t('stats.dominants'), value: String(s.dominantCount), hint: t('stats.dominantBars', { n: num(s.dominantBars) }) },
     {
@@ -97,9 +111,27 @@
   {#if piece.segments.length === 0}
     <p class="card empty">{t('stats.empty')}</p>
   {:else}
-    {#if hasRepeats(piece)}
-      <label class="card opt"><input type="checkbox" bind:checked={countRepeats} />{t('stats.countRepeats')}</label>
-    {/if}
+    <details class="card optbox">
+      <summary>{t('stats.options')}</summary>
+      <div class="optbody">
+        <label class="field">
+          <span>{t('stats.measure')}</span>
+          <select bind:value={piece.meta.distanceMeasure}>
+            {#each DISTANCE_MEASURES as m (m)}<option value={m}>{t(`measure.${m}` as TKey)}</option>{/each}
+          </select>
+          <span class="hint">{t(`measure.${piece.meta.distanceMeasure}.help` as TKey)}</span>
+        </label>
+        <label class="check"><input type="checkbox" bind:checked={exactHome} />{t('stats.exactHomeOpt')}</label>
+        {#if hasRepeats(piece)}
+          <label class="check"><input type="checkbox" bind:checked={countRepeats} />{t('stats.countRepeats')}</label>
+        {/if}
+        <div class="field">
+          <span>{t('cap.method')}</span>
+          <p class="methodtext">{method}</p>
+          <div class="line"><button class="btn small" onclick={copyMethod}>{t('stats.copy')}</button></div>
+        </div>
+      </div>
+    </details>
     <section class="cards" aria-label={t('stats.summary')}>
       {#each cards as c (c.label)}
         <div class="card stat">
@@ -149,6 +181,9 @@
   .cards { display: grid; gap: 10px; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); }
   .stat { padding: 12px 14px; display: grid; gap: 2px; align-content: start; }
   .stat strong { font-size: 1.5rem; line-height: 1.2; font-variant-numeric: tabular-nums; }
-  .opt { display: flex; align-items: center; gap: 8px; padding: 10px 14px; }
+  .optbox summary { padding: 12px 14px; cursor: pointer; font-weight: 600; }
+  .optbody { padding: 0 14px 14px; display: grid; gap: 10px; }
+  .check { display: flex; align-items: center; gap: 8px; }
+  .methodtext { margin: 0; font-size: 0.9rem; }
   h4 { margin: 4px 0 0; font-size: 0.95rem; }
 </style>

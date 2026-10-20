@@ -39,6 +39,12 @@ Set the time signature under **Stück** so beat positions and the beat grid are 
 - **Auswertung (statistics):** summary figures, time per key, distribution by distance from the centre, distance
   over time, per-section comparison and a modulation list; every chart exports as SVG/PNG, every table as CSV
   (Excel-friendly) or to the clipboard.
+- **Prüfung (data check):** lists overlaps, gaps, stretches outside the piece, unmatched repeats and similar problems,
+  each with a jump-to link and a one-click fix; a badge on the tab shows how many there are.
+- **Distance measure** (Auswertung → Optionen & Methode): the statistics can count distance as fifths of the chart
+  rows (default; relative keys share a row), fifths of the tonics (same-tonic keys are 0 apart), or the fewest steps
+  over fifth / relative / same-tonic relations. The chart's rows always use the first. A caption and a method note
+  describing the conventions are generated under Export → Bildunterschrift & Methode.
 - Works offline once opened (service worker); installable on phones.
 
 Capital letter = major, lower case = minor (`Es`, `c`, `Fis`, `b` = B-flat minor); `Cm`, `A-Dur`, `F# minor` also work.

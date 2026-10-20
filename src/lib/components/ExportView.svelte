@@ -1,5 +1,6 @@
 <script lang="ts">
   import { fileSlug } from '../domain/piece';
+  import { validate } from '../domain/validate';
   import type { Piece } from '../domain/types';
   import {
     chartSize, downloadBlob, pngBlob, printPdf, projectBlob, projectFileName, slugify, svgBlob, viewsZip,
@@ -8,6 +9,7 @@
   import { FS } from '../render/chart';
   import { app } from '../stores/app.svelte';
   import { t } from '../i18n/index.svelte';
+  import CaptionPanel from './CaptionPanel.svelte';
   import ChartPreview from './ChartPreview.svelte';
   import NumInput from './NumInput.svelte';
   import StylePanel from './StylePanel.svelte';
@@ -21,6 +23,7 @@
   let dpi = $state(300);
   let busy = $state(false);
   let linkLength = $state(0);
+  const problems = $derived(validate(piece).filter((i) => i.severity !== 'info').length);
 
   const view = $derived(piece.views.find((v) => v.id === app.activeViewId) ?? null);
   const range = $derived(view ? { from: view.from, to: view.to } : null);
@@ -100,6 +103,9 @@
     <div class="card actions">
       <h2>{t('ex.heading')}</h2>
       <p class="muted small">{t('ex.current')}: <strong>{view ? view.name : t('view.whole')}</strong></p>
+      {#if problems > 0}
+        <p class="warn small">⚠ {t('val.exportWarn', { n: problems })} <button class="link" onclick={() => (app.tab = 'analysis')}>{t('val.review')}</button></p>
+      {/if}
       <label class="field">
         <span>{t('ex.file')}</span>
         <input type="text" bind:value={name} placeholder={base} autocapitalize="off" autocomplete="off" spellcheck="false" />
@@ -165,6 +171,8 @@
       </p>
     </div>
 
+    <CaptionPanel {piece} />
+
     <h2 class="sub">{t('ex.settings')}</h2>
     <StylePanel {piece} />
   </section>
@@ -187,6 +195,8 @@
   .seg .btn { flex: 1; }
   .seg .on { background: var(--accent-soft); border-color: var(--accent); font-weight: 600; }
   .sub { margin-top: 6px; }
+  .warn { margin: 0; color: var(--danger); }
+  .link { all: unset; cursor: pointer; text-decoration: underline; color: var(--accent); }
   .side { min-width: 0; position: sticky; top: calc(var(--header-h) + var(--tabs-h) + 12px); }
   @media (max-width: 960px) {
     .layout { grid-template-columns: minmax(0, 1fr); }

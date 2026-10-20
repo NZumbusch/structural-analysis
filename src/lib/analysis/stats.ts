@@ -1,3 +1,4 @@
+import { keyDistance, sameKeyExactly, type DistanceMeasure } from '../domain/distance';
 import { rowOf } from '../domain/keys';
 import { expandPlayOrder, hasRepeats, lastBarOf, sectionSpans } from '../domain/structure';
 import type { Key, Piece } from '../domain/types';
@@ -78,6 +79,8 @@ export interface Summary {
   farthest: { key: Key; pos: number } | null;
   meanDistance: number;
   homeShare: number;
+  /** Share of time in exactly the home key (not just its row / relative). */
+  exactHomeShare: number;
   majorShare: number;
   minorShare: number;
   dominantCount: number;
@@ -94,6 +97,7 @@ export interface Stats {
   profile: ProfilePoint[];
   summary: Summary;
   centerRow: number;
+  measure: DistanceMeasure;
   /** The piece the numbers were computed from (laid out in play order when repeats are counted). */
   piece: Piece;
   /** Number of distance classes used for sections (0..N-1, last = N-1 and further). */
@@ -122,6 +126,8 @@ export function buildSpans(piece: Piece): Span[] {
 export interface StatsOptions {
   /** Count repeated passages again (play order) instead of notated bars once. */
   countRepeats?: boolean;
+  /** Overrides the piece's own setting. */
+  measure?: DistanceMeasure;
 }
 
 export function computeStats(source: Piece, options: StatsOptions = {}): Stats {
@@ -129,7 +135,8 @@ export function computeStats(source: Piece, options: StatsOptions = {}): Stats {
   const centerRow = rowOf(piece.meta.center);
   const spans = buildSpans(piece);
   const pieceBars = lastBarOf(piece);
-  const dist = (k: Key) => rowOf(k) - centerRow;
+  const measure: DistanceMeasure = options.measure ?? piece.meta.distanceMeasure ?? 'rows';
+  const dist = (k: Key) => keyDistance(piece.meta.center, k, measure).signed;
   const len = (s: Span) => s.to - s.from;
   const analysed = spans.reduce((n, s) => n + len(s), 0);
   const share = (n: number) => (analysed > 0 ? n / analysed : 0);
@@ -236,7 +243,7 @@ export function computeStats(source: Piece, options: StatsOptions = {}): Stats {
       pos: b.from,
       from: a.key,
       to: b.key,
-      step: rowOf(b.key) - rowOf(a.key),
+      step: keyDistance(a.key, b.key, measure).signed,
       distanceAfter: Math.abs(dist(b.key)),
       section: sectionAt(b.from),
     });
@@ -271,6 +278,7 @@ export function computeStats(source: Piece, options: StatsOptions = {}): Stats {
     farthest,
     meanDistance: share(weighted),
     homeShare: share(homeBars),
+    exactHomeShare: share(spans.filter((s) => sameKeyExactly(s.key, piece.meta.center)).reduce((n, s) => n + len(s), 0)),
     majorShare: share(majorBars),
     minorShare: share(analysed - majorBars),
     dominantCount: dominants.length,
@@ -278,5 +286,5 @@ export function computeStats(source: Piece, options: StatsOptions = {}): Stats {
     longest: longestRun,
   };
 
-  return { spans, keys, distances, sections, modulations, profile, summary, centerRow, piece, classes: DISTANCE_CLASSES };
+  return { spans, keys, distances, sections, modulations, profile, summary, centerRow, measure, piece, classes: DISTANCE_CLASSES };
 }

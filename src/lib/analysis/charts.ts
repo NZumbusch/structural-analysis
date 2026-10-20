@@ -1,3 +1,4 @@
+import type { DistanceMeasure } from '../domain/distance';
 import { keyName, rowLabel } from '../domain/keys';
 import type { Key, Lang, Piece } from '../domain/types';
 import { esc, FONTS, textWidth } from '../render/chart';
@@ -18,9 +19,9 @@ const TEXT = {
     bars: 'Takte',
     keysTitle: 'Dauer der Tonarten',
     distTitle: 'Verteilung nach Entfernung vom Zentrum',
-    distAxis: 'Entfernung in Quinten (− = B-Seite, + = Kreuz-Seite)',
+    distAxis: (unit: string) => `Entfernung in ${unit} (− = B-Seite, + = Kreuz-Seite)`,
     profTitle: 'Entfernung vom Zentrum im Verlauf',
-    profAxis: 'Quinten',
+    profAxis: (unit: string) => unit.charAt(0).toUpperCase() + unit.slice(1),
     secTitle: 'Entfernung vom Zentrum nach Formteilen',
     major: 'Dur',
     minor: 'Moll',
@@ -34,9 +35,9 @@ const TEXT = {
     bars: 'Bars',
     keysTitle: 'Time spent in each key',
     distTitle: 'Distribution by distance from the centre',
-    distAxis: 'Distance in fifths (− = flat side, + = sharp side)',
+    distAxis: (unit: string) => `Distance in ${unit} (− = flat side, + = sharp side)`,
     profTitle: 'Distance from the centre over time',
-    profAxis: 'Fifths',
+    profAxis: (unit: string) => unit.charAt(0).toUpperCase() + unit.slice(1),
     secTitle: 'Distance from the centre by section',
     major: 'Major',
     minor: 'Minor',
@@ -47,6 +48,20 @@ const TEXT = {
     sharp: 'sharp side',
   },
 } as const;
+
+/** Name of the unit a distance measure counts in. */
+export function unitName(measure: DistanceMeasure, lang: Lang): string {
+  if (measure === 'steps') return lang === 'de' ? 'Schritten' : 'steps';
+  if (measure === 'tonic') return lang === 'de' ? 'Quinten der Grundtöne' : 'fifths of the tonics';
+  return lang === 'de' ? 'Quinten' : 'fifths';
+}
+
+/** The unit as a plain plural, for labels and legends. */
+export function unitPlural(measure: DistanceMeasure, lang: Lang): string {
+  if (measure === 'steps') return lang === 'de' ? 'Schritte' : 'steps';
+  if (measure === 'tonic') return lang === 'de' ? 'Quinten (Grundtöne)' : 'fifths (tonics)';
+  return lang === 'de' ? 'Quinten' : 'fifths';
+}
 
 /** 'Es-Dur', 'c-Moll' / 'Eb major', 'c minor'. */
 export function keyDisplay(key: Key, piece: Piece): string {
@@ -216,10 +231,12 @@ export function chartDistance(stats: Stats, piece: Piece): StatChart {
     const cx = x + w / 2;
     const sign = d.signed > 0 ? `+${d.signed}` : d.signed < 0 ? `−${-d.signed}` : '0';
     cv.text(cx, top + plotH + 16, sign, { anchor: 'middle', weight: d.signed === 0 ? 500 : 0 });
-    cv.text(cx, top + plotH + 33, rowLabel(stats.centerRow + d.signed, piece.style.noteNames, piece.style.enharmonic), { size: 10.5, color: cv.c.muted, anchor: 'middle' });
+    if (stats.measure === 'rows') {
+      cv.text(cx, top + plotH + 33, rowLabel(stats.centerRow + d.signed, piece.style.noteNames, piece.style.enharmonic), { size: 10.5, color: cv.c.muted, anchor: 'middle' });
+    }
   });
   cv.line(left, y(0), left + ds.length * colW, y(0), cv.c.axis, 1.1);
-  cv.text(left, top + plotH + 58, L.distAxis, { size: 12, color: cv.c.muted });
+  cv.text(left, top + plotH + 58, L.distAxis(unitName(stats.measure, lang)), { size: 12, color: cv.c.muted });
   const ly = top + plotH + 90;
   legend(cv, ly, [
     { label: L.major, draw: modeSwatch(cv, 'major') },
@@ -253,7 +270,7 @@ export function chartProfile(stats: Stats, piece: Piece, signed: boolean): StatC
     cv.line(left, yv(v), right, yv(v), v === 0 ? cv.c.axis : cv.c.grid, v === 0 ? 1 : 0.7, v === 0 ? '' : ' stroke-dasharray="1.4 2.1"');
     cv.text(left - 8, yv(v), v > 0 && signed ? `+${v}` : v < 0 ? `−${-v}` : String(v), { size: 12, color: cv.c.muted, anchor: 'end', weight: v === 0 ? 500 : 0 });
   }
-  cv.text(left - 8, top - 22, L.profAxis, { size: 12, color: cv.c.muted, anchor: 'end' });
+  cv.text(left - 8, top - 22, L.profAxis(unitPlural(stats.measure, lang)), { size: 12, color: cv.c.muted, anchor: 'end' });
 
   // sections
   const secs = sectionSpans(stats.piece).filter((sp) => sp.id);
@@ -354,7 +371,7 @@ export function chartSections(stats: Stats, piece: Piece): StatChart {
     cv,
     ly,
     Array.from({ length: stats.classes }, (_, d) => ({
-      label: `${d === stats.classes - 1 ? `${d}+` : d} ${lang === 'de' ? 'Quinten' : 'fifths'}`,
+      label: `${d === stats.classes - 1 ? `${d}+` : d} ${unitPlural(stats.measure, lang)}`,
       draw: (lx: number, lyy: number) => cv.rect(lx, lyy - 6, 22, 12, classColor(piece, d, stats.classes), cv.c.axis, 0.8, ' rx="3"'),
     })),
   );

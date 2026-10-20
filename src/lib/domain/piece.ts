@@ -56,7 +56,7 @@ export function createPiece(overrides: Partial<Piece> = {}, style: Style = DEFAU
   const center: Key = { fifths: 0, mode: 'major' };
   const meta: PieceMeta = {
     title: '', composer: '', year: '', catalog: '', movement: '',
-    center, meter: { ...DEFAULT_METER }, pickup: 0, subtitle: '', lastBar: 16, notes: '',
+    center, meter: { ...DEFAULT_METER }, pickup: 0, distanceMeasure: 'rows', subtitle: '', lastBar: 16, notes: '',
   };
   return {
     version: 1,
