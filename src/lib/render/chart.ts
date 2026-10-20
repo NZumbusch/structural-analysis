@@ -172,7 +172,12 @@ export function renderChart(source: Piece, options: RenderOptions = {}): Chart {
   const fifthsX = plotRight + FIFTHS_COL_GAP;
 
   // ---- vertical geometry ---------------------------------------------------------------------
-  const bottomY = yOf(bottom) + 26;
+  // Signs that sit on the edge of a zoomed view (an exposition repeat at the start of the development) are not needed there.
+  const onEdge = (pos: number) => zoomed && (pos <= from + EPS || pos >= to - EPS);
+  const hasRepeatSigns =
+    st.show.repeats && piece.events.some((e) => (e.kind === 'repeat-start' || e.kind === 'repeat-end') && e.pos >= from - EPS && e.pos <= to + EPS && !onEdge(e.pos));
+  // room between the lowest row and the axis for the repeat signs, so they cross neither bars, axis nor labels
+  const bottomY = yOf(bottom) + 26 + (hasRepeatSigns ? 10 : 0);
   const axisY = bottomY - 10;
   const bandTop = TOP + headExtra;
 
@@ -279,6 +284,7 @@ export function renderChart(source: Piece, options: RenderOptions = {}): Chart {
   if (st.show.axis) {
     const step = st.tickStep > 0 ? st.tickStep : autoTickStep(ppb);
     line(parts, left, axisY, plotRight, axisY, c.axis, LW.axis);
+    let firstLabelHalf = 0;
     for (let b = Math.ceil(from - EPS); b < to; b++) {
       const barNo = expanded ? Number(expanded.labelOf(b)) : b; // ticks follow the notated numbers in play order
       if (!(b === firstTickBar || barNo % step === 0)) {
@@ -286,6 +292,7 @@ export function renderChart(source: Piece, options: RenderOptions = {}): Chart {
       }
       line(parts, xOf(b), axisY, xOf(b), axisY + 4, c.axis, LW.axis);
       text(parts, xOf(b), bottomY + 2, labelOf(b), { size: FS.small, color: c.muted, anchor: 'middle' });
+      if (xOf(b) - left < 2) firstLabelHalf = textWidth(labelOf(b), fs(FS.small), fam) / 2;
     }
     for (let b = Math.floor(from); b < to; b++) {
       const nb = beatsAt(b);
@@ -296,7 +303,8 @@ export function renderChart(source: Piece, options: RenderOptions = {}): Chart {
         if (pos > from && pos < to) line(parts, xOf(pos), axisY, xOf(pos), axisY + 2.5, c.axis, 0.8);
       }
     }
-    text(parts, left - LABEL_X_GAP, bottomY + 2, lang.bar, { size: FS.small, color: c.muted, anchor: 'end' });
+    // keep the word "Takt" clear of a tick label that sits on the left edge (e.g. a view starting at bar 38)
+    text(parts, left - LABEL_X_GAP - Math.max(0, firstLabelHalf + 9 - LABEL_X_GAP), bottomY + 2, lang.bar, { size: FS.small, color: c.muted, anchor: 'end' });
   }
 
   // ---- structure events: meter, repeats, endings, barlines, markers ---------------------------------------
@@ -382,7 +390,7 @@ export function renderChart(source: Piece, options: RenderOptions = {}): Chart {
 
   if (st.show.repeats) {
     for (const e of events) {
-      if (!at(e.pos)) continue;
+      if (!at(e.pos) || onEdge(e.pos)) continue;
       const x = xOf(e.pos);
       if (e.kind === 'barline') {
         const col = c.text;
@@ -395,11 +403,15 @@ export function renderChart(source: Piece, options: RenderOptions = {}): Chart {
         }
       } else if (e.kind === 'repeat-start' || e.kind === 'repeat-end') {
         const dir = e.kind === 'repeat-start' ? 1 : -1;
-        line(parts, x, bandTop, x, axisY - 8, c.axis, 1, ' stroke-opacity="0.7" stroke-dasharray="2 3"');
-        line(parts, x, axisY - 8, x, axisY + 8, c.text, 2.6);
-        line(parts, x + dir * 4, axisY - 8, x + dir * 4, axisY + 8, c.text, 1);
-        parts.push(`<circle cx="${n(x + dir * 8)}" cy="${n(axisY - 3.5)}" r="1.4" fill="${c.text}"/><circle cx="${n(x + dir * 8)}" cy="${n(axisY + 3.5)}" r="1.4" fill="${c.text}"/>`);
-        if (e.kind === 'repeat-end' && e.times !== 2) text(parts, x, axisY - 16, `${e.times}×`, { size: FS.small, color: c.muted, anchor: 'middle' });
+        const y1 = axisY - 17;
+        const y2 = axisY - 3;
+        const ym = (y1 + y2) / 2;
+        // a part divider at the same place already marks it; two lines on top of each other look rough
+        if (!spans.some((sp) => sp.id && Math.abs(sp.from - e.pos) < EPS)) line(parts, x, bandTop, x, y1 - 1, c.axis, 1, ' stroke-opacity="0.7" stroke-dasharray="2 3"');
+        line(parts, x, y1, x, y2, c.text, 2.4);
+        line(parts, x + dir * 3.6, y1, x + dir * 3.6, y2, c.text, 0.9);
+        parts.push(`<circle cx="${n(x + dir * 7)}" cy="${n(ym - 3)}" r="1.3" fill="${c.text}"/><circle cx="${n(x + dir * 7)}" cy="${n(ym + 3)}" r="1.3" fill="${c.text}"/>`);
+        if (e.kind === 'repeat-end' && e.times !== 2) text(parts, x, y1 - 5, `${e.times}×`, { size: FS.small, color: c.muted, anchor: 'middle' });
       }
     }
     voltas.forEach((v) => {

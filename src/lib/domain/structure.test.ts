@@ -158,14 +158,14 @@ describe('repeats', () => {
   it('draws repeat signs, or the expanded chart, depending on the setting', () => {
     const p = repeated();
     const symbols = renderChart(p);
-    expect(symbols.svg).toContain('stroke-width="2.6"');
+    expect(symbols.svg).toContain('stroke-width="2.4"');
     p.style.repeatDisplay = 'expanded';
     const expanded = renderChart(p);
-    expect(expanded.svg).not.toContain('stroke-width="2.6"');
+    expect(expanded.svg).not.toContain('stroke-width="2.4"');
     expect(expanded.geometry.to).toBe(21);
     p.style.show.repeats = false;
     p.style.repeatDisplay = 'symbols';
-    expect(renderChart(p).svg).not.toContain('stroke-width="2.6"');
+    expect(renderChart(p).svg).not.toContain('stroke-width="2.4"');
   });
   it('draws endings, meter signs and other markers', () => {
     const p = repeated();
@@ -247,5 +247,21 @@ describe('pieces damaged by repeated conversion', () => {
     const p = normalizePiece({ meta: {}, segments: [{ ...seg, id: 'a' }, { ...seg, id: 'a' }], passing: [{ id: 'p', pos: 1, key: seg.key }, { id: 'p', pos: 2, key: seg.key }] })!;
     expect(new Set(p.segments.map((s) => s.id)).size).toBe(2);
     expect(new Set(p.passing.map((s) => s.id)).size).toBe(2);
+  });
+});
+
+describe('repeat signs in the chart', () => {
+  it('leaves out signs on the edge of a zoomed view and makes room for the others', () => {
+    const p = createPiece();
+    p.meta.lastBar = 12;
+    p.segments = [seg(1, 5), seg(5, 9), seg(9, 13)];
+    p.events.push(makeEvent('repeat-start', 1), makeEvent('repeat-end', 9, { times: 2 }));
+    const whole = renderChart(p);
+    expect(whole.svg).toContain('stroke-width="2.4"');
+    const edge = renderChart(p, { view: { id: 'v', name: 'v', from: 9, to: 13 } });
+    expect(edge.svg).not.toContain('stroke-width="2.4"');
+    expect(edge.height).toBeLessThan(whole.height);
+    const inside = renderChart(p, { view: { id: 'v', name: 'v', from: 2, to: 12 } });
+    expect(inside.svg).toContain('stroke-width="2.4"');
   });
 });
