@@ -6,6 +6,7 @@
   import { t } from '../i18n/index.svelte';
   import type { Piece } from '../domain/types';
   import DcmlImport from './DcmlImport.svelte';
+  import SyncPanel from './SyncPanel.svelte';
 
   function title(p: Piece): string {
     return displayTitle(p) || t('common.untitled');
@@ -57,6 +58,8 @@
       {/each}
     </ul>
   {/if}
+
+  <SyncPanel />
 
   {#if !app.simple}
     <DcmlImport />

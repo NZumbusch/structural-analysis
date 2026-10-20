@@ -118,6 +118,32 @@ class AppState {
     this.tab = tab;
   }
 
+  // ---- sync ----------------------------------------------------------------------------------------
+  /** Called after every stored change; the sync uses it to schedule itself. */
+  onChange: (() => void) | null = null;
+
+  /** True while the open piece has edits that are not stored in the library yet. */
+  get hasUnsavedEdits(): boolean {
+    const stored = this.piece ? this.library.find((p) => p.id === this.piece!.id) : null;
+    return !!this.piece && !!stored && fingerprint(stored) !== fingerprint(this.piece);
+  }
+
+  /** Stores a piece that came from sync as it is: its `updatedAt` is kept, so it does not look edited. */
+  storeSynced(piece: Piece): void {
+    const ok = savePiece(piece);
+    if (!ok) this.notify('storage');
+    this.library = [piece, ...this.library.filter((p) => p.id !== piece.id)].sort((a, b) => b.updatedAt - a.updatedAt);
+    if (this.piece?.id === piece.id) this.open(piece, this.tab);
+  }
+
+  /** Keeps a version as a new piece (a conflict loser); it syncs like any new piece. */
+  addCopy(piece: Piece, suffix: string): Piece {
+    const copy = freshIdentity(JSON.parse(JSON.stringify(piece)) as Piece);
+    copy.meta.title = `${copy.meta.title || ''} ${suffix}`.trim();
+    this.commit(copy);
+    return copy;
+  }
+
   private add(piece: Piece, tab: Tab): void {
     this.commit(piece);
     this.open(piece, tab);
@@ -159,9 +185,14 @@ class AppState {
     if (added.length === 1) this.open(added[0], 'analysis');
   }
 
-  remove(id: string): void {
+  remove(id: string, record = true): void {
+    const synced = this.prefs.sync.files[id];
+    if (record && synced) this.prefs.sync.deleted = [...this.prefs.sync.deleted, synced.fileId];
+    delete this.prefs.sync.files[id];
+    savePrefs(this.prefs);
     deletePiece(id);
     this.library = this.library.filter((p) => p.id !== id);
+    this.onChange?.();
     if (this.piece?.id === id) {
       this.piece = null;
       this.prefs.lastOpenId = null;
@@ -197,10 +228,18 @@ class AppState {
     this.saveState = ok ? 'saved' : 'error';
     if (!ok) this.notify('storage');
     this.library = [snapshot, ...this.library.filter((p) => p.id !== snapshot.id)];
+    this.onChange?.();
   }
 
+  /** Stores the open piece if it differs from the stored one (merely opening a piece is not an edit). */
   saveCurrent(): void {
-    if (this.piece) this.commit(this.piece);
+    if (!this.piece) return;
+    const stored = this.library.find((p) => p.id === this.piece!.id);
+    if (stored && fingerprint(stored) === fingerprint(this.piece)) {
+      this.saveState = 'saved';
+      return;
+    }
+    this.commit(this.piece);
   }
 
   // ---- backups -------------------------------------------------------------------------------------

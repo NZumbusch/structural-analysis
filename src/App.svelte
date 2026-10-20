@@ -12,6 +12,7 @@
   import { codeFromHash, decodePiece } from './lib/export/share';
   import { t, type TKey } from './lib/i18n/index.svelte';
   import { app, fingerprint, type Tab } from './lib/stores/app.svelte';
+  import { sync } from './lib/stores/sync.svelte';
 
   const tabs: { id: Tab; icon: string }[] = [
     { id: 'library', icon: '▤' },
@@ -75,7 +76,11 @@
 
   // A shared link carries the piece in the URL hash; open it as a new piece.
   onMount(() => {
-    const tick = setInterval(() => (now = Date.now()), 60_000);
+    sync.init();
+    const tick = setInterval(() => {
+      now = Date.now();
+      sync.refresh();
+    }, 60_000);
     const code = codeFromHash(location.hash);
     if (!code) return () => clearInterval(tick);
     void decodePiece(code).then((shared) => {
@@ -176,6 +181,13 @@
   <div class="backupbar">
     <span>{backup === 'none' ? t('backup.none') : t('backup.stale')}</span>
     <button class="btn small" onclick={() => app.saveProjectFile([piece])}>{t('backup.save')}</button>
+  </div>
+{/if}
+
+{#if sync.status === 'signed-out' && app.prefs.sync.enabled}
+  <div class="backupbar">
+    <span>{t('sync.bar')}</span>
+    <button class="btn small" onclick={() => sync.signIn()}>{t('sync.signIn')}</button>
   </div>
 {/if}
 

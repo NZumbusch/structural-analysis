@@ -6,7 +6,27 @@ const INDEX_KEY = PREFIX + 'index';
 const PREFS_KEY = PREFIX + 'prefs';
 const pieceKey = (id: string) => PREFIX + 'piece.' + id;
 
+/** Google Drive sync: what was last exchanged per piece, so changes on either side can be told apart. */
+export interface SyncPrefs {
+  enabled: boolean;
+  /** OAuth client ID of the user's own Google Cloud project (a public identifier, not a secret). */
+  clientId: string;
+  /** Short-lived access token (about an hour) and when it ends (ms). */
+  token: string;
+  tokenExpires: number;
+  /** Per piece id: the Drive file and the `updatedAt` that both sides had after the last sync. */
+  files: Record<string, { fileId: string; syncedAt: number }>;
+  /** Drive files of pieces deleted here, to be deleted there at the next sync. */
+  deleted: string[];
+  lastSync: number;
+}
+
+export function emptySync(): SyncPrefs {
+  return { enabled: false, clientId: '', token: '', tokenExpires: 0, files: {}, deleted: [], lastSync: 0 };
+}
+
 export interface Prefs {
+  sync: SyncPrefs;
   uiLang: Lang;
   lastOpenId: string | null;
   defaultStyle: Style | null;
@@ -36,7 +56,18 @@ function write(key: string, value: unknown): boolean {
 
 export function loadPrefs(): Prefs {
   const raw = read(PREFS_KEY) as Partial<Prefs> | null;
+  const s = (raw?.sync ?? {}) as Partial<SyncPrefs>;
+  const sync: SyncPrefs = {
+    enabled: s.enabled === true,
+    clientId: typeof s.clientId === 'string' ? s.clientId : '',
+    token: typeof s.token === 'string' ? s.token : '',
+    tokenExpires: typeof s.tokenExpires === 'number' ? s.tokenExpires : 0,
+    files: s.files && typeof s.files === 'object' ? s.files : {},
+    deleted: Array.isArray(s.deleted) ? s.deleted.filter((x): x is string => typeof x === 'string') : [],
+    lastSync: typeof s.lastSync === 'number' ? s.lastSync : 0,
+  };
   return {
+    sync,
     uiLang: raw?.uiLang === 'de' || raw?.uiLang === 'en' ? raw.uiLang : 'de',
     lastOpenId: raw?.lastOpenId ?? null,
     defaultStyle: raw?.defaultStyle ? normalizeStyle(raw.defaultStyle) : null,

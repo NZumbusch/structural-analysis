@@ -28,6 +28,10 @@ Set the time signature under **Stück** so beat positions and the beat grid are 
   inserted or deleted anywhere (everything after them moves). Anacrusis counts as bar 0. Repeats are drawn as signs
   or written out in play order (setting); statistics can count repeated bars once or twice.
 
+- **Sync with Google Drive (Library):** keeps your pieces identical on all devices through a hidden app folder in your
+  own Drive (no server, no cost; needs a free one-time Google Cloud client ID, see [setup](docs/sync-setup.md)).
+  Works in the browser and the installed app, offline-first; conflicts keep both versions. The sign-in script is
+  loaded from Google only once you connect.
 - **DCML import (Library):** pick a corpus of the [DCML collection](https://github.com/DCMLab/dcml_corpora) (or any
   GitHub link, also to a fixed commit, or your own `.tsv` files) and import pieces with their local-key path,
   repeats, endings, time signatures, anacrusis and more – you choose which details ([what is read](docs/dcml-import.md)).
@@ -85,6 +89,7 @@ src/lib/domain/      data model, key theory + parser, quick-entry text format, e
 src/lib/render/      SVG chart renderer, palettes, chart labels (pure function: Piece -> SVG string)
 src/lib/import/      DCML corpus tables -> piece (tables, key numerals, conversion, GitHub access)
 src/lib/export/      SVG / PNG / PDF / ZIP, project files, share links
+src/lib/sync/        Google Drive client, sign-in, sync engine (tested against an in-memory Drive)
 src/lib/stores/      app state (Svelte 5 runes), localStorage persistence, undo history
 src/lib/i18n/        UI strings (de, en)
 src/lib/components/  views (Library, Piece, Analysis, Export) and editors
@@ -97,6 +102,7 @@ PNG export rasterises the SVG in the browser using system fonts.
 
 - [Method notes](docs/method.md) – what the chart and statistics count, in methods-section terms
 - [Analysis JSON format](docs/analysis-format.md)
+- [Drive sync setup](docs/sync-setup.md)
 - [DCML import](docs/dcml-import.md) – which columns are read and how they become bars, keys and events
 - [MIT licence](LICENSE), [third-party notices](THIRD_PARTY_NOTICES.md) (fonts under the SIL OFL), [CITATION.cff](CITATION.cff)
 
