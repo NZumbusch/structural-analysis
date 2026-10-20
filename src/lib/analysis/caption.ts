@@ -2,6 +2,7 @@ import { rowOf, tonicName } from '../domain/keys';
 import { barRange } from '../domain/positions';
 import { hasRepeats, lastBarOf, startPos } from '../domain/structure';
 import { TONICIZATIONS, type Piece, type SegmentKind } from '../domain/types';
+import { unitPlural } from './charts';
 import { computeStats } from './stats';
 
 export interface CaptionOptions {
@@ -162,8 +163,8 @@ export function buildAltText(piece: Piece, options: CaptionOptions = {}): string
   if (s.farthest && s.maxDistance > 0) {
     parts.push(
       de
-        ? `Am weitesten vom Zentrum entfernt ist ${keyName(s.farthest.key)} (${s.maxDistance} Quinten, ab Takt ${Math.floor(s.farthest.pos)}).`
-        : `The key farthest from the centre is ${keyName(s.farthest.key)} (${s.maxDistance} fifths, from bar ${Math.floor(s.farthest.pos)}).`,
+        ? `Am weitesten vom Zentrum entfernt ist ${keyName(s.farthest.key)} (${s.maxDistance} ${unitPlural(stats.measure, lang)}, ab Takt ${Math.floor(s.farthest.pos)}).`
+        : `The key farthest from the centre is ${keyName(s.farthest.key)} (${s.maxDistance} ${unitPlural(stats.measure, lang)}, from bar ${Math.floor(s.farthest.pos)}).`,
     );
   }
   parts.push(

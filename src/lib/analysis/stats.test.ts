@@ -76,3 +76,14 @@ describe('stat charts and csv', () => {
     expect(toTsv(cols, rows)).toBe('Name\tWert\nx;y\t1,5');
   });
 });
+
+describe('alt text unit', () => {
+  it('names the unit of the chosen distance measure', async () => {
+    const { buildAltText } = await import('./caption');
+    const { createExample } = await import('../domain/example');
+    const p = createExample();
+    expect(buildAltText(p)).toContain('Quinten, ab Takt');
+    p.meta.distanceMeasure = 'steps';
+    expect(buildAltText(p)).toMatch(/\d+ Schritte, ab Takt/);
+  });
+});

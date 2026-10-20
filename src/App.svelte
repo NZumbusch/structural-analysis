@@ -34,6 +34,8 @@
   const piece = $derived(app.piece);
   const backup = $derived.by(() => {
     if (!piece) return null;
+    // Drive keeps a copy while syncing works; the file reminder is only for when it does not.
+    if (app.prefs.sync.enabled && (sync.status === 'idle' || sync.status === 'syncing')) return null;
     const state = app.backupState(piece);
     if (state === 'current') return null;
     const since = app.prefs.backups[piece.id] ?? piece.createdAt;
