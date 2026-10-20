@@ -14,6 +14,7 @@
   import DataExportPanel from './DataExportPanel.svelte';
   import ChartPreview from './ChartPreview.svelte';
   import NumInput from './NumInput.svelte';
+  import SimpleNote from './SimpleNote.svelte';
   import StylePanel from './StylePanel.svelte';
 
   let { piece }: { piece: Piece } = $props();
@@ -123,6 +124,7 @@
 
 <div class="layout">
   <section class="settings">
+    <SimpleNote />
     <div class="card actions">
       <h2>{t('ex.heading')}</h2>
       <p class="muted small">{t('ex.current')}: <strong>{view ? view.name : t('view.whole')}</strong></p>
@@ -134,11 +136,13 @@
         <input type="text" bind:value={name} placeholder={base} autocapitalize="off" autocomplete="off" spellcheck="false" />
       </label>
 
-      <div class="seg" role="group" aria-label={t('ex.size')}>
-        <button class="btn small" class:on={mode === 'scale'} onclick={() => (mode = 'scale')}>{t('ex.sizeScale')}</button>
-        <button class="btn small" class:on={mode === 'physical'} onclick={() => (mode = 'physical')}>{t('ex.sizePhysical')}</button>
-      </div>
-      {#if mode === 'scale'}
+      {#if !app.simple}
+        <div class="seg" role="group" aria-label={t('ex.size')}>
+          <button class="btn small" class:on={mode === 'scale'} onclick={() => (mode = 'scale')}>{t('ex.sizeScale')}</button>
+          <button class="btn small" class:on={mode === 'physical'} onclick={() => (mode = 'physical')}>{t('ex.sizePhysical')}</button>
+        </div>
+      {/if}
+      {#if mode === 'scale' || app.simple}
         <label class="field">
           <span>{t('ex.pngScale')}</span>
           <select bind:value={scale}>
@@ -189,7 +193,7 @@
         {#if canShareFile}<button class="btn" onclick={shareFile} disabled={busy}>{t('ex.share')}</button>{/if}
       </div>
 
-      {#if piece.views.length > 0}
+      {#if piece.views.length > 0 && !app.simple}
         <div class="line">
           <select class="zipkind" aria-label={t('ex.zipFormat')} bind:value={zipKind}>
             <option value="svg">SVG</option>
@@ -213,11 +217,13 @@
       </p>
     </div>
 
-    <CaptionPanel {piece} />
-    <DataExportPanel {piece} />
+    {#if !app.simple}
+      <CaptionPanel {piece} />
+      <DataExportPanel {piece} />
+    {/if}
 
     <h2 class="sub">{t('ex.settings')}</h2>
-    <StylePanel {piece} />
+    <StylePanel {piece} simple={app.simple} />
   </section>
 
   <section class="side">

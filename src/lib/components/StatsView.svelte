@@ -144,6 +144,12 @@
   .page { display: grid; gap: 16px; padding: 16px; max-width: 1100px; margin: 0 auto; }
   .empty { padding: 20px; }
   .cards { display: grid; gap: 10px; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); }
+  @media (max-width: 700px) {
+    .cards { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+    .stat { padding: 10px 12px; }
+    .stat strong { font-size: 1.2rem; }
+    .page { padding: 12px; }
+  }
   .stat { padding: 12px 14px; display: grid; gap: 2px; align-content: start; }
   .stat strong { font-size: 1.5rem; line-height: 1.2; font-variant-numeric: tabular-nums; }
   .optbox summary { padding: 12px 14px; cursor: pointer; font-weight: 600; }

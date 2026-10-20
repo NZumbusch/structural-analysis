@@ -10,7 +10,7 @@
   import NumInput from './NumInput.svelte';
   import Panel from './Panel.svelte';
 
-  let { piece }: { piece: Piece } = $props();
+  let { piece, simple = false }: { piece: Piece; simple?: boolean } = $props();
 
   const st = $derived(piece.style);
   const active = $derived(activePalette(st.colors));
@@ -87,6 +87,7 @@
     </details>
   </Panel>
 
+  {#if !simple}
   <Panel title={t('ex.layout')}>
     <div class="field">
       <span>{t('st.barWidth')}: {st.barWidth > 0 ? st.barWidth : t('common.auto')}</span>
@@ -228,6 +229,8 @@
     </div>
   </Panel>
 
+  {/if}
+
   <div class="line">
     <button class="btn" onclick={saveDefault}>{t('ex.saveDefault')}</button>
     <button class="btn" onclick={reset}>{t('ex.resetStyle')}</button>
@@ -249,7 +252,7 @@
   .check { display: flex; align-items: center; gap: 8px; font-size: 0.95rem; }
   .shows { display: grid; gap: 8px 12px; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); }
   .cmyk summary { cursor: pointer; font-size: 0.9rem; color: var(--muted); padding: 4px 0; }
-  .cmyk table { border-collapse: collapse; width: 100%; font-size: 0.85rem; margin: 6px 0; }
+  .cmyk table { display: block; overflow-x: auto; border-collapse: collapse; width: 100%; font-size: 0.85rem; margin: 6px 0; }
   .cmyk td { padding: 3px 6px 3px 0; white-space: nowrap; }
   .cmyk i { display: block; width: 16px; height: 16px; border-radius: 4px; border: 1px solid var(--border); }
   .rowsdetails summary { cursor: pointer; font-size: 0.9rem; color: var(--muted); padding: 4px 0; }

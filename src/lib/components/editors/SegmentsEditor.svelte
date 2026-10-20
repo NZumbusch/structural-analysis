@@ -61,7 +61,10 @@
 </script>
 
 <div class="grid">
-  <p class="hint">{t('an.keysHelp')}</p>
+  <details class="help" open={!app.isMobile}>
+    <summary>{t('an.syntax')}</summary>
+    <p class="hint">{t('an.keysHelp')}</p>
+  </details>
 
   <label class="field">
     <span>{t('an.textLabel')}</span>
@@ -100,7 +103,9 @@
           <option value="key">{t('kind.key')}</option>
           {#each TONICIZATIONS as k (k)}<option value={k}>{t(`kind.${k}` as TKey)}</option>{/each}
         </select>
-        <input class="grow" type="text" aria-label={t('an.barLabel')} placeholder={t('an.barLabel')} bind:value={seg.label} />
+        {#if !app.simple}
+          <input class="grow" type="text" aria-label={t('an.barLabel')} placeholder={t('an.barLabel')} bind:value={seg.label} />
+        {/if}
         <button class="btn small icon" title={t('an.addRow')} onclick={() => add(i)}>+</button>
         <button class="btn small icon danger" title={t('common.delete')} onclick={() => piece.segments.splice(i, 1)}>×</button>
       </div>
@@ -116,5 +121,6 @@
 
 <style>
   .grid { display: grid; gap: 10px; }
+  .help summary { cursor: pointer; font-size: 0.9rem; color: var(--muted); padding: 2px 0; }
   .kindsel { flex: 0 0 auto; width: auto; max-width: 150px; min-height: 32px; padding: 2px 6px; }
 </style>

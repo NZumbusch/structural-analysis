@@ -267,7 +267,9 @@
       position: fixed; top: auto; bottom: 0; left: 0; right: 0; height: calc(var(--tabs-h) + 8px + env(safe-area-inset-bottom));
       padding: 0 0 env(safe-area-inset-bottom); border-top: 1px solid var(--border); border-bottom: 0; justify-content: space-around;
     }
-    .tab { flex: 1; flex-direction: column; gap: 0; justify-content: center; padding: 0; border-bottom: 0; border-top: 3px solid transparent; font-size: 0.75rem; }
+    .tab { flex: 1 1 0; min-width: 0; flex-direction: column; gap: 0; justify-content: center; align-items: center; padding: 0 2px; border-bottom: 0; border-top: 3px solid transparent; font-size: 0.66rem; position: relative; }
+    .tab span:not(.ico):not(.badge) { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .badge { position: absolute; top: 2px; right: 6px; min-width: 16px; height: 16px; line-height: 16px; font-size: 0.62rem; }
     .tab.active { border-top-color: var(--accent); }
     .toolbar { top: var(--header-h); }
     main { padding-bottom: calc(var(--tabs-h) + 16px + env(safe-area-inset-bottom)); }

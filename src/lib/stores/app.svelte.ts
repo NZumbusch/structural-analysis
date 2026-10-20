@@ -38,6 +38,8 @@ class AppState {
   snap = $state<Snap>('beat');
   /** Whether the preview reacts to clicks and drags. */
   editInPreview = $state(true);
+  /** Phone-sized screen. */
+  isMobile = $state(false);
 
   historyIndex = $state(0);
   historyLength = $state(0);
@@ -45,7 +47,18 @@ class AppState {
   private lastPush = 0;
   private toastTimer: ReturnType<typeof setTimeout> | undefined;
 
+  /** Simple view: on a phone with the setting on, rare features are tucked away. */
+  get simple(): boolean {
+    return this.isMobile && this.prefs.simpleOnMobile;
+  }
+
   constructor() {
+    if (typeof matchMedia !== 'undefined') {
+      const phone = matchMedia('(max-width: 700px)');
+      this.isMobile = phone.matches;
+      this.editInPreview = !phone.matches; // dragging in the preview fights with scrolling on touch screens
+      phone.addEventListener('change', (e) => (this.isMobile = e.matches));
+    }
     this.library = loadAllPieces().sort((a, b) => b.updatedAt - a.updatedAt);
     const last = this.library.find((p) => p.id === this.prefs.lastOpenId);
     if (last) {
@@ -213,6 +226,11 @@ class AppState {
   // ---- preferences ----------------------------------------------------------------------------------------
   setUiLang(lang: 'de' | 'en'): void {
     this.prefs.uiLang = lang;
+    savePrefs(this.prefs);
+  }
+
+  setSimple(on: boolean): void {
+    this.prefs.simpleOnMobile = on;
     savePrefs(this.prefs);
   }
 

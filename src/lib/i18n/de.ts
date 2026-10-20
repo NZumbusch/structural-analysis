@@ -224,7 +224,7 @@ export const de = {
   'ex.linkLength': 'Länge: {n} Zeichen.',
   'lib.linkImported': 'Stück aus Link übernommen.',
   'lib.linkFailed': 'Der Link konnte nicht gelesen werden.',
-  'tab.stats': 'Auswertung',
+  'tab.stats': 'Statistik',
   'stats.empty': 'Noch keine Tonarten eingetragen – die Auswertung erscheint, sobald es Daten gibt.',
   'stats.summary': 'Überblick',
   'stats.bars': 'Takte',
@@ -448,4 +448,9 @@ export const de = {
   'backup.stale': '· Datei nicht aktuell – jetzt sichern',
   'about.license': 'MIT-Lizenz',
   'about.fonts': 'Schriften (SIL OFL) und Lizenzen',
+  'mob.simple': 'Einfache Ansicht: seltene Funktionen sind ausgeblendet.',
+  'mob.full': 'Alle Funktionen sind sichtbar.',
+  'mob.showAll': 'Alle Funktionen zeigen',
+  'mob.goSimple': 'Einfache Ansicht',
+  'an.syntax': 'Syntax-Hilfe',
 } as const;

@@ -7,6 +7,7 @@
   import ChartPreview from './ChartPreview.svelte';
   import NumInput from './NumInput.svelte';
   import PosInput from './PosInput.svelte';
+  import SimpleNote from './SimpleNote.svelte';
 
   let { piece }: { piece: Piece } = $props();
 
@@ -198,8 +199,10 @@
 
 <div class="layout">
   <section class="main" class:hide={pane !== 'edit'}>
-    <div class="card box">
-      <h3>{t('setup.structure')}</h3>
+    <SimpleNote />
+    <details class="card structure" open={!app.simple}>
+      <summary><h3>{t('setup.structure')}</h3></summary>
+      <div class="box">
       <div class="row">
         <div class="field">
           <span>{t('setup.bars')}</span>
@@ -233,16 +236,19 @@
           </select>
         </label>
       </div>
-    </div>
+      </div>
+    </details>
 
     <div class="card box">
       <div class="palette" role="toolbar" aria-label={t('setup.palette')}>
         {#each tools as k (k)}
           <button class="btn small" class:on={tool === k} disabled={!sel} onclick={() => choose(k)}>{kindLabel(k)}</button>
         {/each}
-        <button class="btn small" class:on={moreOpen || (tool !== null && moreTools.includes(tool))} onclick={() => (moreOpen = !moreOpen)}>{t('setup.more')} ▾</button>
+        {#if !app.simple}
+          <button class="btn small" class:on={moreOpen || (tool !== null && moreTools.includes(tool))} onclick={() => (moreOpen = !moreOpen)}>{t('setup.more')} ▾</button>
+        {/if}
       </div>
-      {#if moreOpen || (tool !== null && moreTools.includes(tool))}
+      {#if !app.simple && (moreOpen || (tool !== null && moreTools.includes(tool)))}
         <div class="palette">
           {#each moreTools as k (k)}
             <button class="btn small" class:on={tool === k} disabled={!sel} onclick={() => choose(k)}>{kindLabel(k)}</button>
@@ -388,11 +394,17 @@
   }
   .main { display: grid; gap: 12px; min-width: 0; }
   .box { padding: 14px; display: grid; gap: 10px; }
+  .structure summary { padding: 12px 14px 0; cursor: pointer; list-style: none; }
+  .structure summary::-webkit-details-marker { display: none; }
+  .structure summary h3::before { content: '›'; display: inline-block; width: 1em; color: var(--muted); transition: transform 0.15s; }
+  .structure[open] summary h3::before { transform: rotate(90deg); }
+  .structure > .box { padding-top: 10px; }
   .row { display: grid; gap: 10px; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); }
   .meter { display: grid; grid-template-columns: 1fr auto 1fr; gap: 8px; align-items: center; max-width: 220px; }
   .inline { display: inline-flex; align-items: center; gap: 8px; }
   .inline :global(input[type='text']), .inline :global(input[type='number']) { width: 90px; }
-  .inline select { width: auto; }
+  .inline select { width: auto; max-width: 100%; }
+  @media (max-width: 700px) { .inline { display: flex; flex-wrap: wrap; width: 100%; } .inline select { flex: 1 1 200px; } }
   .spacer { flex: 1; }
   .palette { display: flex; flex-wrap: wrap; gap: 6px; }
   .palette .on, .line .on { background: var(--accent-soft); border-color: var(--accent); }

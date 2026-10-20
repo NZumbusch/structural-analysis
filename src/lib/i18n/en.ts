@@ -226,7 +226,7 @@ export const en: Record<keyof typeof de, string> = {
   'ex.linkLength': 'Length: {n} characters.',
   'lib.linkImported': 'Piece imported from link.',
   'lib.linkFailed': 'The link could not be read.',
-  'tab.stats': 'Statistics',
+  'tab.stats': 'Stats',
   'stats.empty': 'No keys entered yet – the statistics appear as soon as there is data.',
   'stats.summary': 'Overview',
   'stats.bars': 'Bars',
@@ -450,4 +450,9 @@ export const en: Record<keyof typeof de, string> = {
   'backup.stale': '· file out of date – save now',
   'about.license': 'MIT licence',
   'about.fonts': 'Fonts (SIL OFL) and licences',
+  'mob.simple': 'Simple view: rarely needed features are hidden.',
+  'mob.full': 'All features are visible.',
+  'mob.showAll': 'Show all features',
+  'mob.goSimple': 'Simple view',
+  'an.syntax': 'Syntax help',
 };

@@ -147,7 +147,7 @@
       <button class="btn small" class:on={app.editInPreview} title={t('view.editHint')} onclick={() => (app.editInPreview = !app.editInPreview)}>
         ✎ {t('view.edit')}
       </button>
-      {#if app.editInPreview}
+      {#if app.editInPreview && !app.simple}
         <select class="snap" aria-label={t('view.snap')} title={t('view.snap')} bind:value={app.snap}>
           <option value="bar">{t('view.snapBar')}</option>
           <option value="beat">{t('view.snapBeat')}</option>

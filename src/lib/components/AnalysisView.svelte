@@ -5,6 +5,7 @@
   import { app } from '../stores/app.svelte';
   import ChartPreview from './ChartPreview.svelte';
   import Panel from './Panel.svelte';
+  import SimpleNote from './SimpleNote.svelte';
   import ValidationPanel from './ValidationPanel.svelte';
   import AnnotationsEditor from './editors/AnnotationsEditor.svelte';
   import HighlightsEditor from './editors/HighlightsEditor.svelte';
@@ -34,6 +35,7 @@
 
 <div class="layout">
   <section class="inputs" class:hide={pane !== 'input'}>
+    <SimpleNote />
     <ValidationPanel {piece} />
     <Panel title={t('an.keys')} count={piece.segments.length} open reveal={kind === 'segment'}>
       <SegmentsEditor {piece} />
@@ -44,12 +46,16 @@
     <Panel title={t('an.annotations')} count={piece.annotations.length} reveal={kind === 'annotation'}>
       <AnnotationsEditor {piece} />
     </Panel>
-    <Panel title={t('an.highlights')} count={piece.highlights.length}>
-      <HighlightsEditor {piece} />
-    </Panel>
-    <Panel title={t('an.views')} count={piece.views.length}>
-      <ViewsEditor {piece} />
-    </Panel>
+    {#if !app.simple}
+      <Panel title={t('an.highlights')} count={piece.highlights.length}>
+        <HighlightsEditor {piece} />
+      </Panel>
+    {/if}
+    {#if !app.simple}
+      <Panel title={t('an.views')} count={piece.views.length}>
+        <ViewsEditor {piece} />
+      </Panel>
+    {/if}
     <p class="hint">{t('an.undoHint')}</p>
   </section>
 

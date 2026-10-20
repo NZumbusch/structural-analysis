@@ -106,3 +106,13 @@ input[type='checkbox'] { width: 18px; height: 18px; accent-color: var(--accent);
 .mono { font-family: ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace; font-size: 0.9rem; }
 .line.selected { outline: 2px solid #0a84ff; outline-offset: 3px; border-radius: 8px; }
 .line > .tiny { flex: 0 0 64px; }
+
+/* Grid containers must not size their single column to the widest content (that makes pages wider than the screen). */
+.main, .inputs, .settings, .stack, .box, .body, .actions, .form, .lines, .side, .page { grid-template-columns: minmax(0, 1fr); }
+
+@media (max-width: 700px) {
+  /* 16px inputs: iOS zooms into smaller ones when focused */
+  input[type='text'], input[type='number'], input[type='date'], select, textarea { font-size: 16px; }
+  .line > .n { flex: 1 1 64px; }
+  .line > .k { flex: 1 1 80px; }
+}
