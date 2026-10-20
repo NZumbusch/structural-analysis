@@ -13,6 +13,12 @@
   </head>
   <body>
     <div id="app"></div>
+    <script>
+      // Collect startup errors so the fallback below can show what went wrong.
+      window.__tvErrors = [];
+      window.addEventListener('error', function (e) { window.__tvErrors.push(String(e.message || e.error || 'error') + (e.filename ? ' (' + e.filename.split('/').pop() + ':' + e.lineno + ')' : '')); });
+      window.addEventListener('unhandledrejection', function (e) { window.__tvErrors.push('promise: ' + String((e.reason && e.reason.message) || e.reason)); });
+    </script>
     <script type="module" src="/src/main.ts"></script>
     <script>
       // If the app has not drawn anything after a few seconds (old cache, unsupported browser …), say so and offer a way out.
@@ -24,6 +30,7 @@
           '<h2>Die Seite konnte nicht gestartet werden · The page could not start</h2>' +
           '<p>Möglicherweise ist eine ältere Version im Cache, oder der Browser ist zu alt. Öffne die Seite nicht als heruntergeladene Datei, sondern über die Internetadresse.<br>' +
           'An older version may be cached, or the browser is too old. Do not open a downloaded file; use the web address.</p>' +
+          '<pre style="white-space:pre-wrap;font-size:12px;background:#eee;padding:8px;border-radius:6px">' + String((window.__tvErrors || []).join('\n') || 'no error reported').replace(/</g, '&lt;') + '</pre>' +
           '<p><button id="tv-reset" style="padding:10px 14px;font-size:16px">Cache leeren &amp; neu laden / Clear cache &amp; reload</button></p></div>';
         document.getElementById('tv-reset').onclick = function () {
           var done = function () { location.reload(); };
