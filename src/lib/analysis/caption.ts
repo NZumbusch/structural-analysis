@@ -120,3 +120,43 @@ export function buildCaption(piece: Piece, options: CaptionOptions = {}): Captio
   }
   return { caption, method: `${de ? 'Methode: ' : 'Method: '}${sentences.join(' ')}` };
 }
+
+/** A short description of what the figure shows, for readers who cannot see it (alt text). */
+export function buildAltText(piece: Piece, options: CaptionOptions = {}): string {
+  const lang = piece.style.language;
+  const de = lang === 'de';
+  const stats = computeStats(piece, { countRepeats: options.countRepeats });
+  const s = stats.summary;
+  const names = piece.style.noteNames;
+  const work = [piece.meta.composer.trim(), [piece.meta.title.trim(), piece.meta.movement.trim()].filter(Boolean).join(', ')].filter(Boolean).join(', ');
+  const row = rowOf(piece.meta.center);
+  const center = `${tonicName(row, names)}${de ? '-Dur' : ' major'} / ${lowerFirst(tonicName(row + 3, names))}${de ? '-Moll' : ' minor'}`;
+  const keyName = (k: { fifths: number; mode: 'major' | 'minor' }) => {
+    const tonic = tonicName(k.fifths, names);
+    return k.mode === 'major' ? `${tonic}${de ? '-Dur' : ' major'}` : `${lowerFirst(tonic)}${de ? '-Moll' : ' minor'}`;
+  };
+  if (stats.spans.length === 0) return de ? 'Leeres Diagramm: noch keine Tonarten eingetragen.' : 'Empty chart: no keys entered yet.';
+  const first = stats.spans[0].key;
+  const last = stats.spans[stats.spans.length - 1].key;
+  const pct = Math.round(s.homeShare * 100);
+  const parts: string[] = [];
+  parts.push(
+    de
+      ? `Diagramm zum Tonartenverlauf${work ? ` von ${work}` : ''}. Waagerecht sind die Takte aufgetragen, senkrecht die Tonarten nach ihrem Quintenabstand vom Zentrum ${center}.`
+      : `Chart of the key plan${work ? ` of ${work}` : ''}. Bars run horizontally, keys are ordered vertically by their distance in fifths from the centre ${center}.`,
+  );
+  parts.push(de ? `Das Stück beginnt in ${keyName(first)} und endet in ${keyName(last)}.` : `The piece starts in ${keyName(first)} and ends in ${keyName(last)}.`);
+  if (s.farthest && s.maxDistance > 0) {
+    parts.push(
+      de
+        ? `Am weitesten vom Zentrum entfernt ist ${keyName(s.farthest.key)} (${s.maxDistance} Quinten, ab Takt ${Math.floor(s.farthest.pos)}).`
+        : `The key farthest from the centre is ${keyName(s.farthest.key)} (${s.maxDistance} fifths, from bar ${Math.floor(s.farthest.pos)}).`,
+    );
+  }
+  parts.push(
+    de
+      ? `Es gibt ${s.modulations} Wechsel zwischen Tonarten; etwa ${pct} % der analysierten Takte stehen in der Zentrumszeile.`
+      : `There are ${s.modulations} changes of key; about ${pct}% of the analysed bars are in the centre row.`,
+  );
+  return parts.join(' ');
+}

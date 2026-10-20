@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { buildCaption } from '../analysis/caption';
+  import { buildAltText, buildCaption } from '../analysis/caption';
   import type { Piece } from '../domain/types';
   import { t } from '../i18n/index.svelte';
   import { app } from '../stores/app.svelte';
@@ -41,6 +41,14 @@
       <span>{t('cap.caption')}</span>
       <textarea readonly rows="4" value={text.caption}></textarea>
       <div class="line"><button class="btn small" onclick={() => copy(text.caption)}>{t('stats.copy')}</button></div>
+    </div>
+    <div class="field">
+      <span>{t('cap.alt')}</span>
+      <textarea rows="3" bind:value={piece.meta.altText} placeholder={t('cap.altHint')}></textarea>
+      <div class="line">
+        <button class="btn small" onclick={() => (piece.meta.altText = buildAltText(piece, { view: view ? { from: view.from, to: view.to } : null, countRepeats: piece.style.repeatDisplay === 'expanded' }))}>{t('cap.altSuggest')}</button>
+        <button class="btn small" onclick={() => copy(piece.meta.altText)} disabled={!piece.meta.altText.trim()}>{t('stats.copy')}</button>
+      </div>
     </div>
     <div class="field">
       <span>{t('cap.method')}</span>

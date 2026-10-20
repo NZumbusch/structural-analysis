@@ -26,6 +26,7 @@ export const DEFAULT_STYLE: Style = {
   rowMax: null,
   rowMin: null,
   transparentBackground: false,
+  hatch: false,
   show: {
     subtitle: true,
     sectionLabels: true,
@@ -56,7 +57,7 @@ export function createPiece(overrides: Partial<Piece> = {}, style: Style = DEFAU
   const center: Key = { fifths: 0, mode: 'major' };
   const meta: PieceMeta = {
     title: '', composer: '', year: '', catalog: '', movement: '',
-    center, meter: { ...DEFAULT_METER }, pickup: 0, distanceMeasure: 'rows', subtitle: '', lastBar: 16, notes: '',
+    center, meter: { ...DEFAULT_METER }, pickup: 0, distanceMeasure: 'rows', subtitle: '', lastBar: 16, notes: '', altText: '',
   };
   return {
     version: 1,

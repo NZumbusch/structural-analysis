@@ -6,6 +6,9 @@ import { rowLabel, rowOf, spellingRow, tonicName } from '../domain/keys';
 import { barRange } from '../domain/positions';
 import type { FontFamilyId, Piece, Segment } from '../domain/types';
 import { CHART_LABELS } from './labels';
+import { accidentalPath, accidentalWidth } from './glyphs';
+import { FONT_STACK } from './fonts';
+import { HATCH_FILL, hatchDef } from './hatch';
 
 export interface ViewRange {
   from: number;
@@ -66,11 +69,7 @@ export const FS = { title: 20.8, label: 13.2, small: 12.5, section: 14.6, barLab
 const LW = { bar: 1.25, dominant: 1.5, grid: 0.7, divider: 1.1, link: 1.25, axis: 1.1 };
 const DASH = { dominant: '3 2.4', grid: '1.4 2.1', dotted: '1.5 2.8', marker: '4 3' };
 
-export const FONTS: Record<FontFamilyId, string> = {
-  sans: "'Helvetica Neue', Helvetica, Arial, 'Segoe UI', system-ui, sans-serif",
-  serif: "Georgia, 'Times New Roman', Times, serif",
-  mono: "'SFMono-Regular', Menlo, Consolas, 'Liberation Mono', monospace",
-};
+export const FONTS: Record<FontFamilyId, string> = FONT_STACK;
 
 const lowerFirst = (s: string) => s.charAt(0).toLowerCase() + s.slice(1);
 export const esc = (s: string) =>
@@ -341,14 +340,22 @@ export function renderChart(source: Piece, options: RenderOptions = {}): Chart {
       laneItems.push({ pos: e.pos, width: tw(e.label, FS.small, 4), center: false, draw: (x) => text(parts, x, laneMid, e.label, { size: FS.small, color: c.muted, attrs: ' font-style="italic"' }) });
     } else if (e.kind === 'keysig') {
       const k = Math.abs(e.fifths);
-      const label = k === 0 ? '♮' : `${k}${e.fifths > 0 ? '♯' : '♭'}`;
-      laneItems.push({ pos: e.pos, width: tw(label, FS.small, 4), center: false, draw: (x) => text(parts, x, laneMid, label, { size: FS.small, color: c.muted }) });
+      const digits = k === 0 ? '' : String(k);
+      const size = fs(FS.small);
+      laneItems.push({
+        pos: e.pos, width: tw(digits, FS.small, 0) + accidentalWidth(size) + 4, center: false,
+        draw: (x) => {
+          if (digits) text(parts, x, laneMid, digits, { size: FS.small, color: c.muted });
+          const ax = x + tw(digits, FS.small, 1);
+          parts.push(accidentalPath(k === 0 ? 'natural' : e.fifths > 0 ? 'sharp' : 'flat', ax, laneMid + size * 0.35, size, c.muted));
+        },
+      });
     } else if (e.kind === 'fermata') {
       laneItems.push({
         pos: e.pos, width: 14, center: true,
         draw: (x) =>
           parts.push(
-            `<path d="M${n(x + 1)},${n(laneMid + 3)} A6,6 0 0 1 ${n(x + 13)},${n(laneMid + 3)}" fill="none" stroke="${c.text}" stroke-width="1.3"/>` +
+            `<path d="M${n(x + 1)},${n(laneMid + 3)} C${n(x + 1)},${n(laneMid - 8)} ${n(x + 13)},${n(laneMid - 8)} ${n(x + 13)},${n(laneMid + 3)}" fill="none" stroke="${c.text}" stroke-width="1.3"/>` +
               `<circle cx="${n(x + 7)}" cy="${n(laneMid - 0.5)}" r="1.5" fill="${c.text}"/>`,
           ),
       });
@@ -361,7 +368,7 @@ export function renderChart(source: Piece, options: RenderOptions = {}): Chart {
     }
     for (const e of shown) {
       const label = `${e.beats}/${e.unit}`;
-      laneItems.push({ pos: e.pos, width: tw(label, FS.small, 4), center: false, draw: (x) => text(parts, x, laneMid, label, { size: FS.small, weight: 600 }) });
+      laneItems.push({ pos: e.pos, width: tw(label, FS.small, 4), center: false, draw: (x) => text(parts, x, laneMid, label, { size: FS.small, weight: 500 }) });
     }
   }
   let laneRight = -Infinity;
@@ -454,6 +461,7 @@ export function renderChart(source: Piece, options: RenderOptions = {}): Chart {
   }
 
   // ---- bars ------------------------------------------------------------------------------------------------
+  const minorFill = st.hatch ? HATCH_FILL : c.minorFill;
   const bh = st.barHeight;
   const handles: string[] = [];
   for (const s of segs) {
@@ -464,7 +472,7 @@ export function renderChart(source: Piece, options: RenderOptions = {}): Chart {
     const cy = yOf(rowOf(s.key));
     const y = cy - bh / 2;
     const stroke = s.key.mode === 'major' ? c.majorStroke : c.minorStroke;
-    const fill = s.key.mode === 'major' ? c.majorFill : c.minorFill;
+    const fill = s.key.mode === 'major' ? c.majorFill : minorFill;
     const r = Math.min(bh / 2, w / 2);
     const sel = ia?.selected === s.id;
     const attrs = ia ? ` data-kind="segment" data-id="${s.id}" style="cursor:pointer"` : '';
@@ -509,7 +517,8 @@ export function renderChart(source: Piece, options: RenderOptions = {}): Chart {
     let right = a.align === 'right';
     const size = fs(FS.small);
     const tw = textWidth(a.text, size, fam);
-    if (zoomed && !right && ax + 8 + a.dx + tw > plotRight) right = true;
+    // text that would run into the fifths column goes to the other side of its anchor
+    if (!right && ax + 8 + a.dx + tw > plotRight + 28) right = true;
     const tx = ax + (right ? -8 : 8) + a.dx;
     const ty = ay + a.dy;
     if (Math.abs(a.dx) > 20 || Math.abs(a.dy) > 10) {
@@ -539,7 +548,7 @@ export function renderChart(source: Piece, options: RenderOptions = {}): Chart {
       `<rect x="${n(x)}" y="${n(y - 6)}" width="22" height="12" rx="6" fill="${fill}" stroke="${stroke}" stroke-width="1.4"${dashed ? ` stroke-dasharray="${DASH.dominant}"` : ''}/>`;
     const items: Item[] = [];
     if (hasMajor || none) items.push({ label: lang.major, w: 22, draw: swatch(c.majorFill, c.majorStroke, false) });
-    if (hasMinor || none) items.push({ label: lang.minor, w: 22, draw: swatch(c.minorFill, c.minorStroke, false) });
+    if (hasMinor || none) items.push({ label: lang.minor, w: 22, draw: swatch(minorFill, c.minorStroke, false) });
     if (hasDominant || none) items.push({ label: lang.dominant, w: 22, draw: swatch(c.surface, c.majorStroke, true) });
     if (passing.length > 0 || none) {
       items.push({
@@ -570,16 +579,17 @@ export function renderChart(source: Piece, options: RenderOptions = {}): Chart {
   if (st.show.subtitle) text(head, 40, 56, subtitle, { size: FS.label, color: c.muted });
 
   const bg = st.transparentBackground ? '' : `<rect width="${width}" height="${n(height)}" fill="${c.background}"/>`;
-  const clip = zoomed
-    ? `<defs><clipPath id="plot-clip"><rect x="${n(left - 1)}" y="${bandTop - 2}" width="${n(plotRight - left + 2)}" height="${n(bottomY - bandTop + 4)}"/></clipPath></defs>`
-    : '';
+  const defs =
+    (zoomed ? `<clipPath id="plot-clip"><rect x="${n(left - 1)}" y="${bandTop - 2}" width="${n(plotRight - left + 2)}" height="${n(bottomY - bandTop + 4)}"/></clipPath>` : '') +
+    (st.hatch ? hatchDef(c) : '');
+  const clip = defs ? `<defs>${defs}</defs>` : '';
   const size = options.widthCm
     ? `width="${n(options.widthCm)}cm" height="${n((options.widthCm * height) / width)}cm"`
     : `width="${width}" height="${n(height)}"`;
   const label = [title, subtitle].filter(Boolean).join(' – ');
   const svg =
     `<svg xmlns="http://www.w3.org/2000/svg" ${size} viewBox="0 0 ${width} ${n(height)}" font-family="${esc(FONTS[fam])}" role="img" aria-label="${esc(label)}">` +
-    `<title>${esc(title || lang.fifths)}</title><desc>${esc(subtitle)}</desc>` +
+    `<title>${esc(title || lang.fifths)}</title><desc>${esc(piece.meta.altText?.trim() || subtitle)}</desc>` +
     clip +
     bg +
     head.join('') +

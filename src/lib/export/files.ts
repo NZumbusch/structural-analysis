@@ -15,15 +15,39 @@ export function downloadBlob(blob: Blob, filename: string): void {
   setTimeout(() => URL.revokeObjectURL(url), 10_000);
 }
 
+/** How fonts go into an export: bundled font embedded, text turned into outlines, or left to the viewer. */
+export type FontMode = 'embed' | 'outline' | 'none';
+
 export interface ExportOptions {
   view?: ViewRange | null;
   /** Physical width of SVG/PDF output in cm. */
   widthCm?: number;
+  fonts?: FontMode;
 }
 
-export function svgBlob(piece: Piece, options: ExportOptions = {}): Blob {
+/** Applies the font mode to an SVG string. `missing` counts text that could not be outlined. */
+export async function prepareSvg(svg: string, mode: FontMode = 'embed'): Promise<{ svg: string; missing: number }> {
+  // the font and PDF code is loaded only when something is exported
+  if (mode === 'embed') return { svg: await (await import('./fontdata')).embedFonts(svg), missing: 0 };
+  if (mode === 'outline') return (await import('./fontdata')).outlineText(svg);
+  return { svg, missing: 0 };
+}
+
+const XML_HEAD = '<?xml version="1.0" encoding="UTF-8"?>\n';
+
+export async function svgBlob(piece: Piece, options: ExportOptions = {}): Promise<{ blob: Blob; missing: number }> {
   const { svg } = renderChart(piece, options);
-  return new Blob(['<?xml version="1.0" encoding="UTF-8"?>\n' + svg], { type: 'image/svg+xml;charset=utf-8' });
+  const prepared = await prepareSvg(svg, options.fonts);
+  return { blob: new Blob([XML_HEAD + prepared.svg], { type: 'image/svg+xml;charset=utf-8' }), missing: prepared.missing };
+}
+
+/** A vector PDF of the chart, with the font embedded (or text outlined). */
+export async function pdfBlob(piece: Piece, options: ExportOptions = {}): Promise<{ blob: Blob; missing: number }> {
+  const { svg } = renderChart(piece, { view: options.view });
+  const prepared = options.fonts === 'outline' ? await prepareSvg(svg, 'outline') : { svg, missing: 0 };
+  const { svgToPdf } = await import('./pdf');
+  const pdf = await svgToPdf(prepared.svg, { widthCm: options.widthCm, title: displayTitle(piece) || undefined });
+  return { blob: new Blob([pdf as BlobPart], { type: 'application/pdf' }), missing: prepared.missing };
 }
 
 /** Chart size in chart units, so callers can turn a scale or a cm/dpi request into pixels. */
@@ -60,20 +84,20 @@ export async function svgToPng(
 }
 
 /** Rasterises the main chart. */
-export function pngBlob(
+export async function pngBlob(
   piece: Piece,
   options: { view?: ViewRange | null; scale?: number; pixelWidth?: number },
 ): Promise<Blob> {
   const { svg, width, height } = renderChart(piece, { view: options.view });
-  return svgToPng(svg, width, height, options);
+  return svgToPng((await prepareSvg(svg, 'embed')).svg, width, height, options);
 }
 
 /** Every view of the piece (and the whole chart) as one ZIP of SVG or PNG files. */
 export async function viewsZip(
   piece: Piece,
-  kind: 'svg' | 'png',
+  kind: 'svg' | 'png' | 'pdf',
   base: string,
-  options: { widthCm?: number; scale?: number; pixelWidth?: number },
+  options: { widthCm?: number; scale?: number; pixelWidth?: number; fonts?: FontMode },
 ): Promise<Blob> {
   const entries: ZipEntry[] = [];
   const targets: { name: string; view: ViewRange | null }[] = [
@@ -84,42 +108,16 @@ export async function viewsZip(
     })),
   ];
   for (const t of targets) {
-    const blob = kind === 'svg' ? svgBlob(piece, { view: t.view, widthCm: options.widthCm }) : await pngBlob(piece, { view: t.view, ...options });
+    const blob =
+      kind === 'svg'
+        ? (await svgBlob(piece, { view: t.view, widthCm: options.widthCm, fonts: options.fonts })).blob
+        : kind === 'pdf'
+          ? (await pdfBlob(piece, { view: t.view, widthCm: options.widthCm, fonts: options.fonts })).blob
+          : await pngBlob(piece, { view: t.view, scale: options.scale, pixelWidth: options.pixelWidth });
     entries.push({ name: `${t.name}.${kind}`, data: new Uint8Array(await blob.arrayBuffer()) });
   }
   return new Blob([zip(entries) as BlobPart], { type: 'application/zip' });
 }
-
-/**
- * Opens the browser's print dialog with only the chart on a page of exactly its size
- * ("Save as PDF" there gives a vector PDF with live text).
- */
-export function printPdf(piece: Piece, options: ExportOptions = {}): void {
-  const { svg, width, height } = renderChart(piece, options);
-  const cmW = options.widthCm ?? (width / 96) * 2.54;
-  const cmH = (cmW * height) / width;
-  const frame = document.createElement('iframe');
-  frame.style.cssText = 'position:fixed;left:-9999px;top:0;width:1px;height:1px;border:0';
-  document.body.appendChild(frame);
-  const doc = frame.contentDocument!;
-  doc.open();
-  doc.write(
-    `<!doctype html><title>${esc(displayTitle(piece) || 'Tonartenverlauf')}</title><style>` +
-      `@page{size:${cmW.toFixed(3)}cm ${cmH.toFixed(3)}cm;margin:0}` +
-      `html,body{margin:0;padding:0}svg{display:block;-webkit-print-color-adjust:exact;print-color-adjust:exact}</style>` +
-      svg.replace(/width="[^"]*" height="[^"]*"/, `width="${cmW.toFixed(3)}cm" height="${cmH.toFixed(3)}cm"`),
-  );
-  doc.close();
-  const win = frame.contentWindow!;
-  win.onafterprint = () => frame.remove();
-  setTimeout(() => {
-    win.focus();
-    win.print();
-    setTimeout(() => frame.remove(), 60_000);
-  }, 150);
-}
-
-const esc = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;');
 
 export function slugify(raw: string): string {
   return raw

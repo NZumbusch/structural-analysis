@@ -45,6 +45,13 @@ Set the time signature under **Stück** so beat positions and the beat grid are 
   rows (default; relative keys share a row), fifths of the tonics (same-tonic keys are 0 apart), or the fewest steps
   over fifth / relative / same-tonic relations. The chart's rows always use the first. A caption and a method note
   describing the conventions are generated under Export → Bildunterschrift & Methode.
+- **Fonts and PDF:** the charts use bundled open fonts (Inter, Source Serif 4, JetBrains Mono; SIL OFL). SVG and PNG
+  embed the font, so figures look the same everywhere; "text to outlines" is available for journals that ask for it.
+  PDF is written by the app itself (vector, TrueType fonts embedded, selectable text, page size = chart size or the
+  chosen width in cm). Accidentals are drawn shapes because the fonts have no ♭ ♯ ♮.
+- **Print helpers:** optional hatching for minor (black-and-white print), a "target label size in pt" fit for a given
+  figure width, CMYK values for the palette (rough conversion, no colour profile), and an alt text that is written
+  into the SVG.
 - Works offline once opened (service worker); installable on phones.
 
 Capital letter = major, lower case = minor (`Es`, `c`, `Fis`, `b` = B-flat minor); `Cm`, `A-Dur`, `F# minor` also work.

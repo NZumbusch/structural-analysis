@@ -179,7 +179,8 @@ describe('repeats', () => {
     expect(svg).toContain('>3/4<');
     expect(svg).toContain('>4/4<'); // the starting meter is shown once the meter changes
     expect(svg).toContain('>Allegro<');
-    expect(svg).toContain('3♭');
+    expect(svg).toContain('>3<'); // key signature: the number as text, the flat drawn as a shape
+    expect(svg).toContain('<g transform="translate(');
   });
 });
 

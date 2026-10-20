@@ -3,8 +3,9 @@
   import { validate } from '../domain/validate';
   import type { Piece } from '../domain/types';
   import {
-    chartSize, downloadBlob, pngBlob, printPdf, projectBlob, projectFileName, slugify, svgBlob, viewsZip,
+    chartSize, downloadBlob, pdfBlob, pngBlob, projectBlob, projectFileName, slugify, svgBlob, viewsZip, type FontMode,
   } from '../export/files';
+  import { fitFontScale } from '../export/fit';
   import { LINK_WARN_LENGTH, shareLink } from '../export/share';
   import { FS } from '../render/chart';
   import { app } from '../stores/app.svelte';
@@ -22,6 +23,9 @@
   let widthCm = $state(16);
   let dpi = $state(300);
   let busy = $state(false);
+  let fonts = $state<FontMode>('embed');
+  let zipKind = $state<'svg' | 'png' | 'pdf'>('svg');
+  let targetPt = $state(8);
   let linkLength = $state(0);
   const problems = $derived(validate(piece).filter((i) => i.severity !== 'info').length);
 
@@ -55,17 +59,33 @@
 
   const pngOptions = () => ({ view: range, ...(mode === 'physical' ? { pixelWidth } : { scale }) });
 
-  const svg = () => downloadBlob(svgBlob(piece, { view: range, widthCm: cm }), `${base}.svg`);
-  const png = () => run(async () => downloadBlob(await pngBlob(piece, pngOptions()), `${base}.png`));
-  const pdf = () => printPdf(piece, { view: range, widthCm: cm });
-  const project = () => downloadBlob(projectBlob([piece]), name.trim() ? `${base}.tonart.json` : projectFileName(piece));
-  const zipAll = (kind: 'svg' | 'png') =>
+  const warnMissing = (n: number) => n > 0 && app.notify(t('ex.outlineMissing', { n }));
+  const svg = () =>
     run(async () => {
-      const blob = await viewsZip(piece, kind, name.trim() || fileSlug(piece), {
+      const { blob, missing } = await svgBlob(piece, { view: range, widthCm: cm, fonts });
+      downloadBlob(blob, `${base}.svg`);
+      warnMissing(missing);
+    });
+  const png = () => run(async () => downloadBlob(await pngBlob(piece, pngOptions()), `${base}.png`));
+  const pdf = () =>
+    run(async () => {
+      const { blob, missing } = await pdfBlob(piece, { view: range, widthCm: cm, fonts });
+      downloadBlob(blob, `${base}.pdf`);
+      warnMissing(missing);
+    });
+  function fitText() {
+    piece.style.fontScale = fitFontScale(piece, widthCm, targetPt, range);
+    app.notify(t('ex.fitted', { pct: Math.round(piece.style.fontScale * 100) }));
+  }
+  const project = () => downloadBlob(projectBlob([piece]), name.trim() ? `${base}.tonart.json` : projectFileName(piece));
+  const zipAll = () =>
+    run(async () => {
+      const blob = await viewsZip(piece, zipKind, name.trim() || fileSlug(piece), {
         widthCm: cm,
+        fonts,
         ...(mode === 'physical' ? { pixelWidth } : { scale }),
       });
-      downloadBlob(blob, `${name.trim() || fileSlug(piece)}-${kind}.zip`);
+      downloadBlob(blob, `${name.trim() || fileSlug(piece)}-${zipKind}.zip`);
     });
   const copy = () =>
     run(async () => {
@@ -136,13 +156,27 @@
           </label>
         </div>
         <p class="hint">{t('ex.labelPt', { pt: labelPt.toFixed(1) })}</p>
+        <div class="line">
+          <label class="inline"><span class="muted small">{t('ex.targetPt')}</span>
+            <span class="pt"><NumInput label={t('ex.targetPt')} min={4} max={24} step={0.5} value={targetPt} onchange={(v) => (targetPt = v ?? targetPt)} /></span>
+          </label>
+          <button class="btn small" onclick={fitText}>{t('ex.fit')}</button>
+        </div>
       {/if}
       <p class="hint">{t('ex.pngSize', { w: pixelWidth, h: pixelHeight })}</p>
 
+      <label class="field">
+        <span>{t('ex.fonts')}</span>
+        <select bind:value={fonts}>
+          <option value="embed">{t('ex.fonts.embed')}</option>
+          <option value="outline">{t('ex.fonts.outline')}</option>
+          <option value="none">{t('ex.fonts.none')}</option>
+        </select>
+      </label>
       <div class="grid">
-        <button class="btn primary" onclick={svg}>SVG</button>
+        <button class="btn primary" onclick={svg} disabled={busy}>SVG</button>
         <button class="btn primary" onclick={png} disabled={busy}>PNG</button>
-        <button class="btn primary" onclick={pdf}>PDF</button>
+        <button class="btn primary" onclick={pdf} disabled={busy}>PDF</button>
       </div>
       <p class="hint">{t('ex.svgHelp')} {t('ex.pdfHelp')}</p>
 
@@ -153,8 +187,12 @@
 
       {#if piece.views.length > 0}
         <div class="line">
-          <button class="btn" onclick={() => zipAll('svg')} disabled={busy}>{t('ex.zipSvg')}</button>
-          <button class="btn" onclick={() => zipAll('png')} disabled={busy}>{t('ex.zipPng')}</button>
+          <select class="zipkind" aria-label={t('ex.zipFormat')} bind:value={zipKind}>
+            <option value="svg">SVG</option>
+            <option value="png">PNG</option>
+            <option value="pdf">PDF</option>
+          </select>
+          <button class="btn" onclick={zipAll} disabled={busy}>{t('ex.zipAll')}</button>
         </div>
         <p class="hint">{t('ex.zipHelp', { n: piece.views.length + 1 })}</p>
       {/if}
@@ -191,6 +229,9 @@
   .actions { padding: 16px; display: grid; gap: 10px; }
   .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
   .two { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .zipkind { width: auto; }
+  .pt { display: inline-block; width: 90px; }
+  .inline { display: inline-flex; align-items: center; gap: 8px; }
   .seg { display: flex; gap: 6px; }
   .seg .btn { flex: 1; }
   .seg .on { background: var(--accent-soft); border-color: var(--accent); font-weight: 600; }

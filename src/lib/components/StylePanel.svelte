@@ -2,6 +2,7 @@
   import { cloneStyle, DEFAULT_STYLE } from '../domain/piece';
   import { rowLabel } from '../domain/keys';
   import { renderChart } from '../render/chart';
+  import { toCmyk } from '../render/colors';
   import type { Palette, Piece, ShowOptions } from '../domain/types';
   import { activePalette, PALETTES } from '../render/palettes';
   import { app } from '../stores/app.svelte';
@@ -66,6 +67,24 @@
       {/each}
     </div>
     <label class="check"><input type="checkbox" bind:checked={piece.style.transparentBackground} />{t('st.transparent')}</label>
+    <label class="check"><input type="checkbox" bind:checked={piece.style.hatch} />{t('st.hatch')}</label>
+    <details class="cmyk">
+      <summary>{t('st.cmyk')}</summary>
+      <table>
+        <tbody>
+          {#each colorKeys as key (key)}
+            {@const c = toCmyk(st.colors[key])}
+            <tr>
+              <td><i style:background={st.colors[key]}></i></td>
+              <td>{t(`col.${key}` as TKey)}</td>
+              <td class="mono">{st.colors[key].toUpperCase()}</td>
+              <td class="mono">{c.c} / {c.m} / {c.y} / {c.k}</td>
+            </tr>
+          {/each}
+        </tbody>
+      </table>
+      <p class="hint">{t('st.cmykHint')}</p>
+    </details>
   </Panel>
 
   <Panel title={t('ex.layout')}>
@@ -229,6 +248,10 @@
   .color { display: flex; align-items: center; gap: 8px; font-size: 0.9rem; }
   .check { display: flex; align-items: center; gap: 8px; font-size: 0.95rem; }
   .shows { display: grid; gap: 8px 12px; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); }
+  .cmyk summary { cursor: pointer; font-size: 0.9rem; color: var(--muted); padding: 4px 0; }
+  .cmyk table { border-collapse: collapse; width: 100%; font-size: 0.85rem; margin: 6px 0; }
+  .cmyk td { padding: 3px 6px 3px 0; white-space: nowrap; }
+  .cmyk i { display: block; width: 16px; height: 16px; border-radius: 4px; border: 1px solid var(--border); }
   .rowsdetails summary { cursor: pointer; font-size: 0.9rem; color: var(--muted); padding: 4px 0; }
   .rownames { display: grid; gap: 6px; margin-top: 6px; }
   .rn { display: grid; grid-template-columns: 34px 1fr; gap: 8px; align-items: center; }

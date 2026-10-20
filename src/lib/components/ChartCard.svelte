@@ -1,7 +1,7 @@
 <script lang="ts">
   import type { Snippet } from 'svelte';
   import type { StatChart } from '../analysis/charts';
-  import { downloadBlob, svgToPng } from '../export/files';
+  import { downloadBlob, prepareSvg, svgToPng } from '../export/files';
   import { app } from '../stores/app.svelte';
   import { t } from '../i18n/index.svelte';
 
@@ -13,15 +13,20 @@
     children,
   }: { title: string; chart: StatChart; name: string; controls?: Snippet; children?: Snippet } = $props();
 
-  const svg = () =>
-    downloadBlob(new Blob(['<?xml version="1.0" encoding="UTF-8"?>\n' + chart.svg], { type: 'image/svg+xml;charset=utf-8' }), `${name}.svg`);
-  async function png() {
+  async function attempt(task: () => Promise<void>) {
     try {
-      downloadBlob(await svgToPng(chart.svg, chart.width, chart.height, { scale: 3 }), `${name}.png`);
+      await task();
     } catch {
       app.notify(t('ex.failed'));
     }
   }
+  const svg = () =>
+    attempt(async () =>
+      downloadBlob(new Blob(['<?xml version="1.0" encoding="UTF-8"?>\n' + (await prepareSvg(chart.svg, 'embed')).svg], { type: 'image/svg+xml;charset=utf-8' }), `${name}.svg`),
+    );
+  const png = () => attempt(async () => downloadBlob(await svgToPng((await prepareSvg(chart.svg, 'embed')).svg, chart.width, chart.height, { scale: 3 }), `${name}.png`));
+  const pdf = () =>
+    attempt(async () => downloadBlob(new Blob([(await (await import('../export/pdf')).svgToPdf(chart.svg, { title })) as BlobPart], { type: 'application/pdf' }), `${name}.pdf`));
 </script>
 
 <section class="card block">
@@ -31,6 +36,7 @@
       {@render controls?.()}
       <button class="btn small" onclick={svg}>SVG</button>
       <button class="btn small" onclick={png}>PNG</button>
+      <button class="btn small" onclick={pdf}>PDF</button>
     </div>
   </header>
   <div class="chart">

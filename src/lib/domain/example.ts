@@ -68,6 +68,7 @@ export function createExample(): Piece {
         subtitle: '',
         lastBar: 120,
         notes: '',
+        altText: '',
       },
       segments: parseSegments(SEGMENTS, names, { beats: 4, unit: 4 }).segments,
       passing: [

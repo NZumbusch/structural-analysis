@@ -134,6 +134,8 @@ export interface PieceMeta {
   /** Null = derived from the last segment. */
   lastBar: number | null;
   notes: string;
+  /** Description of the figure for readers who cannot see it; written into the SVG. */
+  altText: string;
 }
 
 export interface Palette {
@@ -205,6 +207,8 @@ export interface Style {
   rowMax: number | null;
   rowMin: number | null;
   transparentBackground: boolean;
+  /** Minor bars get a diagonal hatch, so major and minor differ without colour. */
+  hatch: boolean;
   show: ShowOptions;
 }
 

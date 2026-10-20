@@ -2,6 +2,7 @@ import type { DistanceMeasure } from '../domain/distance';
 import { keyName, rowLabel } from '../domain/keys';
 import type { Key, Lang, Piece } from '../domain/types';
 import { esc, FONTS, textWidth } from '../render/chart';
+import { HATCH_FILL, hatchDef } from '../render/hatch';
 import { formatNumber, formatPercent } from './csv';
 import { sectionSpans } from '../domain/structure';
 import { type Stats } from './stats';
@@ -99,6 +100,10 @@ class Canvas {
   get c() {
     return this.piece.style.colors;
   }
+  /** Fill of a mode's bars: its colour, or the hatch pattern when hatching is on. */
+  fill(mode: 'major' | 'minor'): string {
+    return mode === 'minor' && this.piece.style.hatch ? HATCH_FILL : mode === 'major' ? this.c.majorFill : this.c.minorFill;
+  }
   get fs() {
     return this.piece.style.fontScale;
   }
@@ -127,7 +132,7 @@ class Canvas {
     const bg = this.piece.style.transparentBackground ? '' : `<rect width="${this.width}" height="${height}" fill="${this.c.background}"/>`;
     const svg =
       `<svg xmlns="http://www.w3.org/2000/svg" width="${this.width}" height="${height}" viewBox="0 0 ${this.width} ${height}" font-family="${esc(FONTS[this.fam])}" role="img" aria-label="${esc(title)}">` +
-      `<title>${esc(title)}</title>${bg}${this.parts.join('')}</svg>`;
+      `<title>${esc(title)}</title>${this.piece.style.hatch ? `<defs>${hatchDef(this.c)}</defs>` : ''}${bg}${this.parts.join('')}</svg>`;
     return { svg, width: this.width, height };
   }
 }
@@ -147,7 +152,7 @@ function legend(cv: Canvas, y: number, items: { label: string; draw: (x: number,
 }
 
 const modeSwatch = (cv: Canvas, mode: 'major' | 'minor') => (x: number, y: number) =>
-  cv.rect(x, y - 6, 22, 12, mode === 'major' ? cv.c.majorFill : cv.c.minorFill, mode === 'major' ? cv.c.majorStroke : cv.c.minorStroke, 1.2, ' rx="3"');
+  cv.rect(x, y - 6, 22, 12, cv.fill(mode), mode === 'major' ? cv.c.majorStroke : cv.c.minorStroke, 1.2, ' rx="3"');
 const domSwatch = (cv: Canvas) => (x: number, y: number) =>
   cv.rect(x, y - 6, 22, 12, cv.c.surface, cv.c.majorStroke, 1.4, ' rx="3" stroke-dasharray="3 2.4"');
 
@@ -178,7 +183,7 @@ export function chartKeys(stats: Stats, piece: Piece, order: KeyOrder): StatChar
   cv.text(left - 6, bottom + 14, L.bars, { size: 12, color: cv.c.muted, anchor: 'end' });
   rows.forEach((r, i) => {
     const y = top + i * rowH + rowH / 2;
-    const fill = r.key.mode === 'major' ? cv.c.majorFill : cv.c.minorFill;
+    const fill = cv.fill(r.key.mode);
     const stroke = r.key.mode === 'major' ? cv.c.majorStroke : cv.c.minorStroke;
     const isHome = r.distance === 0;
     cv.text(left - 8, y, keyDisplay(r.key, piece), { anchor: 'end', color: isHome ? cv.c.text : cv.c.muted, weight: isHome ? 500 : 0 });
@@ -226,7 +231,7 @@ export function chartDistance(stats: Stats, piece: Piece): StatChart {
     const w = colW - 18;
     // minor sits on top of major
     if (d.major > 0) cv.rect(x, y(d.major), w, y(0) - y(d.major), cv.c.majorFill, cv.c.majorStroke, 1.2, ' rx="3"');
-    if (d.minor > 0) cv.rect(x, y(d.major + d.minor), w, y(d.major) - y(d.major + d.minor), cv.c.minorFill, cv.c.minorStroke, 1.2, ' rx="3"');
+    if (d.minor > 0) cv.rect(x, y(d.major + d.minor), w, y(d.major) - y(d.major + d.minor), cv.fill('minor'), cv.c.minorStroke, 1.2, ' rx="3"');
     if (d.bars > 0) cv.text(x + w / 2, y(d.bars) - 10, formatNumber(d.bars, lang, 1), { size: 11.5, color: cv.c.muted, anchor: 'middle' });
     const cx = x + w / 2;
     const sign = d.signed > 0 ? `+${d.signed}` : d.signed < 0 ? `−${-d.signed}` : '0';
