@@ -68,7 +68,7 @@ export function loadPrefs(): Prefs {
   };
   return {
     sync,
-    uiLang: raw?.uiLang === 'de' || raw?.uiLang === 'en' ? raw.uiLang : 'de',
+    uiLang: raw?.uiLang === 'de' || raw?.uiLang === 'en' ? raw.uiLang : typeof navigator !== 'undefined' && /^en/i.test(navigator.language ?? '') ? 'en' : 'de',
     lastOpenId: raw?.lastOpenId ?? null,
     defaultStyle: raw?.defaultStyle ? normalizeStyle(raw.defaultStyle) : null,
     backups: raw?.backups && typeof raw.backups === 'object' ? raw.backups : {},

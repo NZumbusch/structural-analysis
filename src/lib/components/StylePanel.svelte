@@ -38,10 +38,6 @@
     piece.style = cloneStyle(DEFAULT_STYLE);
   }
 
-  function saveDefault() {
-    app.saveDefaultStyle();
-    app.notify(t('ex.defaultSaved'));
-  }
 </script>
 
 <div class="stack">
@@ -68,7 +64,6 @@
     </div>
     <label class="check"><input type="checkbox" bind:checked={piece.style.transparentBackground} />{t('st.transparent')}</label>
     <label class="check"><input type="checkbox" bind:checked={piece.style.hatch} />{t('st.hatch')}</label>
-    <label class="check"><input type="checkbox" bind:checked={piece.style.foldTonicizations} />{t('st.fold')}</label>
     <details class="cmyk">
       <summary class="light"><span class="chev" aria-hidden="true"></span>{t('st.cmyk')}</summary>
       <table>
@@ -173,13 +168,6 @@
       </select>
     </label>
     <label class="field">
-      <span>{t('st.noteNames')}</span>
-      <select bind:value={piece.style.noteNames}>
-        <option value="de">{t('st.names.de')}</option>
-        <option value="en">{t('st.names.en')}</option>
-      </select>
-    </label>
-    <label class="field">
       <span>{t('st.titleLayout')}</span>
       <select bind:value={piece.style.titleLayout}>
         <option value="composer-title">{t('st.layout.composer-title')}</option>
@@ -233,7 +221,6 @@
   {/if}
 
   <div class="line">
-    <button class="btn" onclick={saveDefault}>{t('ex.saveDefault')}</button>
     <button class="btn" onclick={reset}>{t('ex.resetStyle')}</button>
   </div>
 </div>

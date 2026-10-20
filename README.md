@@ -28,7 +28,10 @@ Set the time signature under **Stück** so beat positions and the beat grid are 
   inserted or deleted anywhere (everything after them moves). Anacrusis counts as bar 0. Repeats are drawn as signs
   or written out in play order (setting); statistics can count repeated bars once or twice.
 
-- **Sync with Google Drive (Library):** keeps your pieces identical on all devices through a hidden app folder in your
+- **Settings (gear in the header):** a drawer on laptops, a page elsewhere: interface language, defaults for new pieces
+  (note names, look), simple view on phones, Drive sync, licences. Settings that change what a piece means (note
+  names, folding secondary dominants) live in the *Piece* tab; the look of the graphic stays in *Export*.
+- **Sync with Google Drive (Settings):** keeps your pieces identical on all devices through a hidden app folder in your
   own Drive (no server, no cost; needs a free one-time Google Cloud client ID, see [setup](docs/sync-setup.md)).
   Works in the browser and the installed app, offline-first; conflicts keep both versions. The sign-in script is
   loaded from Google only once you connect.

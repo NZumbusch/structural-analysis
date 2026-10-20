@@ -1,6 +1,6 @@
 import { createExample } from '../domain/example';
 import { cloneStyle, createPiece, DEFAULT_STYLE, normalizeStyle } from '../domain/piece';
-import type { Piece } from '../domain/types';
+import type { Piece, Style } from '../domain/types';
 import { downloadBlob, freshIdentity, projectBlob, projectFileName, readProjectFile } from '../export/files';
 import type { Snap } from '../domain/positions';
 import { deletePiece, loadAllPieces, loadPrefs, savePiece, savePrefs } from './storage';
@@ -35,6 +35,8 @@ class AppState {
   prefs = $state(loadPrefs());
   saveState = $state<SaveState>('saved');
   toast = $state('');
+  /** The settings drawer (laptop) or page (everything else) is showing. */
+  settingsOpen = $state(false);
 
   /** Element picked in the preview; the matching editor row is highlighted. */
   selection = $state<Selection | null>(null);
@@ -304,6 +306,22 @@ class AppState {
 
   setSimple(on: boolean): void {
     this.prefs.simpleOnMobile = on;
+    savePrefs(this.prefs);
+  }
+
+  /** The look new pieces start with: the saved default, or the built-in one. */
+  get defaults(): Style {
+    return this.prefs.defaultStyle ? normalizeStyle(this.prefs.defaultStyle) : DEFAULT_STYLE;
+  }
+
+  /** Changes single defaults for new pieces (note names, language of the graphic) and keeps the rest of the default look. */
+  setDefaults(patch: Partial<Pick<Style, 'noteNames' | 'language'>>): void {
+    this.prefs.defaultStyle = { ...cloneStyle(this.defaults), ...patch };
+    savePrefs(this.prefs);
+  }
+
+  resetDefaults(): void {
+    this.prefs.defaultStyle = null;
     savePrefs(this.prefs);
   }
 

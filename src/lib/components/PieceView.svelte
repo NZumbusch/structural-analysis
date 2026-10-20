@@ -42,6 +42,16 @@
     <p class="hint">{t('piece.centerHint')}</p>
 
     <label class="field">
+      <span>{t('st.noteNames')}</span>
+      <select bind:value={piece.style.noteNames}>
+        <option value="de">{t('st.names.de')}</option>
+        <option value="en">{t('st.names.en')}</option>
+      </select>
+      <span class="hint">{t('piece.noteNamesHint')}</span>
+    </label>
+    <label class="check"><input type="checkbox" bind:checked={piece.style.foldTonicizations} />{t('st.fold')}</label>
+
+    <label class="field">
       <span>{t('piece.subtitle')}</span>
       <input type="text" bind:value={piece.meta.subtitle} />
       <span class="hint">{t('piece.subtitleHint')}</span>
@@ -87,6 +97,7 @@
   .form { padding: 16px; display: grid; gap: 12px; }
   .side { display: grid; gap: 8px; min-width: 0; position: sticky; top: calc(var(--header-h) + var(--tabs-h) + 12px); }
   .provbody { display: grid; gap: 10px; margin-top: 6px; }
+  .check { display: flex; align-items: center; gap: 8px; font-size: 0.95rem; }
   .two { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
   @media (max-width: 860px) {
     .layout { grid-template-columns: minmax(0, 1fr); }

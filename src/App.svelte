@@ -12,6 +12,7 @@
   import { codeFromHash, decodePiece } from './lib/export/share';
   import { t, type TKey } from './lib/i18n/index.svelte';
   import { app, fingerprint, type Tab } from './lib/stores/app.svelte';
+  import SettingsView from './lib/components/SettingsView.svelte';
   import { sync } from './lib/stores/sync.svelte';
 
   const tabs: { id: Tab; icon: string }[] = [
@@ -155,10 +156,9 @@
 
     {/if}
   </div>
-  <div class="lang" role="group" aria-label="Language">
-    <button class="btn small" class:on={app.prefs.uiLang === 'de'} onclick={() => app.setUiLang('de')}>DE</button>
-    <button class="btn small" class:on={app.prefs.uiLang === 'en'} onclick={() => app.setUiLang('en')}>EN</button>
-  </div>
+  <button class="btn small icon gear" class:on={app.settingsOpen} aria-label={t('set.title')} aria-expanded={app.settingsOpen} title={t('set.title')} onclick={() => (app.settingsOpen = !app.settingsOpen)}>
+    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>
+  </button>
 </header>
 
 <nav class="tabs" aria-label="Workflow">
@@ -231,6 +231,8 @@
   {/if}
 </main>
 
+{#if app.settingsOpen}<SettingsView />{/if}
+
 {#if dragging}<div class="drop">{t('lib.drop')}</div>{/if}
 {#if app.toast}
   <div class="toast" role="status">{app.toast === 'storage' ? t('save.error') : app.toast}</div>
@@ -255,8 +257,7 @@
   .backupbar { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; padding: 6px 16px; font-size: 0.85rem; background: var(--accent-soft); border-bottom: 1px solid var(--border); }
   .backupbar span { flex: 1 1 200px; }
   .state.error { color: var(--danger); }
-  .lang { display: flex; gap: 4px; }
-  .lang .on { background: var(--accent-soft); border-color: var(--accent); font-weight: 600; }
+  .gear.on { background: var(--accent-soft); border-color: var(--accent); }
 
   .tabs {
     position: sticky; top: var(--header-h); z-index: 19; height: var(--tabs-h);
