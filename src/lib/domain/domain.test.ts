@@ -215,3 +215,16 @@ describe('chart features', () => {
     expect(p.views).toEqual([]);
   });
 });
+
+describe('bar-based quick entry', () => {
+  it('reads a single bar, an inclusive range and a length', () => {
+    const r = parseSegments('12 >As\n13..14 As\n15+2 c\n17+1.5 g', 'de', { beats: 4, unit: 4 });
+    expect(r.errors).toEqual([]);
+    expect(r.segments.map((s) => [s.from, s.to, s.kind])).toEqual([[12, 13, 'dominant'], [13, 15, 'key'], [15, 17, 'key'], [17, 18.5, 'key']]);
+  });
+  it('keeps the from-to form and reports empty ranges', () => {
+    const ok = parseSegments('1-9 c "x"', 'de', { beats: 4, unit: 4 });
+    expect(ok.segments[0]).toMatchObject({ from: 1, to: 9, label: 'x' });
+    expect(parseSegments('5..4 c', 'de', { beats: 4, unit: 4 }).errors).toEqual([{ line: 1, message: 'range' }]);
+  });
+});

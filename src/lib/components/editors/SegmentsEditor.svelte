@@ -9,6 +9,7 @@
   import { app } from '../../stores/app.svelte';
   import PosInput from '../PosInput.svelte';
   import KeyInput from '../KeyInput.svelte';
+  import NumInput from '../NumInput.svelte';
 
   let { piece }: { piece: Piece } = $props();
 
@@ -95,6 +96,7 @@
       >
         <div class="n"><PosInput label={t('an.from')} value={seg.from} {meter} onchange={(v) => (seg.from = v)} /></div>
         <div class="n"><PosInput label={t('an.to')} value={seg.to} {meter} onchange={(v) => (seg.to = v)} /></div>
+        <div class="len"><NumInput label={t('an.length')} value={Math.round((seg.to - seg.from) * 1000) / 1000} step={0.25} min={0.05} onchange={(v) => v !== null && (seg.to = seg.from + v)} /></div>
         <div class="k"><KeyInput label={t('an.key')} value={seg.key} {names} onchange={(k) => (seg.key = k)} /></div>
         <button class="btn small toggle" class:on={seg.key.mode === 'minor'} title={t('an.mode')} onclick={() => flipMode(seg)}>
           {seg.key.mode === 'major' ? 'Dur' : 'Moll'}
@@ -121,5 +123,6 @@
 
 <style>
   .grid { display: grid; gap: 10px; }
+  .line > .len { flex: 0 0 64px; }
   .kindsel { flex: 0 0 auto; width: auto; max-width: 150px; min-height: 32px; padding: 2px 6px; }
 </style>

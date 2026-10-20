@@ -18,13 +18,20 @@ const KIND_OF_PREFIX: Record<string, SegmentKind> = { '>': 'dominant', '>L': 'le
 const PREFIX_OF_KIND: Record<SegmentKind, string> = { key: '', dominant: '>', leading: '>L ', neapolitan: '>N ', tonicization: '>T ' };
 
 const POS = String.raw`\d+(?:[.,]\d+)?(?::\d+(?:[.,]\d+)?)?`;
-const LINE = new RegExp(String.raw`^(${POS})\s*[-–—]\s*(${POS})\s+(>[LNT]?)?\s*([^"]+?)\s*(?:"([^"]*)")?$`);
+const LEN = String.raw`\d+(?:[.,]\d+)?`;
+// from, then optionally "-to" (exclusive), "..last" (a bar, inclusive) or "+length" (in bars); nothing = that one bar
+const LINE = new RegExp(
+  String.raw`^(${POS})(?:\s*(?:[-–—]\s*(${POS})|\.\.\s*(${POS})|\+\s*(${LEN})))?\s+(>[LNT]?)?\s*([^"]+?)\s*(?:"([^"]*)")?$`,
+);
 
 /**
  * Parses the quick-entry text, one stretch per line:
  *
  *     1-9 c                 c minor from bar 1 until the next stretch starts in bar 9
  *     9-11 >As              secondary dominant aiming at A-flat major
+ *     12 >As                just bar 12
+ *     13..14 As             bars 13 and 14 (the last bar included)
+ *     13+2 As               two bars starting at bar 13
  *     41-42:3 f             positions may be beats: bar 42, beat 3 (= 42.5 in 4/4)
  *     44-45 As "V7"         optional text on the bar
  *     // comment
@@ -48,12 +55,18 @@ export function parseSegments(
       return;
     }
     const from = parsePos(m[1], meter);
-    const to = parsePos(m[2], meter);
+    let to: number | null;
+    if (m[2] !== undefined) to = parsePos(m[2], meter);
+    else if (m[3] !== undefined) {
+      const last = parsePos(m[3], meter);
+      to = last === null ? null : Math.floor(last + 1e-9) + 1;
+    } else if (m[4] !== undefined) to = from === null ? null : from + parseFloat(m[4].replace(',', '.'));
+    else to = from === null ? null : Math.floor(from + 1e-9) + 1;
     if (from === null || to === null) {
       errors.push({ line: i + 1, message: 'position' });
       return;
     }
-    const key = parseKey(m[4], names);
+    const key = parseKey(m[6], names);
     if (!key) {
       errors.push({ line: i + 1, message: 'key' });
       return;
@@ -67,8 +80,8 @@ export function parseSegments(
       from,
       to,
       key,
-      kind: KIND_OF_PREFIX[m[3] ?? ''] ?? 'key',
-      label: m[5] ?? '',
+      kind: KIND_OF_PREFIX[m[5] ?? ''] ?? 'key',
+      label: m[7] ?? '',
     });
   });
   return { segments, errors };
