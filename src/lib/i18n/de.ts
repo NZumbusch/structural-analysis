@@ -453,4 +453,6 @@ export const de = {
   'mob.showAll': 'Alle Funktionen zeigen',
   'mob.goSimple': 'Einfache Ansicht',
   'an.syntax': 'Syntax-Hilfe',
+  'install.button': 'App installieren',
+  'install.ios': 'Als App installieren: In Safari auf „Teilen“ tippen und „Zum Home-Bildschirm“ wählen. Danach funktioniert die App auch ohne Internet.',
 } as const;

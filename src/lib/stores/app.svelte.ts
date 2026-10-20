@@ -5,6 +5,12 @@ import { downloadBlob, freshIdentity, projectBlob, projectFileName, readProjectF
 import type { Snap } from '../domain/positions';
 import { deletePiece, loadAllPieces, loadPrefs, savePiece, savePrefs } from './storage';
 
+/** The browser's "install as app" prompt (not in the standard DOM types). */
+interface InstallPromptEvent extends Event {
+  prompt(): Promise<void>;
+  userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }>;
+}
+
 export type Tab = 'library' | 'piece' | 'setup' | 'analysis' | 'stats' | 'export';
 export type SaveState = 'saved' | 'saving' | 'error';
 export type SelectionKind = 'segment' | 'passing' | 'annotation' | 'event';
@@ -40,6 +46,12 @@ class AppState {
   editInPreview = $state(true);
   /** Phone-sized screen. */
   isMobile = $state(false);
+  /** Set when the browser offers to install the app. */
+  installEvent = $state.raw<InstallPromptEvent | null>(null);
+  /** Running as an installed app already. */
+  standalone = $state(false);
+  /** iPhone/iPad Safari has no install prompt; it gets a hint instead. */
+  showIosHint = $state(false);
 
   historyIndex = $state(0);
   historyLength = $state(0);
@@ -58,6 +70,20 @@ class AppState {
       this.isMobile = phone.matches;
       this.editInPreview = !phone.matches; // dragging in the preview fights with scrolling on touch screens
       phone.addEventListener('change', (e) => (this.isMobile = e.matches));
+    }
+    if (typeof window !== 'undefined') {
+      this.standalone =
+        (typeof matchMedia !== 'undefined' && matchMedia('(display-mode: standalone)').matches) ||
+        (navigator as unknown as { standalone?: boolean }).standalone === true;
+      this.showIosHint = !this.standalone && /iphone|ipad|ipod/i.test(navigator.userAgent);
+      window.addEventListener('beforeinstallprompt', (e) => {
+        e.preventDefault();
+        this.installEvent = e as InstallPromptEvent;
+      });
+      window.addEventListener('appinstalled', () => {
+        this.installEvent = null;
+        this.standalone = true;
+      });
     }
     this.library = loadAllPieces().sort((a, b) => b.updatedAt - a.updatedAt);
     const last = this.library.find((p) => p.id === this.prefs.lastOpenId);
@@ -227,6 +253,14 @@ class AppState {
   setUiLang(lang: 'de' | 'en'): void {
     this.prefs.uiLang = lang;
     savePrefs(this.prefs);
+  }
+
+  async install(): Promise<void> {
+    const event = this.installEvent;
+    if (!event) return;
+    await event.prompt();
+    const { outcome } = await event.userChoice;
+    if (outcome === 'accepted') this.installEvent = null;
   }
 
   setSimple(on: boolean): void {

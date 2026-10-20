@@ -57,6 +57,10 @@
     </ul>
   {/if}
 
+  {#if app.showIosHint}
+    <p class="muted small">{t('install.ios')}</p>
+  {/if}
+
   <footer class="about muted small">
     <span>{t('appName')} {APP_VERSION}</span> ·
     <span>{t('about.license')}</span> ·

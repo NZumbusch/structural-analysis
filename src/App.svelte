@@ -180,6 +180,9 @@
       <button class="btn primary small" onclick={() => app.create()}>{t('lib.new')}</button>
       <button class="btn small" onclick={() => app.createExample()}>{t('lib.example')}</button>
       <button class="btn small" onclick={() => fileInput?.click()}>{t('lib.import')}</button>
+      {#if app.installEvent}
+        <button class="btn small" onclick={() => app.install()}>⤓ {t('install.button')}</button>
+      {/if}
       <button
         class="btn small"
         disabled={app.library.length === 0}

@@ -455,4 +455,6 @@ export const en: Record<keyof typeof de, string> = {
   'mob.showAll': 'Show all features',
   'mob.goSimple': 'Simple view',
   'an.syntax': 'Syntax help',
+  'install.button': 'Install app',
+  'install.ios': 'To install as an app: in Safari tap “Share” and choose “Add to Home Screen”. The app then also works offline.',
 };
