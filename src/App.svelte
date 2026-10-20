@@ -3,6 +3,7 @@
   import ExportView from './lib/components/ExportView.svelte';
   import LibraryView from './lib/components/LibraryView.svelte';
   import PieceView from './lib/components/PieceView.svelte';
+  import StatsView from './lib/components/StatsView.svelte';
   import { displayTitle } from './lib/domain/piece';
   import { onMount } from 'svelte';
   import { downloadBlob, projectBlob } from './lib/export/files';
@@ -14,6 +15,7 @@
     { id: 'library', icon: '▤' },
     { id: 'piece', icon: '✎' },
     { id: 'analysis', icon: '≣' },
+    { id: 'stats', icon: '▥' },
     { id: 'export', icon: '⤓' },
   ];
 
@@ -167,6 +169,8 @@
         <PieceView {piece} />
       {:else if app.tab === 'analysis'}
         <AnalysisView {piece} />
+      {:else if app.tab === 'stats'}
+        <StatsView {piece} />
       {:else}
         <ExportView {piece} />
       {/if}

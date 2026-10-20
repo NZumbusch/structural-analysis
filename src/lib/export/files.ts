@@ -32,12 +32,13 @@ export function chartSize(piece: Piece, view?: ViewRange | null): { width: numbe
   return { width, height };
 }
 
-/** Rasterises the chart. Give either `scale` (multiplies the natural size) or `pixelWidth`. */
-export async function pngBlob(
-  piece: Piece,
-  options: { view?: ViewRange | null; scale?: number; pixelWidth?: number },
+/** Rasterises an SVG string. Give either `scale` (multiplies the natural size) or `pixelWidth`. */
+export async function svgToPng(
+  svg: string,
+  width: number,
+  height: number,
+  options: { scale?: number; pixelWidth?: number },
 ): Promise<Blob> {
-  const { svg, width, height } = renderChart(piece, { view: options.view });
   const factor = options.pixelWidth ? options.pixelWidth / width : (options.scale ?? 2);
   const img = new Image();
   img.decoding = 'async';
@@ -56,6 +57,15 @@ export async function pngBlob(
   return new Promise((resolve, reject) =>
     canvas.toBlob((b) => (b ? resolve(b) : reject(new Error('PNG encoding failed'))), 'image/png'),
   );
+}
+
+/** Rasterises the main chart. */
+export function pngBlob(
+  piece: Piece,
+  options: { view?: ViewRange | null; scale?: number; pixelWidth?: number },
+): Promise<Blob> {
+  const { svg, width, height } = renderChart(piece, { view: options.view });
+  return svgToPng(svg, width, height, options);
 }
 
 /** Every view of the piece (and the whole chart) as one ZIP of SVG or PNG files. */

@@ -5,7 +5,7 @@ import { freshIdentity, readProjectFile } from '../export/files';
 import type { Snap } from '../domain/positions';
 import { deletePiece, loadAllPieces, loadPrefs, savePiece, savePrefs } from './storage';
 
-export type Tab = 'library' | 'piece' | 'analysis' | 'export';
+export type Tab = 'library' | 'piece' | 'analysis' | 'stats' | 'export';
 export type SaveState = 'saved' | 'saving' | 'error';
 export type SelectionKind = 'segment' | 'passing' | 'annotation' | 'marker';
 export interface Selection {

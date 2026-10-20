@@ -5,7 +5,7 @@ they sit from the home key on the circle of fifths. Runs entirely in the browser
 `localStorage` and can be saved to / loaded from `.tonart.json` files.
 
 Workflow (four tabs): **Bibliothek** (new / open / import) → **Stück** (title, composer, year, home key …) →
-**Analyse** (enter the modulations) → **Export** (appearance, SVG, PNG, project file).
+**Analyse** (enter the modulations) → **Auswertung** (statistics) → **Export** (appearance, SVG, PNG, project file).
 
 ## Quick entry syntax
 
@@ -29,6 +29,9 @@ Set the time signature under **Stück** so beat positions and the beat grid are 
 - Row spelling (flats / sharps for the outer rows, or per-row labels), colour-blind-safe palette.
 - Export: SVG (optional physical width in cm), PNG (scale or cm + dpi), PDF via the print dialog (vector),
   clipboard, native share sheet, project file, share link (deflate-compressed, ~1.6 kB for 120 bars).
+- **Auswertung (statistics):** summary figures, time per key, distribution by distance from the centre, distance
+  over time, per-section comparison and a modulation list; every chart exports as SVG/PNG, every table as CSV
+  (Excel-friendly) or to the clipboard.
 - Works offline once opened (service worker); installable on phones.
 
 Capital letter = major, lower case = minor (`Es`, `c`, `Fis`, `b` = B-flat minor); `Cm`, `A-Dur`, `F# minor` also work.

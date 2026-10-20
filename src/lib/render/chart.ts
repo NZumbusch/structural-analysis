@@ -63,14 +63,14 @@ export const FS = { title: 20.8, label: 13.2, small: 12.5, section: 14.6, barLab
 const LW = { bar: 1.25, dominant: 1.5, grid: 0.7, divider: 1.1, link: 1.25, axis: 1.1 };
 const DASH = { dominant: '3 2.4', grid: '1.4 2.1', dotted: '1.5 2.8', marker: '4 3' };
 
-const FONTS: Record<FontFamilyId, string> = {
+export const FONTS: Record<FontFamilyId, string> = {
   sans: "'Helvetica Neue', Helvetica, Arial, 'Segoe UI', system-ui, sans-serif",
   serif: "Georgia, 'Times New Roman', Times, serif",
   mono: "'SFMono-Regular', Menlo, Consolas, 'Liberation Mono', monospace",
 };
 
 const lowerFirst = (s: string) => s.charAt(0).toLowerCase() + s.slice(1);
-const esc = (s: string) =>
+export const esc = (s: string) =>
   s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 const n = (v: number) => String(Math.round(v * 100) / 100);
 
