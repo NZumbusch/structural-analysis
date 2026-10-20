@@ -402,6 +402,8 @@ export const de = {
   'setup.delete': 'Takte löschen',
   'setup.deleted': '{n} Takt(e) gelöscht – Rückgängig mit Strg+Z.',
   'setup.extend': 'Bereich erweitern',
+  'setup.clearAll': 'Alle „{kind}“ löschen ({n})',
+  'setup.confirmClear': '{n} × „{kind}“ löschen? Strg/Cmd+Z nimmt es wieder zurück.',
   'setup.events': 'Ereignisse',
   'setup.noEvents': 'Noch keine Ereignisse. Wähle Takte und füge oben Taktart, Wiederholungen, Formteile … hinzu.',
   'ev.meter': 'Taktart',

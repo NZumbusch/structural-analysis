@@ -186,6 +186,16 @@
   }
 
   const removeEvent = (id: string) => (piece.events = piece.events.filter((e) => e.id !== id));
+  /** Kinds that can pile up (imported cadence marks, say) and be cleared in one go. */
+  const clearable = $derived(
+    (['marker', 'text', 'barline', 'keysig', 'fermata'] as const)
+      .map((kind) => ({ kind, n: events.filter((e) => e.kind === kind).length }))
+      .filter((c) => c.n > 1),
+  );
+  function removeAll(kind: string, n: number) {
+    if (!confirm(t('setup.confirmClear', { n, kind: kindLabel(kind) }))) return;
+    piece.events = piece.events.filter((e) => e.kind !== kind);
+  }
   const unitOptions = [1, 2, 4, 8, 16];
   const tools: Tool[] = ['meter', 'repeat', 'volta', 'section', 'subsection'];
   const moreTools: Tool[] = ['marker', 'text', 'barline', 'keysig', 'fermata'];
@@ -342,6 +352,13 @@
 
     <div class="card box">
       <h3>{t('setup.events')}</h3>
+      {#if clearable.length > 0}
+        <div class="line">
+          {#each clearable as c (c.kind)}
+            <button class="btn small danger" onclick={() => removeAll(c.kind, c.n)}>{t('setup.clearAll', { kind: kindLabel(c.kind), n: c.n })}</button>
+          {/each}
+        </div>
+      {/if}
       <div class="lines">
         {#each events as e (e.id)}
           <div class="line" class:selected={app.selection?.kind === 'event' && app.selection.id === e.id} data-row-id={e.id} onfocusin={() => (app.selection = { kind: 'event', id: e.id })}>

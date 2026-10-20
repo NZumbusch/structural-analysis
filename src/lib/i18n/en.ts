@@ -404,6 +404,8 @@ export const en: Record<keyof typeof de, string> = {
   'setup.delete': 'Delete bars',
   'setup.deleted': '{n} bar(s) deleted – undo with Ctrl+Z.',
   'setup.extend': 'Extend range',
+  'setup.clearAll': 'Delete all “{kind}” ({n})',
+  'setup.confirmClear': 'Delete {n} × “{kind}”? Ctrl/Cmd+Z takes it back.',
   'setup.events': 'Events',
   'setup.noEvents': 'No events yet. Select bars and add a time signature, repeats, sections … above.',
   'ev.meter': 'Time signature',
