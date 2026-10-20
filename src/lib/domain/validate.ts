@@ -1,3 +1,4 @@
+import { keyName } from './keys';
 import { endPos, lastBarOf, startPos } from './structure';
 import type { Piece, Segment } from './types';
 
@@ -56,6 +57,20 @@ export function validate(piece: Piece): Issue[] {
     if (fixedLength && s.to > bars + 1 + EPS) {
       add({ severity: 'warning', code: 'beyond-end', pos: s.to, params: { to: fmt(s.to), bars }, target, fix: { kind: 'extend-bars', value: Math.ceil(s.to - EPS) - 1 } });
     }
+  }
+
+  // A key with two accidentals (Heses, Fisis …) is nearly always a typo: in German names 'B' is already B-flat, so 'Bb' is Heses.
+  const doubled = valid
+    .filter((s) => Math.abs(Math.floor((s.key.fifths + 1) / 7)) >= 2)
+    .sort((a, b) => a.from - b.from);
+  if (doubled.length > 0) {
+    const first = doubled[0];
+    const names = piece.style.noteNames;
+    add({
+      id: 'double-accidental', severity: 'warning', code: `double-accidental-${names}`, pos: first.from,
+      params: { pos: fmt(first.from), key: keyName(first.key, names), n: doubled.length },
+      target: { kind: 'segment', id: first.id },
+    });
   }
 
   const sorted = [...valid].sort((a, b) => a.from - b.from || a.to - b.to);

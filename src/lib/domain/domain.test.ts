@@ -252,3 +252,17 @@ describe('removed leading-tone type', () => {
     expect(normalizePiece(old)?.segments[0].kind).toBe('dominant');
   });
 });
+
+describe('double accidentals', () => {
+  it('warns once about a key like Heses, in the spelling the user writes', async () => {
+    const { validate } = await import('./validate');
+    const p = normalizePiece({ meta: {}, segments: [] })!;
+    const r = parseSegments('1-4 c\n4-5 >Bb\n5-6 Bb\n6-8 B', 'de', { beats: 4, unit: 4 });
+    p.segments = r.segments;
+    const hits = validate(p).filter((i) => i.code.startsWith('double-accidental'));
+    expect(hits).toHaveLength(1);
+    expect(hits[0]).toMatchObject({ code: 'double-accidental-de', severity: 'warning', params: { pos: '4', n: 2 } });
+    p.segments = parseSegments('1-4 c\n4-6 Bb', 'en', { beats: 4, unit: 4 }).segments;
+    expect(validate(p).some((i) => i.code.startsWith('double-accidental'))).toBe(false);
+  });
+});

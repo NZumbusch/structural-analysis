@@ -419,6 +419,8 @@ export const en: Record<keyof typeof de, string> = {
   'val.overlap': 'Overlap from bar {pos} ({a} and {b}); the statistics use the earlier stretch.',
   'val.gap': 'Gap from bar {pos} to {to}: no key is given there.',
   'val.gap-passing': 'Bar {pos} to {to}: passing chords only, no key (intended?).',
+  'val.double-accidental-de': 'A key with a double accidental at bar {pos} ({key}; {n} stretch(es) in all). Typo? In German note names “B” is already B-flat, so “Bb” would be Heses.',
+  'val.double-accidental-en': 'A key with a double accidental at bar {pos} ({key}; {n} stretch(es) in all). Typo? In English note names “Bb” is B-flat, while “B” is B natural.',
   'val.gap-start': 'The analysis only starts at bar {pos}.',
   'val.gap-end': 'The analysis ends at bar {pos}, the piece goes on to bar {bars}.',
   'val.passing-before-start': 'A passing chord at bar {pos} lies before the beginning of the piece.',

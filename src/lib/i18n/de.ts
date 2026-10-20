@@ -417,6 +417,8 @@ export const de = {
   'val.overlap': 'Überlappung ab Takt {pos} ({a} und {b}); in der Auswertung zählt der frühere Abschnitt.',
   'val.gap': 'Lücke von Takt {pos} bis {to}: dort ist keine Tonart angegeben.',
   'val.gap-passing': 'Takt {pos} bis {to}: nur Durchgangsakkorde, keine Tonart (gewollt?).',
+  'val.double-accidental-de': 'Bei Takt {pos} steht eine Tonart mit Doppelvorzeichen ({key}; insgesamt {n} Abschnitt(e)). Tippfehler? In deutschen Notennamen ist „B“ schon B-Dur, „Bb“ wäre Heses.',
+  'val.double-accidental-en': 'Bei Takt {pos} steht eine Tonart mit Doppelvorzeichen ({key}; insgesamt {n} Abschnitt(e)). Tippfehler? In englischen Notennamen ist „Bb“ B-Dur, „B“ dagegen H-Dur.',
   'val.gap-start': 'Die Analyse beginnt erst bei Takt {pos}.',
   'val.gap-end': 'Die Analyse endet bei Takt {pos}, das Stück geht bis Takt {bars}.',
   'val.passing-before-start': 'Ein Durchgangsakkord bei Takt {pos} liegt vor dem Stückanfang.',
