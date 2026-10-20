@@ -28,7 +28,7 @@
 
 <details class="card box">
   <summary>
-    <span class="chev" aria-hidden="true">›</span>
+    <span class="chev" aria-hidden="true"></span>
     <h3>{t('cap.title')}</h3>
   </summary>
   <div class="body">
@@ -61,7 +61,5 @@
 <style>
   summary { display: flex; align-items: center; gap: 8px; padding: 12px 14px; cursor: pointer; list-style: none; user-select: none; }
   summary::-webkit-details-marker { display: none; }
-  .chev { display: inline-block; width: 1em; transition: transform 0.15s; color: var(--muted); font-size: 1.2rem; line-height: 1; }
-  details[open] > summary .chev { transform: rotate(90deg); }
   .body { padding: 0 14px 14px; display: grid; gap: 10px; }
 </style>

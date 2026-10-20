@@ -116,3 +116,10 @@ input[type='checkbox'] { width: 18px; height: 18px; accent-color: var(--accent);
   .line > .n { flex: 1 1 64px; }
   .line > .k { flex: 1 1 80px; }
 }
+
+/* Collapsible card headers: one look everywhere, chevron drawn with borders so it centres on the title */
+details > summary.head, details.card > summary { display: flex; align-items: center; gap: 8px; padding: 12px 14px; cursor: pointer; list-style: none; user-select: none; }
+details > summary.head::-webkit-details-marker, details.card > summary::-webkit-details-marker { display: none; }
+.chev { flex: none; width: 7px; height: 7px; margin: 0 7px 0 3px; border-right: 2px solid var(--muted); border-bottom: 2px solid var(--muted); transform: rotate(-45deg); transition: transform 0.15s; }
+details[open] > summary .chev { transform: rotate(45deg); }
+details > summary h3 { margin: 0; }

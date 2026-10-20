@@ -47,7 +47,7 @@
 {:else}
   <details class="card box" open={problems.length > 0}>
     <summary>
-      <span class="chev" aria-hidden="true">›</span>
+      <span class="chev" aria-hidden="true"></span>
       <h3>{t('val.title')}</h3>
       <span class="count" class:bad={problems.length > 0}>{problems.length > 0 ? problems.length : issues.length}</span>
     </summary>
@@ -76,8 +76,6 @@
   .ok { margin: 0; }
   summary { display: flex; align-items: center; gap: 8px; padding: 12px 14px; cursor: pointer; list-style: none; user-select: none; }
   summary::-webkit-details-marker { display: none; }
-  .chev { display: inline-block; width: 1em; transition: transform 0.15s; color: var(--muted); font-size: 1.2rem; line-height: 1; }
-  details[open] > summary .chev { transform: rotate(90deg); }
   .count { margin-left: auto; font-size: 0.8rem; color: var(--muted); border: 1px solid var(--border); border-radius: 99px; padding: 0 8px; }
   .count.bad { color: #fff; background: var(--danger); border-color: var(--danger); }
   .body { padding: 0 14px 14px; display: grid; gap: 10px; }

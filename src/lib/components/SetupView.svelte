@@ -201,7 +201,7 @@
   <section class="main" class:hide={pane !== 'edit'}>
     <SimpleNote />
     <details class="card structure" open={!app.simple}>
-      <summary><h3>{t('setup.structure')}</h3></summary>
+      <summary class="head"><span class="chev" aria-hidden="true"></span><h3>{t('setup.structure')}</h3></summary>
       <div class="box">
       <div class="row">
         <div class="field">
@@ -394,11 +394,7 @@
   }
   .main { display: grid; gap: 12px; min-width: 0; }
   .box { padding: 14px; display: grid; gap: 10px; }
-  .structure summary { padding: 12px 14px 0; cursor: pointer; list-style: none; }
-  .structure summary::-webkit-details-marker { display: none; }
-  .structure summary h3::before { content: '›'; display: inline-block; width: 1em; color: var(--muted); transition: transform 0.15s; }
-  .structure[open] summary h3::before { transform: rotate(90deg); }
-  .structure > .box { padding-top: 10px; }
+  .structure > .box { padding-top: 0; }
   .row { display: grid; gap: 10px; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); }
   .meter { display: grid; grid-template-columns: 1fr auto 1fr; gap: 8px; align-items: center; max-width: 220px; }
   .inline { display: inline-flex; align-items: center; gap: 8px; }

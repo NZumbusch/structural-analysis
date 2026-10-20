@@ -73,7 +73,7 @@
     <p class="card empty">{t('stats.empty')}</p>
   {:else}
     <details class="card optbox">
-      <summary>{t('stats.options')}</summary>
+      <summary class="head"><span class="chev" aria-hidden="true"></span><h3>{t('stats.options')}</h3></summary>
       <div class="optbody">
         <label class="field">
           <span>{t('stats.measure')}</span>
@@ -152,7 +152,6 @@
   }
   .stat { padding: 12px 14px; display: grid; gap: 2px; align-content: start; }
   .stat strong { font-size: 1.5rem; line-height: 1.2; font-variant-numeric: tabular-nums; }
-  .optbox summary { padding: 12px 14px; cursor: pointer; font-weight: 600; }
   .optbody { padding: 0 14px 14px; display: grid; gap: 10px; }
   .check { display: flex; align-items: center; gap: 8px; }
   .methodtext { margin: 0; font-size: 0.9rem; }
