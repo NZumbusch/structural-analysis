@@ -228,3 +228,18 @@ describe('bar-based quick entry', () => {
     expect(parseSegments('5..4 c', 'de', { beats: 4, unit: 4 }).errors).toEqual([{ line: 1, message: 'range' }]);
   });
 });
+
+describe('folding tonicisations', () => {
+  it('lets the key before a tonicisation continue until the new key begins', async () => {
+    const { foldSegments } = await import('./fold');
+    const r = parseSegments('1-12 Es\n12 >As\n13..14 As\n15-17 Es\n17 >g\n18-20 Es', 'de', { beats: 4, unit: 4 });
+    expect(foldSegments(r.segments).map((s) => [s.from, s.to, s.key.fifths, s.kind])).toEqual([
+      [1, 13, -3, 'key'], [13, 15, -4, 'key'], [15, 20, -3, 'key'],
+    ]);
+  });
+  it('joins a leading tonicisation to the key that follows', async () => {
+    const { foldSegments } = await import('./fold');
+    const r = parseSegments('1 >g\n2-5 c', 'de', { beats: 4, unit: 4 });
+    expect(foldSegments(r.segments).map((s) => [s.from, s.to])).toEqual([[1, 5]]);
+  });
+});

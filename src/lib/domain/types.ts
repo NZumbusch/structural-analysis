@@ -222,6 +222,8 @@ export interface Style {
   transparentBackground: boolean;
   /** Minor bars get a diagonal hatch, so major and minor differ without colour. */
   hatch: boolean;
+  /** Tonicisations are not drawn or counted separately: the key stretch before them simply continues. */
+  foldTonicizations: boolean;
   show: ShowOptions;
 }
 

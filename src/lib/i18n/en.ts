@@ -443,6 +443,7 @@ export const en: Record<keyof typeof de, string> = {
   'ex.fitted': 'Font size set to {pct}%.',
   'ex.zipFormat': 'Format',
   'ex.zipAll': 'All views (ZIP)',
+  'st.fold': 'Do not show secondary dominants separately (fold into the key)',
   'st.hatch': 'Hatch minor (for black-and-white print)',
   'st.cmyk': 'CMYK values (approximate conversion)',
   'st.cmykHint': 'Simple conversion from RGB without a colour profile. For print the publisher’s profile decides – check the values there if needed.',

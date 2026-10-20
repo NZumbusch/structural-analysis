@@ -68,6 +68,7 @@
     </div>
     <label class="check"><input type="checkbox" bind:checked={piece.style.transparentBackground} />{t('st.transparent')}</label>
     <label class="check"><input type="checkbox" bind:checked={piece.style.hatch} />{t('st.hatch')}</label>
+    <label class="check"><input type="checkbox" bind:checked={piece.style.foldTonicizations} />{t('st.fold')}</label>
     <details class="cmyk">
       <summary class="light"><span class="chev" aria-hidden="true"></span>{t('st.cmyk')}</summary>
       <table>

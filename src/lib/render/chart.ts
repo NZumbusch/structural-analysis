@@ -1,3 +1,4 @@
+import { folded } from '../domain/fold';
 import { displayTitle } from '../domain/piece';
 import {
   endPos, expandPlayOrder, hasRepeats, lastBarOf, meterMap, sectionSpans, sortedEvents, startPos,
@@ -93,7 +94,7 @@ const overlaps = (a: number, b: number, from: number, to: number) => b > from &&
 export function renderChart(source: Piece, options: RenderOptions = {}): Chart {
   // Repeats laid out in play order (a derived copy; the editor keeps working on the notated piece).
   const expanded = source.style.repeatDisplay === 'expanded' && hasRepeats(source) ? expandPlayOrder(source) : null;
-  const piece = expanded ? expanded.piece : source;
+  const piece = folded(expanded ? expanded.piece : source);
   const st = piece.style;
   const c = st.colors;
   const lang = CHART_LABELS[st.language];

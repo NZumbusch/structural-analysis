@@ -441,6 +441,7 @@ export const de = {
   'ex.fitted': 'Schriftgröße auf {pct} % gesetzt.',
   'ex.zipFormat': 'Format',
   'ex.zipAll': 'Alle Ansichten (ZIP)',
+  'st.fold': 'Zwischendominanten nicht einzeln zeigen (in die Tonart einrechnen)',
   'st.hatch': 'Moll schraffieren (für Schwarz-Weiß-Druck)',
   'st.cmyk': 'CMYK-Werte (ungefähre Umrechnung)',
   'st.cmykHint': 'Einfache Umrechnung aus RGB ohne Farbprofil. Für den Druck zählt das Profil des Verlags – Werte bei Bedarf dort abgleichen.',

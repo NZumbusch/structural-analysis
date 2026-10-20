@@ -24,7 +24,7 @@ imported is an ordinary piece you can edit afterwards.
 | `volta` | numbered endings |
 | `timesig`, `keysig` | meter and key-signature changes (the first time signature is always taken) |
 | `barline` (`double`, `end`) | double and final bar lines |
-| `relativeroot` + `numeral` | optional: applied chords as dashed stretches in the key they point at (`V`→ dominant, `vii` → leading-tone, other → tonicisation) |
+| `relativeroot` + `numeral` | optional: applied chords as dashed stretches in the key they point at (`V` and `vii` → dominant, other → tonicisation) |
 | `cadence` | optional: a marker with the label (PAC, HC …) |
 | `metadata.tsv` | composer, title, movement, catalogue number, year; source, annotators and a licence note in the notes |
 

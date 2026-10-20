@@ -180,7 +180,7 @@ interface Label {
 
 const kindOfApplied = (numeral: string): SegmentKind => {
   const plain = numeral.replace(/^[#b♯♭]+/, '');
-  return plain === 'V' ? 'dominant' : plain === 'vii' ? 'leading' : 'tonicization';
+  return plain === 'V' || plain === 'vii' ? 'dominant' : 'tonicization';
 };
 
 function merge(segments: Segment[]): Segment[] {

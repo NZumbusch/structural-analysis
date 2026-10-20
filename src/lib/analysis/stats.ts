@@ -1,4 +1,5 @@
 import { keyDistance, sameKeyExactly, type DistanceMeasure } from '../domain/distance';
+import { folded } from '../domain/fold';
 import { rowOf } from '../domain/keys';
 import { expandPlayOrder, hasRepeats, lastBarOf, sectionSpans } from '../domain/structure';
 import type { Key, Piece, SegmentKind } from '../domain/types';
@@ -131,7 +132,7 @@ export interface StatsOptions {
 }
 
 export function computeStats(source: Piece, options: StatsOptions = {}): Stats {
-  const piece = options.countRepeats && hasRepeats(source) ? expandPlayOrder(source).piece : source;
+  const piece = folded(options.countRepeats && hasRepeats(source) ? expandPlayOrder(source).piece : source);
   const centerRow = rowOf(piece.meta.center);
   const spans = buildSpans(piece);
   const pieceBars = lastBarOf(piece);

@@ -27,6 +27,7 @@ export const DEFAULT_STYLE: Style = {
   rowMin: null,
   transparentBackground: false,
   hatch: false,
+  foldTonicizations: false,
   show: {
     subtitle: true,
     sectionLabels: true,

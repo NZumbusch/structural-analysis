@@ -149,7 +149,7 @@ describe('key path', () => {
     expect(convertDcml(withApplied).piece.segments.map((s) => s.kind)).toEqual(['key']);
     const r = convertDcml(withApplied, { ...DEFAULT_DCML_OPTIONS, tonicizations: true });
     expect(r.piece.segments.map((s) => [s.from, s.to, name(s.key), s.kind])).toEqual([
-      [1, 2.5, 'C', 'key'], [2.5, 2.75, 'F', 'dominant'], [2.75, 3, 'C', 'key'], [3, 9, 'G', 'leading'],
+      [1, 2.5, 'C', 'key'], [2.5, 2.75, 'F', 'dominant'], [2.75, 3, 'C', 'key'], [3, 9, 'G', 'dominant'],
     ]);
     expect(r.counts.tonicizations).toBe(2);
   });
