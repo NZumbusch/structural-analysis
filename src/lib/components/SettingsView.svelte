@@ -95,7 +95,9 @@
   .about a { color: inherit; }
 
   @media (min-width: 900px) {
-    .scrim { display: block; }
-    .drawer { left: auto; width: 440px; border-left: 1px solid var(--border); box-shadow: -8px 0 24px rgba(0, 0, 0, 0.12); }
+    /* laptop: full height, over the top bar too */
+    .scrim { display: block; inset: 0; }
+    .drawer { top: 0; left: auto; width: 440px; border-left: 1px solid var(--border); box-shadow: -8px 0 24px rgba(0, 0, 0, 0.12); }
+    header { min-height: var(--header-h); box-sizing: border-box; }
   }
 </style>
