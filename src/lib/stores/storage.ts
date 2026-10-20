@@ -1,4 +1,4 @@
-import { normalizePiece } from '../domain/piece';
+import { normalizePiece, normalizeStyle } from '../domain/piece';
 import type { Lang, Piece, Style } from '../domain/types';
 
 const PREFIX = 'tonartenverlauf.';
@@ -39,7 +39,7 @@ export function loadPrefs(): Prefs {
   return {
     uiLang: raw?.uiLang === 'de' || raw?.uiLang === 'en' ? raw.uiLang : 'de',
     lastOpenId: raw?.lastOpenId ?? null,
-    defaultStyle: raw?.defaultStyle ?? null,
+    defaultStyle: raw?.defaultStyle ? normalizeStyle(raw.defaultStyle) : null,
     backups: raw?.backups && typeof raw.backups === 'object' ? raw.backups : {},
     simpleOnMobile: raw?.simpleOnMobile !== false,
   };
@@ -53,7 +53,13 @@ export function loadAllPieces(): Piece[] {
   const index = read(INDEX_KEY);
   if (!Array.isArray(index)) return [];
   return index
-    .map((id) => (typeof id === 'string' ? normalizePiece(read(pieceKey(id))) : null))
+    .map((id) => {
+      try {
+        return typeof id === 'string' ? normalizePiece(read(pieceKey(id))) : null;
+      } catch {
+        return null; // one damaged piece must not keep the app from starting
+      }
+    })
     .filter((p): p is Piece => p !== null);
 }
 

@@ -1,5 +1,6 @@
 <script lang="ts">
   import AnalysisView from './lib/components/AnalysisView.svelte';
+  import ErrorScreen from './lib/components/ErrorScreen.svelte';
   import ExportView from './lib/components/ExportView.svelte';
   import LibraryView from './lib/components/LibraryView.svelte';
   import PieceView from './lib/components/PieceView.svelte';
@@ -132,6 +133,7 @@
   }}
 />
 
+<svelte:boundary>
 <input bind:this={fileInput} type="file" accept=".json,application/json" multiple hidden onchange={(e) => onFiles(e.currentTarget.files)} />
 
 <header class="top">
@@ -213,6 +215,11 @@
 {#if app.toast}
   <div class="toast" role="status">{app.toast === 'storage' ? t('save.error') : app.toast}</div>
 {/if}
+
+  {#snippet failed(error, reset)}
+    <ErrorScreen {error} {reset} />
+  {/snippet}
+</svelte:boundary>
 
 <style>
   .top {

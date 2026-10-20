@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { renderChart } from '../render/chart';
 import { createExample } from './example';
-import { createPiece, normalizePiece } from './piece';
+import { createPiece, normalizePiece, normalizeStyle } from './piece';
 import { formatPos, parsePos } from './positions';
 import { parseSegments } from './segments-text';
 import {
@@ -197,5 +197,26 @@ describe('migration', () => {
     expect(p.events[1].line).toBe(false);
     expect(p.meta.lastBar).toBeNull();
     expect(p.meta.pickup).toBe(0);
+  });
+});
+
+describe('damaged or old stored data', () => {
+  it('keeps defaults where a stored field has the wrong shape', () => {
+    const p = normalizePiece({ meta: { title: 'ok' }, segments: [], style: 7, events: 3, passing: 'p', highlights: null })!;
+    expect(p.meta.title).toBe('ok');
+    expect(p.style.colors.majorFill).toBe('#9FE1CB');
+    expect(p.events).toEqual([]);
+    expect(p.passing).toEqual([]);
+    expect(renderChart(p).svg).toContain('<svg');
+  });
+  it('upgrades a style saved by the first version', () => {
+    const style = normalizeStyle({ barWidth: 6, fontScale: 1.2, show: { grid: false } });
+    expect(style.barWidth).toBe(6);
+    expect(style.fontScale).toBe(1.2);
+    expect(style.show.grid).toBe(false);
+    expect(style.show.annotations).toBe(true);
+    expect(style.rowNames).toEqual({});
+    expect(style.hatch).toBe(false);
+    expect(normalizeStyle(12).colors.text).toBe('#2C2C2A');
   });
 });

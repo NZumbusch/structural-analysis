@@ -1,5 +1,5 @@
 import { createExample } from '../domain/example';
-import { cloneStyle, createPiece, DEFAULT_STYLE } from '../domain/piece';
+import { cloneStyle, createPiece, DEFAULT_STYLE, normalizeStyle } from '../domain/piece';
 import type { Piece } from '../domain/types';
 import { downloadBlob, freshIdentity, projectBlob, projectFileName, readProjectFile } from '../export/files';
 import type { Snap } from '../domain/positions';
@@ -98,7 +98,7 @@ class AppState {
   }
 
   create(): void {
-    this.add(createPiece({}, this.prefs.defaultStyle ?? DEFAULT_STYLE), 'piece');
+    this.add(createPiece({}, this.prefs.defaultStyle ? normalizeStyle(this.prefs.defaultStyle) : DEFAULT_STYLE), 'piece');
   }
 
   createExample(): void {

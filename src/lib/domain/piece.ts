@@ -107,8 +107,14 @@ function isObj(v: unknown): v is Record<string, unknown> {
   return typeof v === 'object' && v !== null && !Array.isArray(v);
 }
 
+/** Fills a style from an older version (or garbage) up to the current shape. */
+export function normalizeStyle(raw: unknown): Style {
+  return mergeDeep(cloneStyle(DEFAULT_STYLE), isObj(raw) ? raw : {});
+}
+
 function mergeDeep<T>(base: T, patch: unknown): T {
-  if (!isObj(base) || !isObj(patch)) return (patch === undefined || patch === null ? base : (patch as T));
+  if (!isObj(base)) return patch === undefined || patch === null ? base : (patch as T);
+  if (!isObj(patch)) return base; // wrong shape in a stored file: keep the default
   const out: Record<string, unknown> = { ...base };
   for (const k of Object.keys(patch)) out[k] = k in base ? mergeDeep((base as Record<string, unknown>)[k], patch[k]) : patch[k];
   return out as T;
