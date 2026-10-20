@@ -258,10 +258,10 @@ describe('repeat signs in the chart', () => {
     p.events.push(makeEvent('repeat-start', 1), makeEvent('repeat-end', 9, { times: 2 }));
     const whole = renderChart(p);
     expect(whole.svg).toContain('stroke-width="2.4"');
-    const edge = renderChart(p, { view: { name: 'v', from: 9, to: 13 } });
+    const edge = renderChart(p, { view: { from: 9, to: 13 } });
     expect(edge.svg).not.toContain('stroke-width="2.4"');
     expect(edge.height).toBeLessThan(whole.height);
-    const inside = renderChart(p, { view: { name: 'v', from: 2, to: 12 } });
+    const inside = renderChart(p, { view: { from: 2, to: 12 } });
     expect(inside.svg).toContain('stroke-width="2.4"');
   });
 });
