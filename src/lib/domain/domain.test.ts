@@ -243,3 +243,12 @@ describe('folding tonicisations', () => {
     expect(foldSegments(r.segments).map((s) => [s.from, s.to])).toEqual([[1, 5]]);
   });
 });
+
+describe('removed leading-tone type', () => {
+  it('turns old data and the old prefix into a dominant', async () => {
+    const { createPiece } = await import('./piece');
+    expect(parseSegments('1-2 >L g', 'de', { beats: 4, unit: 4 }).segments[0].kind).toBe('dominant');
+    const old = JSON.parse(JSON.stringify({ ...createPiece(), segments: [{ id: 'a', from: 1, to: 2, key: { fifths: 0, mode: 'major' }, kind: 'leading', label: '' }] }));
+    expect(normalizePiece(old)?.segments[0].kind).toBe('dominant');
+  });
+});

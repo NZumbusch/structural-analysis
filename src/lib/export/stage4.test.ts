@@ -34,26 +34,23 @@ const tr: Tr = (key) => key;
 
 describe('tonicisation types', () => {
   it('parses and writes the prefixes', () => {
-    const text = '1-5 c\n5-7 >G\n7-9 >L g\n9-11 >N Des\n11-13 >T F';
+    const text = '1-5 c\n5-7 >G\n7-9 >N Des\n9-11 >T F';
     const { segments, errors } = parseSegments(text, 'de', M);
     expect(errors).toEqual([]);
-    expect(segments.map((s) => s.kind)).toEqual(['key', 'dominant', 'leading', 'neapolitan', 'tonicization']);
+    expect(segments.map((s) => s.kind)).toEqual(['key', 'dominant', 'neapolitan', 'tonicization']);
     expect(serializeSegments(segments, 'de', M)).toBe(text);
   });
   it('draws a different dash pattern and a legend entry per type', () => {
     const p = createExample();
     p.segments.push(
-      { id: 'l', from: 121, to: 122, key: { fifths: 1, mode: 'major' }, kind: 'leading', label: '' },
       { id: 'n', from: 122, to: 123, key: { fifths: -5, mode: 'major' }, kind: 'neapolitan', label: '' },
     );
     const svg = renderChart(p).svg;
-    expect(svg).toContain('stroke-dasharray="4 2 1 2"');
     expect(svg).toContain('stroke-dasharray="1.2 2.2"');
-    expect(svg).toContain('Zwischenleittonakkord der folgenden Tonart');
     expect(svg).toContain('Neapolitaner der folgenden Tonart');
     const stats = computeStats(p);
     expect(stats.summary.dominantCount).toBeGreaterThan(12);
-    expect(buildCaption(p).caption).toContain('strich-punktierte Balken');
+    expect(buildCaption(p).caption).toContain('gepunktete Balken');
   });
   it('keeps files from earlier versions readable', () => {
     const p = normalizePiece({ meta: {}, segments: [{ id: 'a', from: 1, to: 3, key: { fifths: 0, mode: 'major' }, kind: 'dominant' }, { id: 'b', from: 3, to: 5, key: { fifths: 0, mode: 'major' }, kind: 'weird' }] })!;

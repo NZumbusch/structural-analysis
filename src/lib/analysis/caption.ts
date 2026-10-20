@@ -58,7 +58,6 @@ export function buildCaption(piece: Piece, options: CaptionOptions = {}): Captio
   const dashPhrase: Record<SegmentKind, [string, string]> = {
     key: ['', ''],
     dominant: ['gestrichelte Balken die Zwischendominante der folgenden Tonart', 'dashed bars the secondary dominant of the following key'],
-    leading: ['strich-punktierte Balken den Zwischenleittonakkord der folgenden Tonart', 'dash-dotted bars the secondary leading-tone chord of the following key'],
     neapolitan: ['gepunktete Balken den Neapolitaner der folgenden Tonart', 'dotted bars the Neapolitan of the following key'],
     tonicization: ['lang gestrichelte Balken sonstige Tonikalisierungen der folgenden Tonart', 'long-dashed bars other tonicisations of the following key'],
   };

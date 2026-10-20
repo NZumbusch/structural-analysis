@@ -17,10 +17,10 @@ export interface Key {
  * What a stretch of music is: an established key, or a tonicisation of the key it points at
  * (drawn dashed): secondary dominant, secondary leading-tone chord, Neapolitan, or another one.
  */
-export type SegmentKind = 'key' | 'dominant' | 'leading' | 'neapolitan' | 'tonicization';
+export type SegmentKind = 'key' | 'dominant' | 'neapolitan' | 'tonicization';
 
 export type Tonicization = Exclude<SegmentKind, 'key'>;
-export const TONICIZATIONS: Tonicization[] = ['dominant', 'leading', 'neapolitan', 'tonicization'];
+export const TONICIZATIONS: Tonicization[] = ['dominant', 'neapolitan', 'tonicization'];
 export const isTonicization = (kind: SegmentKind) => kind !== 'key';
 
 /** A stretch of music in one key. `to` is the bar where the next stretch begins (exclusive). */

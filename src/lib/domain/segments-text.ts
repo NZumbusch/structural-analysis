@@ -13,9 +13,9 @@ export interface ParseResult {
   errors: ParseError[];
 }
 
-/** `>` secondary dominant, `>L` leading-tone chord, `>N` Neapolitan, `>T` other tonicisation. */
-const KIND_OF_PREFIX: Record<string, SegmentKind> = { '>': 'dominant', '>L': 'leading', '>N': 'neapolitan', '>T': 'tonicization' };
-const PREFIX_OF_KIND: Record<SegmentKind, string> = { key: '', dominant: '>', leading: '>L ', neapolitan: '>N ', tonicization: '>T ' };
+/** `>` secondary dominant (`>L`, the old leading-tone prefix, reads as one), `>N` Neapolitan, `>T` other tonicisation. */
+const KIND_OF_PREFIX: Record<string, SegmentKind> = { '>': 'dominant', '>L': 'dominant', '>N': 'neapolitan', '>T': 'tonicization' };
+const PREFIX_OF_KIND: Record<SegmentKind, string> = { key: '', dominant: '>', neapolitan: '>N ', tonicization: '>T ' };
 
 const POS = String.raw`\d+(?:[.,]\d+)?(?::\d+(?:[.,]\d+)?)?`;
 const LEN = String.raw`\d+(?:[.,]\d+)?`;

@@ -25,7 +25,7 @@ keep editing in the app, including appearance settings.
   "segments": [
     { "from": 1, "to": 9,              // positions in bars, `to` exclusive
       "key": { "name": "c", "fifths": 0, "mode": "minor", "row": -3, "distance": 0 },
-      "kind": "key",                   // "key" | "dominant" | "leading" | "neapolitan" | "tonicization"
+      "kind": "key",                   // "key" | "dominant" | "neapolitan" | "tonicization"
       "label": "" }
   ],
   "passingChords": [ { "pos": 74.5, "key": { /* as above */ } } ],

@@ -68,7 +68,7 @@ const SELECT = '#0a84ff';
 export const FS = { title: 20.8, label: 13.2, small: 12.5, section: 14.6, barLabel: 11 };
 /** Line widths and dash patterns, ditto. */
 const LW = { bar: 1.25, dominant: 1.5, grid: 0.7, divider: 1.1, link: 1.25, axis: 1.1 };
-const DASH = { dominant: '3 2.4', leading: '4 2 1 2', neapolitan: '1.2 2.2', tonicization: '6 2.6', grid: '1.4 2.1', dotted: '1.5 2.8', marker: '4 3' };
+const DASH = { dominant: '3 2.4', neapolitan: '1.2 2.2', tonicization: '6 2.6', grid: '1.4 2.1', dotted: '1.5 2.8', marker: '4 3' };
 
 export const FONTS: Record<FontFamilyId, string> = FONT_STACK;
 
