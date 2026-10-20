@@ -12,6 +12,7 @@
   import { codeFromHash, decodePiece } from './lib/export/share';
   import { t, type TKey } from './lib/i18n/index.svelte';
   import { app, fingerprint, type Tab } from './lib/stores/app.svelte';
+  import SaveIndicator from './lib/components/SaveIndicator.svelte';
   import SettingsView from './lib/components/SettingsView.svelte';
   import { sync } from './lib/stores/sync.svelte';
 
@@ -150,12 +151,9 @@
     <strong>{t('appName')}</strong>
   </div>
   <div class="current">
-    {#if piece}<span class="name">{displayTitle(piece) || t('common.untitled')}</span>{/if}
     {#if piece}
-      <span class="state small" class:error={app.saveState === 'error'}>
-        {app.saveState === 'saving' ? t('save.saving') : app.saveState === 'error' ? t('save.error') : '✓ ' + t('save.saved')}
-      </span>
-
+      <span class="name">{displayTitle(piece) || t('common.untitled')}</span>
+      <SaveIndicator />
     {/if}
   </div>
   <button class="btn small icon gear" class:on={app.settingsOpen} aria-label={t('set.title')} aria-expanded={app.settingsOpen} title={t('set.title')} onclick={() => (app.settingsOpen = !app.settingsOpen)}>
@@ -253,12 +251,10 @@
   }
   .brand { display: flex; align-items: center; gap: 8px; white-space: nowrap; }
   .logo { width: 22px; height: 22px; border-radius: 6px; background: linear-gradient(135deg, #9fe1cb 50%, #cecbf6 50%); border: 1.5px solid var(--accent); }
-  .current { flex: 1; min-width: 0; display: flex; flex-direction: column; line-height: 1.2; }
+  .current { flex: 1; min-width: 0; display: flex; align-items: center; gap: 6px; line-height: 1.2; }
   .name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .state { color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .backupbar { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; padding: 6px 16px; font-size: 0.85rem; background: var(--accent-soft); border-bottom: 1px solid var(--border); }
   .backupbar span { flex: 1 1 200px; }
-  .state.error { color: var(--danger); }
   .gear.on { background: var(--accent-soft); border-color: var(--accent); }
 
   .tabs {
