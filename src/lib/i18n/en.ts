@@ -519,6 +519,7 @@ export const en: Record<keyof typeof de, string> = {
   'backup.none': 'Not saved as a file yet.',
   'backup.stale': 'The saved file is out of date.',
   'about.license': 'MIT licence',
+  'about.privacy': 'Privacy',
   'about.fonts': 'Fonts (SIL OFL) and licences',
   'mob.simple': 'Simple view: rarely needed features are hidden.',
   'mob.full': 'All features are visible.',

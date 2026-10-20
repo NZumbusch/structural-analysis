@@ -72,7 +72,8 @@
   <footer class="about muted small">
     <span>{t('appName')} {APP_VERSION}</span> ·
     <span>{t('about.license')}</span> ·
-    <a href="./licenses/Inter-OFL.txt" target="_blank" rel="noopener">{t('about.fonts')}</a>
+    <a href="./licenses/Inter-OFL.txt" target="_blank" rel="noopener">{t('about.fonts')}</a> ·
+    <a href="./privacy.html" target="_blank" rel="noopener">{t('about.privacy')}</a>
   </footer>
 </section>
 

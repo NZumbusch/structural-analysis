@@ -517,6 +517,7 @@ export const de = {
   'backup.none': 'Noch nicht als Datei gesichert.',
   'backup.stale': 'Die gesicherte Datei ist nicht mehr aktuell.',
   'about.license': 'MIT-Lizenz',
+  'about.privacy': 'Datenschutz',
   'about.fonts': 'Schriften (SIL OFL) und Lizenzen',
   'mob.simple': 'Einfache Ansicht: seltene Funktionen sind ausgeblendet.',
   'mob.full': 'Alle Funktionen sind sichtbar.',

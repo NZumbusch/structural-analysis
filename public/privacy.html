@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Datenschutz · Privacy – Tonartenverlauf</title>
+<style>
+  :root { --bg: #f4f2ec; --fg: #26231d; --muted: #6a655b; --accent: #2f6f5e; }
+  @media (prefers-color-scheme: dark) { :root { --bg: #1d1c19; --fg: #ece8de; --muted: #a29c8e; --accent: #6fc3a8; } }
+  body { margin: 0; background: var(--bg); color: var(--fg); font: 16px/1.55 system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; }
+  main { max-width: 720px; margin: 0 auto; padding: 24px 16px 48px; }
+  h1 { font-size: 1.5rem; margin: 0 0 4px; }
+  h2 { font-size: 1.1rem; margin: 28px 0 6px; }
+  p, li { margin: 6px 0; }
+  a { color: var(--accent); }
+  .muted { color: var(--muted); font-size: 0.9rem; }
+  hr { border: 0; border-top: 1px solid var(--muted); opacity: .4; margin: 36px 0; }
+</style>
+</head>
+<body>
+<main>
+<h1>Tonartenverlauf – Datenschutz</h1>
+<p class="muted"><a href="./">← zur App</a> · <a href="#en">English</a></p>
+
+<h2>Kurz gesagt</h2>
+<p>Deine Stücke bleiben auf deinen eigenen Geräten und, wenn du die Synchronisierung einschaltest, in deinem eigenen Google&nbsp;Drive. Es gibt keinen Server des Betreibers, keine Konten, keine Werbung und keine Statistik- oder Tracking-Dienste. Der Betreiber hat keinen Zugriff auf deine Daten.</p>
+
+<h2>Was gespeichert wird und wo</h2>
+<ul>
+  <li><b>Auf deinem Gerät:</b> Deine Stücke, Einstellungen und der Sync-Status liegen im lokalen Speicher deines Browsers (bzw. der installierten App). Sie verlassen das Gerät nicht, außer du exportierst sie oder schaltest die Synchronisierung ein.</li>
+  <li><b>Optional in deinem Google Drive:</b> Wenn du „Mit Google verbinden“ wählst, legt die App je Stück eine Datei in einem versteckten App-Ordner (<code>appDataFolder</code>) deines Google Drive ab. Dazu fragt sie nur die Berechtigung <code>https://www.googleapis.com/auth/drive.appdata</code> an. Damit kann die App ausschließlich ihren eigenen Ordner lesen und schreiben – keine anderen Dateien in deinem Drive und keine anderen Google-Daten.</li>
+  <li><b>Anmelde-Token:</b> Das kurzlebige Zugriffstoken (ca. eine Stunde) wird im lokalen Speicher deines Browsers gehalten und nur an Google gesendet.</li>
+</ul>
+
+<h2>Verbindungen zu Dritten</h2>
+<ul>
+  <li><b>Google:</b> Nur wenn du die Synchronisierung benutzt, lädt die App das Anmelde-Skript von <code>accounts.google.com</code> und spricht mit der Google-Drive-Schnittstelle. Es gelten die <a href="https://policies.google.com/privacy" rel="noopener">Datenschutzbestimmungen von Google</a>.</li>
+  <li><b>GitHub:</b> Die Seite wird über GitHub Pages ausgeliefert; GitHub kann dabei technische Zugriffsdaten (z.&nbsp;B. IP-Adresse) verarbeiten. Beim optionalen DCML-Import lädt dein Browser Tabellen direkt von <code>raw.githubusercontent.com</code>.</li>
+  <li>Schriftarten sind in der App enthalten; es werden keine Schriften von Dritten nachgeladen.</li>
+</ul>
+
+<h2>Deine Kontrolle</h2>
+<ul>
+  <li>Mit „Trennen“ in der App beendest du die Synchronisierung; die Stücke bleiben auf dem Gerät und in Drive.</li>
+  <li>Zugriff entziehen und die App-Daten in Drive löschen: <a href="https://myaccount.google.com/connections" rel="noopener">myaccount.google.com/connections</a>.</li>
+  <li>Lokale Daten löschst du, indem du die Stücke in der App löschst oder die Website-Daten im Browser entfernst.</li>
+</ul>
+
+<h2>Kontakt</h2>
+<p>Fragen und Anliegen bitte über die <a href="https://github.com/NZumbusch/structural-analysis/issues" rel="noopener">Issues des Projekts auf GitHub</a>.</p>
+
+<hr id="en">
+
+<h1 lang="en">Tonartenverlauf – Privacy</h1>
+
+<h2>In short</h2>
+<p lang="en">Your pieces stay on your own devices and, if you switch on syncing, in your own Google Drive. There is no operator server, no accounts, no ads and no analytics or tracking. The operator has no access to your data.</p>
+
+<h2>What is stored and where</h2>
+<ul lang="en">
+  <li><b>On your device:</b> your pieces, settings and sync status are kept in your browser's local storage (or the installed app's). They leave the device only if you export them or switch on syncing.</li>
+  <li><b>Optionally in your Google Drive:</b> if you choose “Connect with Google”, the app stores one file per piece in a hidden app folder (<code>appDataFolder</code>) of your Google Drive. It requests only the permission <code>https://www.googleapis.com/auth/drive.appdata</code>, which lets the app read and write its own folder only – no other files in your Drive and no other Google data.</li>
+  <li><b>Sign-in token:</b> the short-lived access token (about an hour) is kept in your browser's local storage and sent only to Google.</li>
+</ul>
+
+<h2>Third parties</h2>
+<ul lang="en">
+  <li><b>Google:</b> only when you use syncing, the app loads the sign-in script from <code>accounts.google.com</code> and talks to the Google Drive API. <a href="https://policies.google.com/privacy" rel="noopener">Google's privacy policy</a> applies.</li>
+  <li><b>GitHub:</b> the site is served by GitHub Pages, which may process technical access data (e.g. IP address). With the optional DCML import your browser fetches tables directly from <code>raw.githubusercontent.com</code>.</li>
+  <li>Fonts are bundled with the app; no third-party fonts are loaded.</li>
+</ul>
+
+<h2>Your control</h2>
+<ul lang="en">
+  <li>“Disconnect” in the app stops syncing; pieces stay on the device and in Drive.</li>
+  <li>Revoke access and delete the app's data in Drive at <a href="https://myaccount.google.com/connections" rel="noopener">myaccount.google.com/connections</a>.</li>
+  <li>Delete local data by deleting the pieces in the app or clearing the site's data in your browser.</li>
+</ul>
+
+<h2>Contact</h2>
+<p lang="en">Questions: please use the project's <a href="https://github.com/NZumbusch/structural-analysis/issues" rel="noopener">issues on GitHub</a>.</p>
+</main>
+</body>
+</html>
