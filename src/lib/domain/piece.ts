@@ -128,13 +128,31 @@ function migrateEvents(data: Record<string, unknown>): Piece['events'] {
     if (typeof raw.pos !== 'number' || typeof raw.kind !== 'string') continue;
     events.push(makeEvent(raw.kind as Piece['events'][number]['kind'], raw.pos, { ...(raw as object), id: typeof raw.id === 'string' && raw.id ? raw.id : newId() }));
   }
-  for (const s of list(data.sections)) {
+  // Sections and markers only exist in files from before events; once a file has events they are leftovers.
+  const legacy = !Array.isArray(data.events);
+  for (const s of legacy ? list(data.sections) : []) {
     if (typeof s.from === 'number') events.push(makeEvent('section', s.from, { id: typeof s.id === 'string' ? s.id : newId(), name: String(s.name ?? ''), shade: s.shade === true }));
   }
-  for (const m of list(data.markers)) {
+  for (const m of legacy ? list(data.markers) : []) {
     if (typeof m.pos === 'number') events.push(makeEvent('marker', m.pos, { id: typeof m.id === 'string' ? m.id : newId(), label: String(m.label ?? ''), line: m.line !== false }));
   }
-  return events;
+  // A copy created by the old double conversion has the same id as the original: keep one.
+  const first = new Map<string, boolean>();
+  return uniqueIds(events.filter((e) => (first.has(e.id) ? false : (first.set(e.id, true), true))));
+}
+
+/** Makes ids unique within a list (a duplicate gets a fresh id), because the editors key their rows by id. */
+function uniqueIds<T extends { id: string }>(items: T[]): T[] {
+  const seen = new Set<string>();
+  return items.map((item) => {
+    if (!seen.has(item.id)) {
+      seen.add(item.id);
+      return item;
+    }
+    const id = newId();
+    seen.add(id);
+    return { ...item, id };
+  });
 }
 
 function migratePos(item: Record<string, unknown>, offset: number): Record<string, unknown> {
@@ -164,7 +182,10 @@ export function normalizePiece(data: unknown): Piece | null {
     (piece[list] as unknown[]) = src.filter(isObj).map((x) => ({ ...x, id: typeof x.id === 'string' && x.id ? x.id : newId() }));
   }
   piece.events = migrateEvents(data);
+  delete (piece as unknown as Record<string, unknown>).sections;
+  delete (piece as unknown as Record<string, unknown>).markers;
   // Files from the first version stored whole bars as `bar`; a passing chord sat in the middle of its bar.
+  piece.segments = uniqueIds(piece.segments);
   piece.passing = piece.passing
     .map((p) => migratePos(p as unknown as Record<string, unknown>, 0.5) as unknown as Piece['passing'][number])
     .filter((p) => validKey(p.key) && typeof p.pos === 'number');
@@ -172,6 +193,10 @@ export function normalizePiece(data: unknown): Piece | null {
     .map((a) => ({ align: 'left', dx: 0, dy: 0, hidden: false, ...(migratePos(a as unknown as Record<string, unknown>, 0) as object) }) as Piece['annotations'][number])
     .filter((a) => validKey(a.key) && typeof a.pos === 'number');
   piece.views = piece.views.filter((v) => typeof v.from === 'number' && typeof v.to === 'number' && v.to > v.from);
+  piece.passing = uniqueIds(piece.passing);
+  piece.annotations = uniqueIds(piece.annotations);
+  piece.highlights = uniqueIds(piece.highlights);
+  piece.views = uniqueIds(piece.views);
   if (!(piece.meta.meter?.beats >= 1 && piece.meta.meter?.unit >= 1)) piece.meta.meter = { ...DEFAULT_METER };
   if (!validKey(piece.meta.center)) piece.meta.center = base.meta.center;
   // Earlier versions stored "derive the last bar from the content" as null; keep that meaning.

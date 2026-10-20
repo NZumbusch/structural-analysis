@@ -220,3 +220,32 @@ describe('damaged or old stored data', () => {
     expect(normalizeStyle(12).colors.text).toBe('#2C2C2A');
   });
 });
+
+describe('pieces damaged by repeated conversion', () => {
+  it('does not convert sections and markers again once there are events', () => {
+    const polluted = {
+      meta: { title: 'x' },
+      segments: [],
+      // events already converted in an earlier load, and the old lists still lying around
+      events: [
+        { id: 's1', kind: 'section', pos: 1, name: 'A' },
+        { id: 's1', kind: 'section', pos: 1, name: 'A' },
+        { id: 'm1', kind: 'marker', pos: 4, label: 'B' },
+      ],
+      sections: [{ id: 's1', name: 'A', from: 1, shade: false }],
+      markers: [{ id: 'm1', pos: 4, label: 'B', line: true }],
+    };
+    const p = normalizePiece(polluted)!;
+    expect(p.events.map((e) => e.id)).toEqual(['s1', 'm1']);
+    expect('sections' in p).toBe(false);
+    expect('markers' in p).toBe(false);
+    // loading what was saved again changes nothing
+    expect(normalizePiece(JSON.parse(JSON.stringify(p)))!.events).toHaveLength(2);
+  });
+  it('gives every row of every list its own id', () => {
+    const seg = { from: 1, to: 2, key: { fifths: 0, mode: 'major' }, kind: 'key' };
+    const p = normalizePiece({ meta: {}, segments: [{ ...seg, id: 'a' }, { ...seg, id: 'a' }], passing: [{ id: 'p', pos: 1, key: seg.key }, { id: 'p', pos: 2, key: seg.key }] })!;
+    expect(new Set(p.segments.map((s) => s.id)).size).toBe(2);
+    expect(new Set(p.passing.map((s) => s.id)).size).toBe(2);
+  });
+});
