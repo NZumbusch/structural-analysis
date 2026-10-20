@@ -1,5 +1,6 @@
 <script lang="ts">
   import { newId } from '../../domain/ids';
+  import { meterMap } from '../../domain/structure';
   import type { Piece } from '../../domain/types';
   import { t } from '../../i18n/index.svelte';
   import { app } from '../../stores/app.svelte';
@@ -7,6 +8,8 @@
   import PosInput from '../PosInput.svelte';
 
   let { piece }: { piece: Piece } = $props();
+
+  const meters = $derived(meterMap(piece));
 
   function add() {
     piece.annotations.push({
@@ -24,7 +27,7 @@
       data-row-id={a.id}
       onfocusin={() => (app.selection = { kind: 'annotation', id: a.id })}
     >
-      <div class="n"><PosInput label={t('common.bar')} value={a.pos} meter={piece.meta.meter} onchange={(v) => (a.pos = v)} /></div>
+      <div class="n"><PosInput label={t('common.bar')} value={a.pos} meter={meters} onchange={(v) => (a.pos = v)} /></div>
       <div class="k"><KeyInput label={t('an.key')} value={a.key} names={piece.style.noteNames} onchange={(k) => (a.key = k)} /></div>
       <select class="sel" aria-label={t('an.side')} bind:value={a.align}>
         <option value="left">{t('common.right')} →</option>

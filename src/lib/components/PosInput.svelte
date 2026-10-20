@@ -1,13 +1,12 @@
 <script lang="ts">
-  import { formatPos, parsePos } from '../domain/positions';
-  import type { Meter } from '../domain/types';
+  import { formatPos, parsePos, type MeterSource } from '../domain/positions';
 
   let {
     value,
     meter,
     onchange,
     label = '',
-  }: { value: number; meter: Meter; onchange: (pos: number) => void; label?: string } = $props();
+  }: { value: number; meter: MeterSource; onchange: (pos: number) => void; label?: string } = $props();
 
   let text = $state('');
   let focused = false;

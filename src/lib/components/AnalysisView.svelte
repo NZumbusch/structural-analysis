@@ -8,8 +8,6 @@
   import AnnotationsEditor from './editors/AnnotationsEditor.svelte';
   import HighlightsEditor from './editors/HighlightsEditor.svelte';
   import PassingEditor from './editors/PassingEditor.svelte';
-  import SectionsEditor from './editors/SectionsEditor.svelte';
-  import MarkersEditor from './editors/MarkersEditor.svelte';
   import SegmentsEditor from './editors/SegmentsEditor.svelte';
   import ViewsEditor from './editors/ViewsEditor.svelte';
 
@@ -44,14 +42,8 @@
     <Panel title={t('an.annotations')} count={piece.annotations.length} reveal={kind === 'annotation'}>
       <AnnotationsEditor {piece} />
     </Panel>
-    <Panel title={t('an.sections')} count={piece.sections.length}>
-      <SectionsEditor {piece} />
-    </Panel>
     <Panel title={t('an.highlights')} count={piece.highlights.length}>
       <HighlightsEditor {piece} />
-    </Panel>
-    <Panel title={t('an.markers')} count={piece.markers.length} reveal={kind === 'marker'}>
-      <MarkersEditor {piece} />
     </Panel>
     <Panel title={t('an.views')} count={piece.views.length}>
       <ViewsEditor {piece} />

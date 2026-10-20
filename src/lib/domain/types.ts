@@ -46,12 +46,49 @@ export interface Annotation {
   hidden: boolean;
 }
 
-/** A labelled position on the bar axis (rehearsal mark, "recapitulation begins" …). */
-export interface Marker {
+export type EventKind =
+  | 'meter'
+  | 'repeat-start'
+  | 'repeat-end'
+  | 'volta'
+  | 'section'
+  | 'subsection'
+  | 'marker'
+  | 'text'
+  | 'barline'
+  | 'keysig'
+  | 'fermata';
+
+/**
+ * Something placed at a position in the score structure. Only the fields that belong to `kind` are
+ * used; the rest keep their defaults so the JSON stays flat and easy to migrate.
+ */
+export interface StructEvent {
   id: string;
+  kind: EventKind;
+  /** Position in bars (a repeat sign "after bar 8" sits at 9). */
   pos: number;
+  /** meter */
+  beats: number;
+  unit: number;
+  /** repeat-end: how often the passage is played (2 = once repeated). */
+  times: number;
+  /** volta: exclusive end of the ending. */
+  to: number;
+  /** volta: which passes play this ending (1 = 1st ending). */
+  numbers: number[];
+  /** section / subsection */
+  name: string;
+  /** section: shaded background in the chart. */
+  shade: boolean;
+  /** marker / text */
   label: string;
+  /** marker: dashed line through the chart. */
   line: boolean;
+  /** barline */
+  style: 'double' | 'final';
+  /** keysig: -7 (7 flats) … 7 (7 sharps) */
+  fifths: number;
 }
 
 /** A named zoom range; `to` is exclusive like a segment's. */
@@ -67,14 +104,6 @@ export interface Meter {
   beats: number;
   /** Note value of one beat (denominator): 4 = quarter, 8 = eighth. */
   unit: number;
-}
-
-/** A formal section; it ends where the next one starts. */
-export interface Section {
-  id: string;
-  name: string;
-  from: number;
-  shade: boolean;
 }
 
 /** A coloured band over bars `from`..`to` (inclusive) with an optional label. */
@@ -94,7 +123,10 @@ export interface PieceMeta {
   movement: string;
   /** Home key; its row becomes the centre of the fifths scale. */
   center: Key;
+  /** Time signature until a meter event changes it. */
   meter: Meter;
+  /** Length of an anacrusis in beats (0 = none); it counts as bar 0. */
+  pickup: number;
   /** Empty = generated automatically. */
   subtitle: string;
   /** Null = derived from the last segment. */
@@ -121,6 +153,9 @@ export interface Palette {
 export interface ShowOptions {
   subtitle: boolean;
   sectionLabels: boolean;
+  subsections: boolean;
+  repeats: boolean;
+  meterSigns: boolean;
   annotations: boolean;
   barLabels: boolean;
   markers: boolean;
@@ -156,6 +191,8 @@ export interface Style {
   beatTicks: Auto;
   /** Which spelling the outer rows get: natural (auto), flat or sharp keys. */
   enharmonic: 'auto' | 'flats' | 'sharps';
+  /** Repeats as signs on a single pass, or the bars laid out in play order. */
+  repeatDisplay: 'symbols' | 'expanded';
   /** Manual row labels by row number (fifths from C); empty = automatic. */
   rowNames: Record<string, string>;
   /** 0 = automatic */
@@ -178,9 +215,9 @@ export interface Piece {
   segments: Segment[];
   passing: PassingChord[];
   annotations: Annotation[];
-  sections: Section[];
   highlights: Highlight[];
-  markers: Marker[];
+  /** Meters, repeats, endings, sections, markers … in the order they appear. */
+  events: StructEvent[];
   views: View[];
   style: Style;
 }

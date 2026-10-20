@@ -1,10 +1,9 @@
 <script lang="ts">
-  import { displayTitle, lastBarOf } from '../domain/piece';
+  import { displayTitle } from '../domain/piece';
   import type { Piece } from '../domain/types';
   import { t } from '../i18n/index.svelte';
   import ChartPreview from './ChartPreview.svelte';
   import KeyInput from './KeyInput.svelte';
-  import NumInput from './NumInput.svelte';
 
   let { piece }: { piece: Piece } = $props();
 </script>
@@ -36,36 +35,11 @@
       <input type="text" bind:value={piece.meta.movement} placeholder={t('piece.movementHint')} />
     </label>
 
-    <div class="two">
-      <div class="field">
-        <span>{t('piece.center')}</span>
-        <KeyInput label={t('piece.center')} value={piece.meta.center} names={piece.style.noteNames} onchange={(k) => (piece.meta.center = k)} />
-      </div>
-      <div class="field">
-        <span>{t('piece.lastBar')}</span>
-        <NumInput
-          label={t('piece.lastBar')}
-          nullable
-          min={1}
-          value={piece.meta.lastBar}
-          placeholder={`${t('common.auto')} (${lastBarOf({ ...piece, meta: { ...piece.meta, lastBar: null } })})`}
-          onchange={(v) => (piece.meta.lastBar = v)}
-        />
-      </div>
-    </div>
-    <p class="hint">{t('piece.centerHint')} {t('piece.lastBarHint')}</p>
-
     <div class="field">
-      <span>{t('piece.meter')}</span>
-      <div class="meter">
-        <NumInput label={t('piece.meterBeats')} min={1} max={32} value={piece.meta.meter.beats} onchange={(v) => (piece.meta.meter.beats = Math.max(1, Math.round(v ?? 4)))} />
-        <span>/</span>
-        <select aria-label={t('piece.meterUnit')} bind:value={piece.meta.meter.unit}>
-          {#each [1, 2, 4, 8, 16] as u (u)}<option value={u}>{u}</option>{/each}
-        </select>
-      </div>
-      <span class="hint">{t('piece.meterHint')}</span>
+      <span>{t('piece.center')}</span>
+      <KeyInput label={t('piece.center')} value={piece.meta.center} names={piece.style.noteNames} onchange={(k) => (piece.meta.center = k)} />
     </div>
+    <p class="hint">{t('piece.centerHint')}</p>
 
     <label class="field">
       <span>{t('piece.subtitle')}</span>
@@ -92,7 +66,6 @@
   }
   .form { padding: 16px; display: grid; gap: 12px; }
   .side { display: grid; gap: 8px; min-width: 0; position: sticky; top: calc(var(--header-h) + var(--tabs-h) + 12px); }
-  .meter { display: grid; grid-template-columns: 1fr auto 1fr; gap: 8px; align-items: center; max-width: 220px; }
   .two { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
   @media (max-width: 860px) {
     .layout { grid-template-columns: minmax(0, 1fr); }

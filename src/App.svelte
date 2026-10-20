@@ -3,6 +3,7 @@
   import ExportView from './lib/components/ExportView.svelte';
   import LibraryView from './lib/components/LibraryView.svelte';
   import PieceView from './lib/components/PieceView.svelte';
+  import SetupView from './lib/components/SetupView.svelte';
   import StatsView from './lib/components/StatsView.svelte';
   import { displayTitle } from './lib/domain/piece';
   import { onMount } from 'svelte';
@@ -14,6 +15,7 @@
   const tabs: { id: Tab; icon: string }[] = [
     { id: 'library', icon: '▤' },
     { id: 'piece', icon: '✎' },
+    { id: 'setup', icon: '▦' },
     { id: 'analysis', icon: '≣' },
     { id: 'stats', icon: '▥' },
     { id: 'export', icon: '⤓' },
@@ -167,6 +169,8 @@
     {#key piece.id}
       {#if app.tab === 'piece'}
         <PieceView {piece} />
+      {:else if app.tab === 'setup'}
+        <SetupView {piece} />
       {:else if app.tab === 'analysis'}
         <AnalysisView {piece} />
       {:else if app.tab === 'stats'}

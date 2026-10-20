@@ -4,6 +4,7 @@ import { parseSegments, serializeSegments } from './segments-text';
 import { createExample } from './example';
 import { displayTitle, normalizePiece } from './piece';
 import { renderChart } from '../render/chart';
+import { makeEvent } from './structure';
 import { formatPos, parsePos, snapPos } from './positions';
 import type { Meter } from './types';
 
@@ -110,7 +111,8 @@ describe('positions', () => {
     expect(parsePos('42:2.5', M)).toBe(42.375);
     expect(parsePos('9:1', { beats: 3, unit: 4 })).toBe(9);
     expect(parsePos('9:4', { beats: 3, unit: 4 })).toBeNull();
-    expect(parsePos('0')).toBeNull();
+    expect(parsePos('0')).toBe(0);
+    expect(parsePos('0:4', M)).toBe(0.75);
     expect(parsePos('x')).toBeNull();
   });
   it('round-trips through formatPos for several meters', () => {
@@ -129,7 +131,7 @@ describe('positions', () => {
     expect(snapPos(42.37, 'beat', M)).toBe(42.25);
     expect(snapPos(42.37, 'half', M)).toBe(42.375);
     expect(snapPos(42.37, 'bar', M)).toBe(42);
-    expect(snapPos(0.2, 'bar', M)).toBe(1);
+    expect(snapPos(0.2, 'bar', M, 1)).toBe(1);
   });
 });
 
@@ -181,7 +183,7 @@ describe('chart features', () => {
     p.annotations[1].dy = 30;
     expect(renderChart(p).svg).toContain('r="1.6"');
     p.segments[0].label = 'Thema';
-    p.markers.push({ id: 'm', pos: 38, label: 'A', line: true });
+    p.events.push(makeEvent('marker', 38, { label: 'A', line: true }));
     const svg = renderChart(p).svg;
     expect(svg).toContain('>Thema<');
     expect(svg).toContain('stroke-dasharray="4 3"');

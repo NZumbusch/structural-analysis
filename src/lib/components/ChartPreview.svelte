@@ -1,6 +1,7 @@
 <script lang="ts">
   import { keyFromRow } from '../domain/keys';
-  import { snapPos, snapUnit, type Snap } from '../domain/positions';
+  import { snapPos, snapUnit, meterAt, type Snap } from '../domain/positions';
+  import { meterMap, startPos } from '../domain/structure';
   import type { Piece, Segment } from '../domain/types';
   import { renderChart } from '../render/chart';
   import { app } from '../stores/app.svelte';
@@ -14,7 +15,8 @@
 
   const view = $derived(piece.views.find((v) => v.id === app.activeViewId) ?? null);
   const range = $derived(view ? { from: view.from, to: view.to } : null);
-  const interactive = $derived(editable && app.editInPreview);
+  // Play-order layouts are derived copies, so there is nothing to edit directly in them.
+  const interactive = $derived(editable && app.editInPreview && piece.style.repeatDisplay === 'symbols');
 
   // Handles stay about 14 px wide on screen however far the chart is scaled down.
   const baseWidth = $derived(renderChart(piece, { view: range }).width);
@@ -58,7 +60,7 @@
       app.selection = null;
       return;
     }
-    const kind = el.dataset.kind as 'segment' | 'passing' | 'annotation' | 'marker';
+    const kind = el.dataset.kind as 'segment' | 'passing' | 'annotation';
     const id = el.dataset.id!;
     app.selection = { kind, id };
     if (e.button !== 0) return;
@@ -91,16 +93,17 @@
     if (!drag) return;
     const pt = point(e);
     if (!pt) return;
-    const meter = piece.meta.meter;
+    const meters = meterMap(piece);
     const snap: Snap = app.snap;
-    const unit = snapUnit(snap, meter);
-    const snapped = snapPos(posAt(pt.x), snap, meter);
+    const raw = posAt(pt.x);
+    const unit = snapUnit(snap, meterAt(meters, Math.floor(raw)));
+    const snapped = snapPos(raw, snap, meters, startPos(piece));
 
     if (drag.kind === 'edge') {
       const seg = piece.segments.find((s) => s.id === drag!.id);
       if (!seg) return;
       if (drag.edge === 'from') {
-        const lower = Math.max(1, ...drag.linked.map((o) => o.from + unit));
+        const lower = Math.max(startPos(piece), ...drag.linked.map((o) => o.from + unit));
         const v = Math.max(lower, Math.min(snapped, seg.to - unit));
         seg.from = v;
         for (const o of drag.linked) o.to = v;

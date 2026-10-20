@@ -1,5 +1,5 @@
 import { rowOf } from '../domain/keys';
-import { lastBarOf } from '../domain/piece';
+import { expandPlayOrder, hasRepeats, lastBarOf, sectionSpans } from '../domain/structure';
 import type { Key, Piece } from '../domain/types';
 
 /** A stretch of music after overlaps are removed: every moment belongs to at most one span. */
@@ -94,6 +94,8 @@ export interface Stats {
   profile: ProfilePoint[];
   summary: Summary;
   centerRow: number;
+  /** The piece the numbers were computed from (laid out in play order when repeats are counted). */
+  piece: Piece;
   /** Number of distance classes used for sections (0..N-1, last = N-1 and further). */
   classes: number;
 }
@@ -117,7 +119,13 @@ export function buildSpans(piece: Piece): Span[] {
   return spans;
 }
 
-export function computeStats(piece: Piece): Stats {
+export interface StatsOptions {
+  /** Count repeated passages again (play order) instead of notated bars once. */
+  countRepeats?: boolean;
+}
+
+export function computeStats(source: Piece, options: StatsOptions = {}): Stats {
+  const piece = options.countRepeats && hasRepeats(source) ? expandPlayOrder(source).piece : source;
   const centerRow = rowOf(piece.meta.center);
   const spans = buildSpans(piece);
   const pieceBars = lastBarOf(piece);
@@ -180,14 +188,14 @@ export function computeStats(piece: Piece): Stats {
   }
 
   // ---- per section ---------------------------------------------------------------------------------------
-  const sorted = [...piece.sections].sort((a, b) => a.from - b.from);
+  const sorted = sectionSpans(piece).filter((sp) => sp.id);
   const sectionAt = (pos: number) => {
     let name = '';
     for (const s of sorted) if (s.from <= pos + 1e-9) name = s.name;
     return name;
   };
   const sections: SectionStat[] = sorted.map((sec, i) => {
-    const end = sorted[i + 1]?.from ?? pieceBars + 1;
+    const end = sec.to;
     const clipped = spans
       .map((s) => ({ ...s, from: Math.max(s.from, sec.from), to: Math.min(s.to, end) }))
       .filter((s) => s.to - s.from > 1e-9);
@@ -270,5 +278,5 @@ export function computeStats(piece: Piece): Stats {
     longest: longestRun,
   };
 
-  return { spans, keys, distances, sections, modulations, profile, summary, centerRow, classes: DISTANCE_CLASSES };
+  return { spans, keys, distances, sections, modulations, profile, summary, centerRow, piece, classes: DISTANCE_CLASSES };
 }

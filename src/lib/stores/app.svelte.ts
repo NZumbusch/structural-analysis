@@ -5,9 +5,9 @@ import { freshIdentity, readProjectFile } from '../export/files';
 import type { Snap } from '../domain/positions';
 import { deletePiece, loadAllPieces, loadPrefs, savePiece, savePrefs } from './storage';
 
-export type Tab = 'library' | 'piece' | 'analysis' | 'stats' | 'export';
+export type Tab = 'library' | 'piece' | 'setup' | 'analysis' | 'stats' | 'export';
 export type SaveState = 'saved' | 'saving' | 'error';
-export type SelectionKind = 'segment' | 'passing' | 'annotation' | 'marker';
+export type SelectionKind = 'segment' | 'passing' | 'annotation' | 'event';
 export interface Selection {
   kind: SelectionKind;
   id: string;
@@ -139,7 +139,7 @@ class AppState {
       segment: piece.segments,
       passing: piece.passing,
       annotation: piece.annotations,
-      marker: piece.markers,
+      event: piece.events,
     } as const;
     const list = lists[sel.kind] as { id: string }[];
     const i = list.findIndex((x) => x.id === sel.id);

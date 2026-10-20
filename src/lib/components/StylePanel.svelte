@@ -69,10 +69,13 @@
   </Panel>
 
   <Panel title={t('ex.layout')}>
-    <label class="field">
-      <span>{t('st.barWidth')}: {st.barWidth}</span>
-      <input type="range" min="2" max="24" step="0.5" bind:value={piece.style.barWidth} />
-    </label>
+    <div class="field">
+      <span>{t('st.barWidth')}: {st.barWidth > 0 ? st.barWidth : t('common.auto')}</span>
+      <div class="line">
+        <label class="check"><input type="checkbox" checked={st.barWidth === 0} onchange={(e) => (piece.style.barWidth = e.currentTarget.checked ? 0 : 6)} />{t('common.auto')}</label>
+        {#if st.barWidth > 0}<input type="range" min="2" max="24" step="0.5" bind:value={piece.style.barWidth} />{/if}
+      </div>
+    </div>
     <label class="field">
       <span>{t('st.rowHeight')}: {st.rowHeight}</span>
       <input type="range" min="22" max="72" step="1" bind:value={piece.style.rowHeight} />
@@ -164,6 +167,13 @@
       </select>
     </label>
     <label class="check"><input type="checkbox" bind:checked={piece.style.showYear} />{t('st.showYear')}</label>
+    <label class="field">
+      <span>{t('setup.repeatDisplay')}</span>
+      <select bind:value={piece.style.repeatDisplay}>
+        <option value="symbols">{t('setup.repeat.symbols')}</option>
+        <option value="expanded">{t('setup.repeat.expanded')}</option>
+      </select>
+    </label>
     <label class="field">
       <span>{t('st.enharmonic')}</span>
       <select bind:value={piece.style.enharmonic}>

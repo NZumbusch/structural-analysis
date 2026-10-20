@@ -3,6 +3,7 @@
   import { formatNumber, formatPercent, type Column } from '../analysis/csv';
   import { computeStats, type DistanceStat, type KeyStat, type Modulation, type SectionStat } from '../analysis/stats';
   import { rowLabel } from '../domain/keys';
+  import { hasRepeats, meterMap } from '../domain/structure';
   import { fileSlug } from '../domain/piece';
   import { formatPos } from '../domain/positions';
   import type { Piece } from '../domain/types';
@@ -15,11 +16,12 @@
 
   let order = $state<KeyOrder>('duration');
   let signed = $state(false);
+  let countRepeats = $state(false);
 
-  const stats = $derived(computeStats(piece));
+  const stats = $derived(computeStats(piece, { countRepeats }));
   const s = $derived(stats.summary);
   const lang = $derived(app.prefs.uiLang);
-  const meter = $derived(piece.meta.meter);
+  const meter = $derived(meterMap(piece));
   const base = $derived(fileSlug(piece));
 
   const num = (n: number, digits = 2) => formatNumber(n, lang, digits);
@@ -95,6 +97,9 @@
   {#if piece.segments.length === 0}
     <p class="card empty">{t('stats.empty')}</p>
   {:else}
+    {#if hasRepeats(piece)}
+      <label class="card opt"><input type="checkbox" bind:checked={countRepeats} />{t('stats.countRepeats')}</label>
+    {/if}
     <section class="cards" aria-label={t('stats.summary')}>
       {#each cards as c (c.label)}
         <div class="card stat">
@@ -144,5 +149,6 @@
   .cards { display: grid; gap: 10px; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); }
   .stat { padding: 12px 14px; display: grid; gap: 2px; align-content: start; }
   .stat strong { font-size: 1.5rem; line-height: 1.2; font-variant-numeric: tabular-nums; }
+  .opt { display: flex; align-items: center; gap: 8px; padding: 10px 14px; }
   h4 { margin: 4px 0 0; font-size: 0.95rem; }
 </style>

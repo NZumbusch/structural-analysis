@@ -2,6 +2,7 @@ import { DEFAULT_STYLE, cloneStyle, createPiece } from './piece';
 import { parseSegments } from './segments-text';
 import { parseKey } from './keys';
 import { newId } from './ids';
+import { makeEvent } from './structure';
 import type { Piece } from './types';
 
 const SEGMENTS = `
@@ -62,8 +63,9 @@ export function createExample(): Piece {
         movement: '1. Satz',
         center: key('c'),
         meter: { beats: 4, unit: 4 },
+        pickup: 0,
         subtitle: '',
-        lastBar: null,
+        lastBar: 120,
         notes: '',
       },
       segments: parseSegments(SEGMENTS, names, { beats: 4, unit: 4 }).segments,
@@ -76,10 +78,10 @@ export function createExample(): Piece {
         { id: newId(), pos: 59, key: key('as'), text: 'as-Moll · 4 Quinten', align: 'left', dx: 0, dy: 0, hidden: false },
         { id: newId(), pos: 77, key: key('D'), text: 'chromatische Terzfolge · D-Dur: 5 Quinten', align: 'left', dx: 0, dy: 0, hidden: false },
       ],
-      sections: [
-        { id: newId(), name: 'Exposition', from: 1, shade: false },
-        { id: newId(), name: 'Durchführung', from: 38, shade: true },
-        { id: newId(), name: 'Reprise', from: 69, shade: false },
+      events: [
+        makeEvent('section', 1, { name: 'Exposition' }),
+        makeEvent('section', 38, { name: 'Durchführung', shade: true }),
+        makeEvent('section', 69, { name: 'Reprise' }),
       ],
     },
     style,

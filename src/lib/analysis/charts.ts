@@ -2,6 +2,7 @@ import { keyName, rowLabel } from '../domain/keys';
 import type { Key, Lang, Piece } from '../domain/types';
 import { esc, FONTS, textWidth } from '../render/chart';
 import { formatNumber, formatPercent } from './csv';
+import { sectionSpans } from '../domain/structure';
 import { type Stats } from './stats';
 
 export interface StatChart {
@@ -239,7 +240,7 @@ export function chartProfile(stats: Stats, piece: Piece, signed: boolean): StatC
   const endBar = Math.max(2, stats.summary.pieceBars + 1);
   const x = (bar: number) => left + ((right - left) * (bar - 1)) / (endBar - 1);
   const vals = stats.profile.map((p) => (signed ? p.signed : Math.abs(p.signed)));
-  const passing = piece.passing.map((p) => ({ pos: p.pos, v: rowOfSigned(p.key, stats, signed) }));
+  const passing = stats.piece.passing.map((p) => ({ pos: p.pos, v: rowOfSigned(p.key, stats, signed) }));
   const all = [...vals, ...passing.map((p) => p.v), 0];
   let lo = Math.min(...all);
   let hi = Math.max(...all, signed ? 1 : 2);
@@ -255,9 +256,9 @@ export function chartProfile(stats: Stats, piece: Piece, signed: boolean): StatC
   cv.text(left - 8, top - 22, L.profAxis, { size: 12, color: cv.c.muted, anchor: 'end' });
 
   // sections
-  const secs = [...piece.sections].sort((a, b) => a.from - b.from);
-  secs.forEach((s, i) => {
-    const end = secs[i + 1]?.from ?? endBar;
+  const secs = sectionSpans(stats.piece).filter((sp) => sp.id);
+  secs.forEach((s) => {
+    const end = Math.min(s.to, endBar);
     if (s.from > 1) cv.line(x(s.from), top - 8, x(s.from), top + plotH, cv.c.grid, 1.1);
     if (s.name.trim()) cv.text((x(s.from) + x(end)) / 2, top - 22, s.name, { size: 13, anchor: 'middle', weight: 500 });
   });

@@ -4,8 +4,9 @@ Web app for drawing key-plan charts of a piece of music: which keys are reached 
 they sit from the home key on the circle of fifths. Runs entirely in the browser; data is stored in
 `localStorage` and can be saved to / loaded from `.tonart.json` files.
 
-Workflow (four tabs): **Bibliothek** (new / open / import) → **Stück** (title, composer, year, home key …) →
-**Analyse** (enter the modulations) → **Auswertung** (statistics) → **Export** (appearance, SVG, PNG, project file).
+Workflow: **Bibliothek** (new / open / import) → **Stück** (title, composer, year, home key …) →
+**Aufbau** (bars, meter, repeats, sections) → **Analyse** (enter the modulations) → **Auswertung** (statistics) →
+**Export** (appearance, SVG, PNG, project file).
 
 ## Quick entry syntax
 
@@ -20,6 +21,12 @@ Workflow (four tabs): **Bibliothek** (new / open / import) → **Stück** (title
 Set the time signature under **Stück** so beat positions and the beat grid are right.
 
 ## Features
+
+- **Aufbau (score setup):** a MuseScore-style measure grid without notes. Select bars, then add events from the
+  palette: time-signature changes, repeats, 1st/2nd endings, parts of the form (with sub-parts, e.g.
+  Exposition → Thema 1) and other markers (rehearsal letters, text, barlines, key signatures, fermatas). Bars can be
+  inserted or deleted anywhere (everything after them moves). Anacrusis counts as bar 0. Repeats are drawn as signs
+  or written out in play order (setting); statistics can count repeated bars once or twice.
 
 - **Views (Ausschnitte):** named zooms of a bar range, with bar/beat grid, rows fitted to what is visible; pick one in
   the preview, export one or all (ZIP).

@@ -1,7 +1,7 @@
 import { keyName, parseKey } from './keys';
 import { newId } from './ids';
-import { formatPos, parsePos } from './positions';
-import type { Meter, NoteNames, Segment } from './types';
+import { formatPos, parsePos, type MeterSource } from './positions';
+import type { NoteNames, Segment } from './types';
 
 export interface ParseError {
   line: number;
@@ -30,7 +30,7 @@ const LINE = new RegExp(String.raw`^(${POS})\s*[-–—]\s*(${POS})\s+(>)?\s*([^
 export function parseSegments(
   text: string,
   names: NoteNames,
-  meter: Meter,
+  meter: MeterSource,
   previous: Segment[] = [],
 ): ParseResult {
   const segments: Segment[] = [];
@@ -70,7 +70,7 @@ export function parseSegments(
   return { segments, errors };
 }
 
-export function serializeSegments(segments: Segment[], names: NoteNames, meter: Meter): string {
+export function serializeSegments(segments: Segment[], names: NoteNames, meter: MeterSource): string {
   return segments
     .map(
       (s) =>

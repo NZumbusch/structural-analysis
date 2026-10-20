@@ -1,5 +1,6 @@
 <script lang="ts">
   import { newId } from '../../domain/ids';
+  import { meterMap } from '../../domain/structure';
   import type { Piece } from '../../domain/types';
   import { t } from '../../i18n/index.svelte';
   import { app } from '../../stores/app.svelte';
@@ -8,9 +9,11 @@
 
   let { piece }: { piece: Piece } = $props();
 
+  const meters = $derived(meterMap(piece));
+
   function add() {
     const last = piece.passing[piece.passing.length - 1];
-    const step = 1 / piece.meta.meter.beats;
+    const step = 1 / meterMap(piece).at(last ? last.pos : 1).beats;
     piece.passing.push({ id: newId(), pos: last ? last.pos + step : 1, key: last ? { ...last.key } : { ...piece.meta.center } });
   }
 </script>
@@ -24,7 +27,7 @@
       data-row-id={p.id}
       onfocusin={() => (app.selection = { kind: 'passing', id: p.id })}
     >
-      <div class="n"><PosInput label={t('common.bar')} value={p.pos} meter={piece.meta.meter} onchange={(v) => (p.pos = v)} /></div>
+      <div class="n"><PosInput label={t('common.bar')} value={p.pos} meter={meters} onchange={(v) => (p.pos = v)} /></div>
       <div class="k"><KeyInput label={t('an.key')} value={p.key} names={piece.style.noteNames} onchange={(k) => (p.key = k)} /></div>
       <button class="btn small icon danger" title={t('common.delete')} onclick={() => piece.passing.splice(i, 1)}>×</button>
     </div>

@@ -1,12 +1,14 @@
 <script lang="ts">
   import { newId } from '../../domain/ids';
-  import { lastBarOf } from '../../domain/piece';
+  import { lastBarOf, meterMap } from '../../domain/structure';
   import type { Piece } from '../../domain/types';
   import { t } from '../../i18n/index.svelte';
   import { app } from '../../stores/app.svelte';
   import PosInput from '../PosInput.svelte';
 
   let { piece }: { piece: Piece } = $props();
+
+  const meters = $derived(meterMap(piece));
 
   function add() {
     const last = piece.views[piece.views.length - 1];
@@ -28,8 +30,8 @@
   {#each piece.views as v, i (i)}
     <div class="line" class:selected={app.activeViewId === v.id}>
       <input class="grow" type="text" aria-label={t('an.name')} placeholder={t('an.name')} bind:value={v.name} />
-      <div class="n"><PosInput label={t('an.from')} value={v.from} meter={piece.meta.meter} onchange={(x) => (v.from = x)} /></div>
-      <div class="n"><PosInput label={t('an.to')} value={v.to} meter={piece.meta.meter} onchange={(x) => (v.to = x)} /></div>
+      <div class="n"><PosInput label={t('an.from')} value={v.from} meter={meters} onchange={(x) => (v.from = x)} /></div>
+      <div class="n"><PosInput label={t('an.to')} value={v.to} meter={meters} onchange={(x) => (v.to = x)} /></div>
       <button class="btn small toggle" class:on={app.activeViewId === v.id} onclick={() => (app.activeViewId = app.activeViewId === v.id ? null : v.id)}>
         {t('an.showView')}
       </button>

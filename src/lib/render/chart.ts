@@ -1,4 +1,7 @@
-import { displayTitle, lastBarOf } from '../domain/piece';
+import { displayTitle } from '../domain/piece';
+import {
+  endPos, expandPlayOrder, hasRepeats, lastBarOf, meterMap, sectionSpans, sortedEvents, startPos,
+} from '../domain/structure';
 import { rowLabel, rowOf, spellingRow, tonicName } from '../domain/keys';
 import { barRange } from '../domain/positions';
 import type { FontFamilyId, Piece, Segment } from '../domain/types';
@@ -88,22 +91,28 @@ function autoTickStep(ppb: number): number {
 
 const overlaps = (a: number, b: number, from: number, to: number) => b > from && a < to;
 
-export function renderChart(piece: Piece, options: RenderOptions = {}): Chart {
+export function renderChart(source: Piece, options: RenderOptions = {}): Chart {
+  // Repeats laid out in play order (a derived copy; the editor keeps working on the notated piece).
+  const expanded = source.style.repeatDisplay === 'expanded' && hasRepeats(source) ? expandPlayOrder(source) : null;
+  const piece = expanded ? expanded.piece : source;
   const st = piece.style;
   const c = st.colors;
   const lang = CHART_LABELS[st.language];
   const fam = st.fontFamily;
   const fs = (px: number) => px * st.fontScale;
-  const lastBar = lastBarOf(piece);
   const centerRow = rowOf(piece.meta.center);
-  const beats = piece.meta.meter.beats;
-  const ia = options.interactive;
+  const meters = meterMap(piece);
+  const beatsAt = (pos: number) => meters.at(pos).beats;
+  const ia = expanded ? undefined : options.interactive;
+  const start = startPos(piece);
+  const EPS = 1e-9;
 
   // ---- range shown ----------------------------------------------------------------------------
   const zoomed = !!options.view;
-  const from = zoomed ? Math.max(1, options.view!.from) : 1;
-  const to = zoomed ? Math.max(from + 1 / beats, options.view!.to) : lastBar + 1;
-  const ppb = zoomed ? st.detailWidth / (to - from) : st.barWidth;
+  const from = zoomed ? Math.max(start, options.view!.from) : start;
+  const to = zoomed ? Math.max(from + 1 / beatsAt(from), options.view!.to) : endPos(piece);
+  // barWidth 0 = automatic: about 720 units of plot for the whole piece, never cramped or huge
+  const ppb = zoomed ? st.detailWidth / (to - from) : st.barWidth > 0 ? st.barWidth : Math.min(40, Math.max(6, 720 / (to - from)));
   const inView = (pos: number) => pos >= from - 1e-9 && pos < to - 1e-9;
 
   const annotations = st.show.annotations ? piece.annotations.filter((a) => !a.hidden && a.text.trim()) : [];
@@ -125,9 +134,13 @@ export function renderChart(piece: Piece, options: RenderOptions = {}): Chart {
   if (st.rowMax !== null) top = st.rowMax;
   if (st.rowMin !== null) bottom = st.rowMin;
   if (top < bottom) [top, bottom] = [bottom, top];
+  const spans = sectionSpans(piece);
+  const hasSubs = st.show.subsections && spans.some((sp) => sp.subs.length > 0);
+  const headExtra = hasSubs ? 20 : 0; // room for the second row of part names
+  const firstRowY = FIRST_ROW_Y + headExtra;
   const rows: { row: number; y: number }[] = [];
-  for (let r = top; r >= bottom; r--) rows.push({ row: r, y: FIRST_ROW_Y + (top - r) * st.rowHeight });
-  const yOf = (row: number) => FIRST_ROW_Y + (top - row) * st.rowHeight;
+  for (let r = top; r >= bottom; r--) rows.push({ row: r, y: firstRowY + (top - r) * st.rowHeight });
+  const yOf = (row: number) => firstRowY + (top - row) * st.rowHeight;
   const rowText = (r: number) => st.rowNames[String(r)]?.trim() || rowLabel(r, st.noteNames, st.enharmonic);
 
   // ---- horizontal geometry -------------------------------------------------------------------
@@ -161,7 +174,7 @@ export function renderChart(piece: Piece, options: RenderOptions = {}): Chart {
   // ---- vertical geometry ---------------------------------------------------------------------
   const bottomY = yOf(bottom) + 26;
   const axisY = bottomY - 10;
-  const bandTop = TOP;
+  const bandTop = TOP + headExtra;
 
   const parts: string[] = [];
   /** Plot content; clipped to the plot area when zoomed so partly visible bars end cleanly at the edge. */
@@ -186,15 +199,13 @@ export function renderChart(piece: Piece, options: RenderOptions = {}): Chart {
     out.push(`<line x1="${n(x1)}" y1="${n(y1)}" x2="${n(x2)}" y2="${n(y2)}" stroke="${color}" stroke-width="${w}"${extra}/>`);
 
   // ---- background layers ---------------------------------------------------------------------
-  const sections = [...piece.sections].sort((a, b) => a.from - b.from);
   if (st.show.sectionBands) {
-    sections.forEach((s, i) => {
-      const end = sections[i + 1]?.from ?? lastBar + 1;
-      if (!s.shade || !overlaps(s.from, end, from, to)) return;
-      const x0 = xOf(Math.max(s.from, from));
-      const x1 = xOf(Math.min(end, to));
+    for (const sp of spans) {
+      if (!sp.shade || !overlaps(sp.from, sp.to, from, to)) continue;
+      const x0 = xOf(Math.max(sp.from, from));
+      const x1 = xOf(Math.min(sp.to, to));
       plot.push(`<rect x="${n(x0)}" y="${bandTop}" width="${n(x1 - x0)}" height="${n(bottomY - bandTop)}" fill="${c.sectionBand}" opacity="0.7"/>`);
-    });
+    }
   }
   for (const h of piece.highlights) {
     if (!overlaps(h.from, h.to + 1, from, to)) continue;
@@ -213,33 +224,41 @@ export function renderChart(piece: Piece, options: RenderOptions = {}): Chart {
   }
 
   // bar and beat lines when zoomed in far enough
-  const beatPx = ppb / beats;
   const showBarLines = st.barLines === 'on' || (st.barLines === 'auto' && ppb >= 18);
   if (showBarLines) {
-    for (let b = Math.ceil(from + 1e-9); b < to; b++) {
+    for (let b = Math.ceil(from + EPS); b < to; b++) {
       line(parts, xOf(b), bandTop, xOf(b), bottomY - 10, c.grid, 0.6, ' stroke-opacity="0.8"');
     }
-    if (beatPx >= 22) {
-      for (let b = Math.floor(from); b < to; b++) {
-        for (let k = 1; k < beats; k++) {
-          const pos = b + k / beats;
-          if (pos > from && pos < to) line(parts, xOf(pos), bandTop + 14, xOf(pos), bottomY - 10, c.grid, 0.5, ' stroke-opacity="0.55" stroke-dasharray="1 3"');
-        }
+    for (let b = Math.floor(from); b < to; b++) {
+      const nb = beatsAt(b);
+      if (ppb / nb < 22) continue;
+      for (let k = 1; k < nb; k++) {
+        const pos = b + k / nb;
+        if (pos > from && pos < to) line(parts, xOf(pos), bandTop + 14, xOf(pos), bottomY - 10, c.grid, 0.5, ' stroke-opacity="0.55" stroke-dasharray="1 3"');
       }
     }
   }
 
-  // ---- sections: dividers and names ------------------------------------------------------------
-  sections.forEach((s, i) => {
-    const end = sections[i + 1]?.from ?? lastBar + 1;
-    if (!overlaps(s.from, end, from, to)) return;
-    if (s.from > 1 && s.from > from && s.from < to) line(parts, xOf(s.from), bandTop, xOf(s.from), bottomY, c.grid, LW.divider);
-    if (st.show.sectionLabels && s.name.trim()) {
-      const x0 = xOf(Math.max(s.from, from));
-      const x1 = xOf(Math.min(end, to));
-      text(parts, (x0 + x1) / 2, bandTop - 12, s.name, { size: FS.section, anchor: 'middle', weight: 500 });
+  // ---- parts of the form: dividers, names, and the second row of sub-parts ---------------------------
+  for (const sp of spans) {
+    if (!overlaps(sp.from, sp.to, from, to)) continue;
+    if (sp.id && sp.from > start + EPS && sp.from > from && sp.from < to) line(parts, xOf(sp.from), bandTop - headExtra, xOf(sp.from), bottomY, c.grid, LW.divider);
+    if (st.show.sectionLabels && sp.name.trim()) {
+      const x0 = xOf(Math.max(sp.from, from));
+      const x1 = xOf(Math.min(sp.to, to));
+      text(parts, (x0 + x1) / 2, TOP - 12, sp.name, { size: FS.section, anchor: 'middle', weight: 500 });
     }
-  });
+    if (!hasSubs) continue;
+    for (const sub of sp.subs) {
+      if (!overlaps(sub.from, sub.to, from, to)) continue;
+      if (sub.from > sp.from + EPS && sub.from > from && sub.from < to) line(parts, xOf(sub.from), bandTop - 15, xOf(sub.from), bandTop, c.grid, LW.divider);
+      if (sub.name.trim()) {
+        const x0 = xOf(Math.max(sub.from, from));
+        const x1 = xOf(Math.min(sub.to, to));
+        text(parts, (x0 + x1) / 2, bandTop - 8, sub.name, { size: FS.small, color: c.muted, anchor: 'middle' });
+      }
+    }
+  }
 
   // ---- row labels, fifths column ----------------------------------------------------------------
   for (const r of rows) {
@@ -255,44 +274,134 @@ export function renderChart(piece: Piece, options: RenderOptions = {}): Chart {
   if (st.show.fifthsColumn) text(parts, fifthsX, bandTop + 2, lang.fifths, { size: FS.small, color: c.muted, anchor: 'middle' });
 
   // ---- bar axis -------------------------------------------------------------------------------------
+  const labelOf = expanded ? expanded.labelOf : (b: number) => String(b);
+  const firstTickBar = Math.ceil(start - EPS);
   if (st.show.axis) {
     const step = st.tickStep > 0 ? st.tickStep : autoTickStep(ppb);
     line(parts, left, axisY, plotRight, axisY, c.axis, LW.axis);
-    for (let b = Math.ceil(from - 1e-9); b < to; b++) {
-      if (!(b === 1 || b % step === 0)) {
-        if (!(st.tickStep === 0 && zoomed && b === Math.ceil(from - 1e-9) && step * ppb >= 110)) continue;
+    for (let b = Math.ceil(from - EPS); b < to; b++) {
+      const barNo = expanded ? Number(expanded.labelOf(b)) : b; // ticks follow the notated numbers in play order
+      if (!(b === firstTickBar || barNo % step === 0)) {
+        if (!(st.tickStep === 0 && zoomed && b === Math.ceil(from - EPS) && step * ppb >= 110)) continue;
       }
       line(parts, xOf(b), axisY, xOf(b), axisY + 4, c.axis, LW.axis);
-      text(parts, xOf(b), bottomY + 2, String(b), { size: FS.small, color: c.muted, anchor: 'middle' });
+      text(parts, xOf(b), bottomY + 2, labelOf(b), { size: FS.small, color: c.muted, anchor: 'middle' });
     }
-    const beatTicks = st.beatTicks === 'on' || (st.beatTicks === 'auto' && beatPx >= 9);
-    if (beatTicks) {
-      for (let b = Math.floor(from); b < to; b++) {
-        for (let k = 1; k < beats; k++) {
-          const pos = b + k / beats;
-          if (pos > from && pos < to) line(parts, xOf(pos), axisY, xOf(pos), axisY + 2.5, c.axis, 0.8);
-        }
+    for (let b = Math.floor(from); b < to; b++) {
+      const nb = beatsAt(b);
+      const showBeatTicks = st.beatTicks === 'on' || (st.beatTicks === 'auto' && ppb / nb >= 9);
+      if (!showBeatTicks) continue;
+      for (let k = 1; k < nb; k++) {
+        const pos = b + k / nb;
+        if (pos > from && pos < to) line(parts, xOf(pos), axisY, xOf(pos), axisY + 2.5, c.axis, 0.8);
       }
     }
     text(parts, left - LABEL_X_GAP, bottomY + 2, lang.bar, { size: FS.small, color: c.muted, anchor: 'end' });
   }
 
-  // ---- markers on the axis -------------------------------------------------------------------------
-  if (st.show.markers) {
-    for (const m of piece.markers) {
-      if (!inView(m.pos)) continue;
-      const x = xOf(m.pos);
-      if (m.line) line(parts, x, bandTop, x, axisY, c.link, 1, ` stroke-opacity="0.75" stroke-dasharray="${DASH.marker}"`);
-      if (m.label.trim()) {
-        const w = textWidth(m.label, fs(FS.small), fam) + 12;
-        const attrs = ia ? ` data-kind="marker" data-id="${m.id}"` : '';
-        parts.push(
-          `<g${attrs}><rect x="${n(x - w / 2)}" y="${n(bottomY + 16)}" width="${n(w)}" height="${n(fs(FS.small) + 6)}" rx="3" fill="${c.surface}" stroke="${c.axis}" stroke-width="1"/>`,
-        );
-        text(parts, x, bottomY + 16 + (fs(FS.small) + 6) / 2, m.label, { size: FS.small, anchor: 'middle' });
-        parts.push('</g>');
+  // ---- structure events: meter, repeats, endings, barlines, markers ---------------------------------------
+  const events = sortedEvents(piece);
+  // where the music jumps back in a play-order layout
+  for (const j of expanded?.jumps ?? []) {
+    if (j > from && j < to) line(parts, xOf(j), bandTop, xOf(j), axisY, c.axis, 1, ' stroke-opacity="0.8" stroke-dasharray="1.5 3"');
+  }
+  const at = (pos: number) => pos >= from - EPS && pos <= to + EPS;
+  const markEvents = st.show.markers ? events.filter((e) => ['marker', 'text', 'keysig', 'fermata'].includes(e.kind) && inView(e.pos)) : [];
+  const meterEvents = st.show.meterSigns ? events.filter((e) => e.kind === 'meter') : [];
+  const laneUsed = markEvents.some((e) => e.kind !== 'marker' || e.label.trim()) || meterEvents.some((e) => at(e.pos));
+  const voltas = st.show.repeats ? events.filter((e) => e.kind === 'volta' && overlaps(e.pos, e.to, from, to)) : [];
+  const lanesExtra = laneUsed && voltas.length > 0 ? 24 : 0;
+  const laneY = bottomY + 16;
+  const laneMid = bottomY + 16 + (fs(FS.small) + 6) / 2;
+
+  // Lane items are laid out left to right so signs, texts and markers never sit on top of each other.
+  interface LaneItem {
+    pos: number;
+    width: number;
+    center: boolean;
+    draw: (x: number) => void;
+  }
+  const laneItems: LaneItem[] = [];
+  const tw = (label: string, size: number, extra = 0) => textWidth(label, fs(size), fam) + extra;
+  for (const e of markEvents) {
+    if (e.kind === 'marker') {
+      if (e.line) line(parts, xOf(e.pos), bandTop, xOf(e.pos), axisY, c.link, 1, ` stroke-opacity="0.75" stroke-dasharray="${DASH.marker}"`);
+      if (e.label.trim()) {
+        const w = tw(e.label, FS.small, 12);
+        laneItems.push({
+          pos: e.pos, width: w, center: true,
+          draw: (x) => {
+            parts.push(`<g><rect x="${n(x)}" y="${n(laneY)}" width="${n(w)}" height="${n(fs(FS.small) + 6)}" rx="3" fill="${c.surface}" stroke="${c.axis}" stroke-width="1"/>`);
+            text(parts, x + w / 2, laneMid, e.label, { size: FS.small, anchor: 'middle' });
+            parts.push('</g>');
+          },
+        });
+      }
+    } else if (e.kind === 'text' && e.label.trim()) {
+      laneItems.push({ pos: e.pos, width: tw(e.label, FS.small, 4), center: false, draw: (x) => text(parts, x, laneMid, e.label, { size: FS.small, color: c.muted, attrs: ' font-style="italic"' }) });
+    } else if (e.kind === 'keysig') {
+      const k = Math.abs(e.fifths);
+      const label = k === 0 ? '♮' : `${k}${e.fifths > 0 ? '♯' : '♭'}`;
+      laneItems.push({ pos: e.pos, width: tw(label, FS.small, 4), center: false, draw: (x) => text(parts, x, laneMid, label, { size: FS.small, color: c.muted }) });
+    } else if (e.kind === 'fermata') {
+      laneItems.push({
+        pos: e.pos, width: 14, center: true,
+        draw: (x) =>
+          parts.push(
+            `<path d="M${n(x + 1)},${n(laneMid + 3)} A6,6 0 0 1 ${n(x + 13)},${n(laneMid + 3)}" fill="none" stroke="${c.text}" stroke-width="1.3"/>` +
+              `<circle cx="${n(x + 7)}" cy="${n(laneMid - 0.5)}" r="1.5" fill="${c.text}"/>`,
+          ),
+      });
+    }
+  }
+  if (meterEvents.length > 0) {
+    const shown = meterEvents.filter((e) => at(e.pos)).map((e) => ({ pos: e.pos, beats: e.beats, unit: e.unit }));
+    if (!shown.some((e) => Math.abs(e.pos - start) < EPS) && at(start)) {
+      shown.unshift({ pos: start, beats: meters.at(start).beats, unit: meters.at(start).unit });
+    }
+    for (const e of shown) {
+      const label = `${e.beats}/${e.unit}`;
+      laneItems.push({ pos: e.pos, width: tw(label, FS.small, 4), center: false, draw: (x) => text(parts, x, laneMid, label, { size: FS.small, weight: 600 }) });
+    }
+  }
+  let laneRight = -Infinity;
+  for (const it of laneItems.sort((a, b) => a.pos - b.pos)) {
+    const natural = xOf(it.pos) + (it.center ? -it.width / 2 : 2);
+    const x = Math.max(natural, laneRight + 6);
+    it.draw(x);
+    laneRight = x + it.width;
+  }
+
+  if (st.show.repeats) {
+    for (const e of events) {
+      if (!at(e.pos)) continue;
+      const x = xOf(e.pos);
+      if (e.kind === 'barline') {
+        const col = c.text;
+        if (e.style === 'final') {
+          line(parts, x - 3.5, bandTop - 2, x - 3.5, axisY, col, 1, ' stroke-opacity="0.7"');
+          line(parts, x, bandTop - 2, x, axisY, col, 3, ' stroke-opacity="0.7"');
+        } else {
+          line(parts, x - 2, bandTop - 2, x - 2, axisY, col, 1, ' stroke-opacity="0.7"');
+          line(parts, x + 1.5, bandTop - 2, x + 1.5, axisY, col, 1, ' stroke-opacity="0.7"');
+        }
+      } else if (e.kind === 'repeat-start' || e.kind === 'repeat-end') {
+        const dir = e.kind === 'repeat-start' ? 1 : -1;
+        line(parts, x, bandTop, x, axisY - 8, c.axis, 1, ' stroke-opacity="0.7" stroke-dasharray="2 3"');
+        line(parts, x, axisY - 8, x, axisY + 8, c.text, 2.6);
+        line(parts, x + dir * 4, axisY - 8, x + dir * 4, axisY + 8, c.text, 1);
+        parts.push(`<circle cx="${n(x + dir * 8)}" cy="${n(axisY - 3.5)}" r="1.4" fill="${c.text}"/><circle cx="${n(x + dir * 8)}" cy="${n(axisY + 3.5)}" r="1.4" fill="${c.text}"/>`);
+        if (e.kind === 'repeat-end' && e.times !== 2) text(parts, x, axisY - 16, `${e.times}×`, { size: FS.small, color: c.muted, anchor: 'middle' });
       }
     }
+    voltas.forEach((v) => {
+      const x0 = xOf(Math.max(v.pos, from));
+      const x1 = xOf(Math.min(v.to, to));
+      const yb = bottomY + 16 + (laneUsed ? 24 : 0) + 2;
+      line(parts, x0, yb, x1, yb, c.text, 1);
+      if (v.pos >= from - EPS) line(parts, x0, yb, x0, yb + 8, c.text, 1);
+      text(parts, x0 + 5, yb + 9, `${v.numbers.join(', ')}.`, { size: FS.small });
+    });
   }
 
   // ---- connectors between consecutive segments ----------------------------------------------------
@@ -419,7 +528,7 @@ export function renderChart(piece: Piece, options: RenderOptions = {}): Chart {
   }
 
   // ---- legend ----------------------------------------------------------------------------------------------------
-  let height = bottomY + 80;
+  let height = bottomY + 80 + lanesExtra;
   if (st.show.legend) {
     const hasMajor = piece.segments.some((s) => s.key.mode === 'major');
     const hasMinor = piece.segments.some((s) => s.key.mode === 'minor');
@@ -480,6 +589,6 @@ export function renderChart(piece: Piece, options: RenderOptions = {}): Chart {
     svg,
     width,
     height,
-    geometry: { left, plotRight, from, to, ppb, topRow: top, bottomRow: bottom, firstRowY: FIRST_ROW_Y, rowHeight: st.rowHeight },
+    geometry: { left, plotRight, from, to, ppb, topRow: top, bottomRow: bottom, firstRowY, rowHeight: st.rowHeight },
   };
 }

@@ -1,5 +1,6 @@
 <script lang="ts">
     import { untrack } from 'svelte';
+  import { meterMap } from '../../domain/structure';
   import { parseSegments, serializeSegments, type ParseError } from '../../domain/segments-text';
   import { newId } from '../../domain/ids';
   import type { Piece, Segment } from '../../domain/types';
@@ -11,8 +12,8 @@
   let { piece }: { piece: Piece } = $props();
 
   const names = $derived(piece.style.noteNames);
-  const meter = $derived(piece.meta.meter);
-  const initial = untrack(() => serializeSegments(piece.segments, piece.style.noteNames, piece.meta.meter));
+  const meter = $derived(meterMap(piece));
+  const initial = untrack(() => serializeSegments(piece.segments, piece.style.noteNames, meterMap(piece)));
   let text = $state(initial);
   /** The serialisation the textarea currently stands for; used to tell outside edits from our own. */
   let synced = initial;
