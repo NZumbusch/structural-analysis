@@ -46,6 +46,8 @@ self.addEventListener('activate', (e) => {
 });
 self.addEventListener('fetch', (e) => {
   if (e.request.method !== 'GET') return;
+  // Other sites (the DCML tables on GitHub) go straight to the network.
+  if (new URL(e.request.url).origin !== self.location.origin) return;
   // Pages: network first, so a new version (or a fix) shows up on the next visit; the cache is the offline fallback.
   if (e.request.mode === 'navigate') {
     e.respondWith(fetch(e.request).catch(() => caches.match('./index.html')));

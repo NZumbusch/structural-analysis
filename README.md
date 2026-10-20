@@ -28,6 +28,9 @@ Set the time signature under **Stück** so beat positions and the beat grid are 
   inserted or deleted anywhere (everything after them moves). Anacrusis counts as bar 0. Repeats are drawn as signs
   or written out in play order (setting); statistics can count repeated bars once or twice.
 
+- **DCML import (Library):** pick a corpus of the [DCML collection](https://github.com/DCMLab/dcml_corpora) (or any
+  GitHub link, also to a fixed commit, or your own `.tsv` files) and import pieces with their local-key path,
+  repeats, endings, time signatures, anacrusis and more – you choose which details ([what is read](docs/dcml-import.md)).
 - **Views (Ausschnitte):** named zooms of a bar range, with bar/beat grid, rows fitted to what is visible; pick one in
   the preview, export one or all (ZIP).
 - **Edit in the preview:** click to select (the editor row lights up), drag bar edges (neighbours follow, Alt holds
@@ -80,6 +83,7 @@ npm run build    # static site in dist/
 ```
 src/lib/domain/      data model, key theory + parser, quick-entry text format, example piece (pure TS, tested)
 src/lib/render/      SVG chart renderer, palettes, chart labels (pure function: Piece -> SVG string)
+src/lib/import/      DCML corpus tables -> piece (tables, key numerals, conversion, GitHub access)
 src/lib/export/      SVG / PNG / PDF / ZIP, project files, share links
 src/lib/stores/      app state (Svelte 5 runes), localStorage persistence, undo history
 src/lib/i18n/        UI strings (de, en)
@@ -93,6 +97,7 @@ PNG export rasterises the SVG in the browser using system fonts.
 
 - [Method notes](docs/method.md) – what the chart and statistics count, in methods-section terms
 - [Analysis JSON format](docs/analysis-format.md)
+- [DCML import](docs/dcml-import.md) – which columns are read and how they become bars, keys and events
 - [MIT licence](LICENSE), [third-party notices](THIRD_PARTY_NOTICES.md) (fonts under the SIL OFL), [CITATION.cff](CITATION.cff)
 
 ## Publishing on GitHub Pages

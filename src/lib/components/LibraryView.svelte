@@ -5,6 +5,7 @@
   import { app } from '../stores/app.svelte';
   import { t } from '../i18n/index.svelte';
   import type { Piece } from '../domain/types';
+  import DcmlImport from './DcmlImport.svelte';
 
   function title(p: Piece): string {
     return displayTitle(p) || t('common.untitled');
@@ -55,6 +56,10 @@
         </li>
       {/each}
     </ul>
+  {/if}
+
+  {#if !app.simple}
+    <DcmlImport />
   {/if}
 
   {#if app.showIosHint}
