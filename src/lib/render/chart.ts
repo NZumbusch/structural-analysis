@@ -431,6 +431,7 @@ export function renderChart(source: Piece, options: RenderOptions = {}): Chart {
     segs.slice(1).forEach((next, i) => {
       const prev = segs[i];
       if (!touching(prev, next) || rowOf(prev.key) === rowOf(next.key)) return;
+      if (next.from <= from + EPS || next.from >= to - EPS) return; // a join on the view's own edge would hang there
       line(plot, xOf(next.from), yOf(rowOf(prev.key)), xOf(next.from), yOf(rowOf(next.key)), c.link, LW.link,
         ' stroke-opacity="0.6" stroke-linecap="round"');
     });

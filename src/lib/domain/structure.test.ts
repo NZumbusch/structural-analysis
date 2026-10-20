@@ -265,3 +265,16 @@ describe('repeat signs in the chart', () => {
     expect(inside.svg).toContain('stroke-width="2.4"');
   });
 });
+
+describe('connectors in a zoomed view', () => {
+  it('does not draw a join that lies on the view edge', () => {
+    const p = createPiece();
+    p.meta.lastBar = 12;
+    p.segments = [seg(1, 5), { ...seg(5, 9), key: { fifths: 2, mode: 'major' } }, seg(9, 13)];
+    const joins = (svg: string) => (svg.match(/stroke-opacity="0.6" stroke-linecap="round"/g) ?? []).length;
+    expect(joins(renderChart(p).svg)).toBe(2);
+    expect(joins(renderChart(p, { view: { from: 1, to: 9 } }).svg)).toBe(1); // the join at 9 is the edge
+    expect(joins(renderChart(p, { view: { from: 5, to: 13 } }).svg)).toBe(1); // the join at 5 is the edge
+    expect(joins(renderChart(p, { view: { from: 3, to: 11 } }).svg)).toBe(2);
+  });
+});
