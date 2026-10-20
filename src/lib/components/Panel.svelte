@@ -5,12 +5,19 @@
     title,
     count,
     open = false,
+    reveal = false,
     actions,
     children,
-  }: { title: string; count?: number; open?: boolean; actions?: Snippet; children: Snippet } = $props();
+  }: { title: string; count?: number; open?: boolean; reveal?: boolean; actions?: Snippet; children: Snippet } = $props();
+
+  let el: HTMLDetailsElement | undefined = $state();
+  // Opens the panel when something inside it gets selected elsewhere (e.g. in the preview).
+  $effect(() => {
+    if (reveal && el) el.open = true;
+  });
 </script>
 
-<details class="panel card" {open}>
+<details class="panel card" {open} bind:this={el}>
   <summary>
     <span class="chev" aria-hidden="true">›</span>
     <h3>{title}</h3>

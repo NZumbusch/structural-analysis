@@ -55,6 +55,18 @@
     </div>
     <p class="hint">{t('piece.centerHint')} {t('piece.lastBarHint')}</p>
 
+    <div class="field">
+      <span>{t('piece.meter')}</span>
+      <div class="meter">
+        <NumInput label={t('piece.meterBeats')} min={1} max={32} value={piece.meta.meter.beats} onchange={(v) => (piece.meta.meter.beats = Math.max(1, Math.round(v ?? 4)))} />
+        <span>/</span>
+        <select aria-label={t('piece.meterUnit')} bind:value={piece.meta.meter.unit}>
+          {#each [1, 2, 4, 8, 16] as u (u)}<option value={u}>{u}</option>{/each}
+        </select>
+      </div>
+      <span class="hint">{t('piece.meterHint')}</span>
+    </div>
+
     <label class="field">
       <span>{t('piece.subtitle')}</span>
       <input type="text" bind:value={piece.meta.subtitle} />
@@ -80,6 +92,7 @@
   }
   .form { padding: 16px; display: grid; gap: 12px; }
   .side { display: grid; gap: 8px; min-width: 0; position: sticky; top: calc(var(--header-h) + var(--tabs-h) + 12px); }
+  .meter { display: grid; grid-template-columns: 1fr auto 1fr; gap: 8px; align-items: center; max-width: 220px; }
   .two { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
   @media (max-width: 860px) {
     .layout { grid-template-columns: minmax(0, 1fr); }

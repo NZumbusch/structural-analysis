@@ -12,9 +12,24 @@ Workflow (four tabs): **Bibliothek** (new / open / import) → **Stück** (title
 ```
 1-9 c          c minor from bar 1 until the next stretch starts in bar 9
 9-11 >As       secondary dominant aiming at A-flat major (dashed)
-41-42.5 f      half bars allowed
+41-42:3 f      positions can be beats: bar 42, beat 3 (= 42.5 in 4/4); 42:2.5 is the "and" of beat 2
+44-45 As "V7"  optional text on the bar
 // comment
 ```
+
+Set the time signature under **Stück** so beat positions and the beat grid are right.
+
+## Features
+
+- **Views (Ausschnitte):** named zooms of a bar range, with bar/beat grid, rows fitted to what is visible; pick one in
+  the preview, export one or all (ZIP).
+- **Edit in the preview:** click to select (the editor row lights up), drag bar edges (neighbours follow, Alt holds
+  them), passing chords and annotations; snaps to bar / beat / half beat. Del removes the selection.
+- Annotations (global and per-item hide, nudge with a leader line), bar markers, text on bars.
+- Row spelling (flats / sharps for the outer rows, or per-row labels), colour-blind-safe palette.
+- Export: SVG (optional physical width in cm), PNG (scale or cm + dpi), PDF via the print dialog (vector),
+  clipboard, native share sheet, project file, share link (deflate-compressed, ~1.6 kB for 120 bars).
+- Works offline once opened (service worker); installable on phones.
 
 Capital letter = major, lower case = minor (`Es`, `c`, `Fis`, `b` = B-flat minor); `Cm`, `A-Dur`, `F# minor` also work.
 German note names by default (B = B-flat, H = B); switch to English under Export → Beschriftung.
@@ -34,7 +49,7 @@ npm run build    # static site in dist/
 ```
 src/lib/domain/      data model, key theory + parser, quick-entry text format, example piece (pure TS, tested)
 src/lib/render/      SVG chart renderer, palettes, chart labels (pure function: Piece -> SVG string)
-src/lib/export/      SVG / PNG / project-file download and import
+src/lib/export/      SVG / PNG / PDF / ZIP, project files, share links
 src/lib/stores/      app state (Svelte 5 runes), localStorage persistence, undo history
 src/lib/i18n/        UI strings (de, en)
 src/lib/components/  views (Library, Piece, Analysis, Export) and editors

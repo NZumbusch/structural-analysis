@@ -34,6 +34,16 @@ export const PALETTES: PalettePreset[] = [
     },
   },
   {
+    // Okabe-Ito blue / vermillion: distinguishable with the common forms of colour blindness.
+    id: 'accessible',
+    colors: {
+      majorFill: '#A9D3EE', majorStroke: '#005A94',
+      minorFill: '#F7C9A8', minorStroke: '#A84300',
+      text: '#1B1B1B', muted: '#575757', grid: '#D4D4D4', axis: '#9A9A9A', link: '#707070',
+      sectionBand: '#F2F2F2', centerBand: '#FFF2B8', surface: '#FFFFFF', background: '#FFFFFF',
+    },
+  },
+  {
     id: 'mono',
     colors: {
       majorFill: '#ECECEC', majorStroke: '#2B2B2B',

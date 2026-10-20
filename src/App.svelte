@@ -4,7 +4,9 @@
   import LibraryView from './lib/components/LibraryView.svelte';
   import PieceView from './lib/components/PieceView.svelte';
   import { displayTitle } from './lib/domain/piece';
+  import { onMount } from 'svelte';
   import { downloadBlob, projectBlob } from './lib/export/files';
+  import { codeFromHash, decodePiece } from './lib/export/share';
   import { t, type TKey } from './lib/i18n/index.svelte';
   import { app, fingerprint, type Tab } from './lib/stores/app.svelte';
 
@@ -45,7 +47,28 @@
     if (fileInput) fileInput.value = '';
   }
 
+  // A shared link carries the piece in the URL hash; open it as a new piece.
+  onMount(() => {
+    const code = codeFromHash(location.hash);
+    if (!code) return;
+    void decodePiece(code).then((shared) => {
+      if (shared) {
+        const [added] = app.importPieces([shared]);
+        app.open(added, 'analysis');
+        app.notify(t('lib.linkImported'));
+      } else {
+        app.notify(t('lib.linkFailed'));
+      }
+      history.replaceState(null, '', location.pathname + location.search);
+    });
+  });
+
   function onKeydown(e: KeyboardEvent) {
+    const typing = (e.target as HTMLElement | null)?.closest('input, textarea, select, [contenteditable]');
+    if ((e.key === 'Delete' || e.key === 'Backspace') && !typing && app.selection && app.tab !== 'library') {
+      if (app.deleteSelection()) e.preventDefault();
+      return;
+    }
     if (!(e.ctrlKey || e.metaKey) || e.key.toLowerCase() !== 'z' || app.tab === 'library') return;
     const el = e.target as HTMLElement | null;
     if (el && (el.tagName === 'TEXTAREA' || (el.tagName === 'INPUT' && (el as HTMLInputElement).type === 'text'))) {

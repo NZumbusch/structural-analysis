@@ -2,10 +2,16 @@ import { createExample } from '../domain/example';
 import { cloneStyle, createPiece, DEFAULT_STYLE } from '../domain/piece';
 import type { Piece } from '../domain/types';
 import { freshIdentity, readProjectFile } from '../export/files';
+import type { Snap } from '../domain/positions';
 import { deletePiece, loadAllPieces, loadPrefs, savePiece, savePrefs } from './storage';
 
 export type Tab = 'library' | 'piece' | 'analysis' | 'export';
 export type SaveState = 'saved' | 'saving' | 'error';
+export type SelectionKind = 'segment' | 'passing' | 'annotation' | 'marker';
+export interface Selection {
+  kind: SelectionKind;
+  id: string;
+}
 
 const HISTORY_LIMIT = 100;
 const COALESCE_MS = 700;
@@ -23,6 +29,15 @@ class AppState {
   prefs = $state(loadPrefs());
   saveState = $state<SaveState>('saved');
   toast = $state('');
+
+  /** Element picked in the preview; the matching editor row is highlighted. */
+  selection = $state<Selection | null>(null);
+  /** Zoom view shown in previews (null = whole piece). */
+  activeViewId = $state<string | null>(null);
+  /** Grid that dragging in the preview snaps to. */
+  snap = $state<Snap>('beat');
+  /** Whether the preview reacts to clicks and drags. */
+  editInPreview = $state(true);
 
   historyIndex = $state(0);
   historyLength = $state(0);
@@ -58,6 +73,8 @@ class AppState {
     this.historyIndex = 0;
     this.historyLength = 1;
     this.prefs.lastOpenId = piece.id;
+    this.selection = null;
+    this.activeViewId = null;
     savePrefs(this.prefs);
     this.tab = tab;
   }
@@ -111,6 +128,25 @@ class AppState {
       this.prefs.lastOpenId = null;
       savePrefs(this.prefs);
     }
+  }
+
+  /** Removes the selected element from its list. */
+  deleteSelection(): boolean {
+    const sel = this.selection;
+    const piece = this.piece;
+    if (!sel || !piece) return false;
+    const lists = {
+      segment: piece.segments,
+      passing: piece.passing,
+      annotation: piece.annotations,
+      marker: piece.markers,
+    } as const;
+    const list = lists[sel.kind] as { id: string }[];
+    const i = list.findIndex((x) => x.id === sel.id);
+    if (i < 0) return false;
+    list.splice(i, 1);
+    this.selection = null;
+    return true;
   }
 
   // ---- persistence ------------------------------------------------------------------------------

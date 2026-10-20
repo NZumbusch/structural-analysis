@@ -4,13 +4,15 @@
   import { newId } from '../../domain/ids';
   import type { Piece, Segment } from '../../domain/types';
   import { t, type TKey } from '../../i18n/index.svelte';
+  import { app } from '../../stores/app.svelte';
+  import PosInput from '../PosInput.svelte';
   import KeyInput from '../KeyInput.svelte';
-  import NumInput from '../NumInput.svelte';
 
   let { piece }: { piece: Piece } = $props();
 
   const names = $derived(piece.style.noteNames);
-  const initial = untrack(() => serializeSegments(piece.segments, piece.style.noteNames));
+  const meter = $derived(piece.meta.meter);
+  const initial = untrack(() => serializeSegments(piece.segments, piece.style.noteNames, piece.meta.meter));
   let text = $state(initial);
   /** The serialisation the textarea currently stands for; used to tell outside edits from our own. */
   let synced = initial;
@@ -18,7 +20,7 @@
 
   // Table edits, undo, note-name changes … rewrite the text; edits from the textarea itself do not.
   $effect(() => {
-    const current = serializeSegments(piece.segments, names);
+    const current = serializeSegments(piece.segments, names, meter);
     if (current !== synced) {
       text = current;
       synced = current;
@@ -27,9 +29,9 @@
   });
 
   function onTextInput() {
-    const result = parseSegments(text, names, piece.segments);
+    const result = parseSegments(text, names, meter, piece.segments);
     errors = result.errors;
-    synced = serializeSegments(result.segments, names);
+    synced = serializeSegments(result.segments, names, meter);
     piece.segments = result.segments;
   }
 
@@ -46,6 +48,7 @@
       to: from + 4,
       key: prev ? { ...prev.key } : { ...piece.meta.center },
       kind: 'key',
+      label: '',
     };
     piece.segments.splice(after + 1, 0, seg);
   }
@@ -79,9 +82,14 @@
   <div class="label">{t('an.tableLabel')}</div>
   <div class="lines">
     {#each piece.segments as seg, i (i)}
-      <div class="line">
-        <div class="n"><NumInput label={t('an.from')} value={seg.from} step={0.5} min={1} onchange={(v) => (seg.from = v ?? seg.from)} /></div>
-        <div class="n"><NumInput label={t('an.to')} value={seg.to} step={0.5} min={1} onchange={(v) => (seg.to = v ?? seg.to)} /></div>
+      <div
+        class="line"
+        class:selected={app.selection?.id === seg.id}
+        data-row-id={seg.id}
+        onfocusin={() => (app.selection = { kind: 'segment', id: seg.id })}
+      >
+        <div class="n"><PosInput label={t('an.from')} value={seg.from} {meter} onchange={(v) => (seg.from = v)} /></div>
+        <div class="n"><PosInput label={t('an.to')} value={seg.to} {meter} onchange={(v) => (seg.to = v)} /></div>
         <div class="k"><KeyInput label={t('an.key')} value={seg.key} {names} onchange={(k) => (seg.key = k)} /></div>
         <button class="btn small toggle" class:on={seg.key.mode === 'minor'} title={t('an.mode')} onclick={() => flipMode(seg)}>
           {seg.key.mode === 'major' ? 'Dur' : 'Moll'}
@@ -89,6 +97,7 @@
         <button class="btn small toggle" class:on={seg.kind === 'dominant'} title={t('an.dominant')} onclick={() => (seg.kind = seg.kind === 'dominant' ? 'key' : 'dominant')}>
           {t('an.domShort')}
         </button>
+        <input class="grow" type="text" aria-label={t('an.barLabel')} placeholder={t('an.barLabel')} bind:value={seg.label} />
         <button class="btn small icon" title={t('an.addRow')} onclick={() => add(i)}>+</button>
         <button class="btn small icon danger" title={t('common.delete')} onclick={() => piece.segments.splice(i, 1)}>×</button>
       </div>

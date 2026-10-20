@@ -1,5 +1,7 @@
 <script lang="ts">
   import { cloneStyle, DEFAULT_STYLE } from '../domain/piece';
+  import { rowLabel } from '../domain/keys';
+  import { renderChart } from '../render/chart';
   import type { Palette, Piece, ShowOptions } from '../domain/types';
   import { activePalette, PALETTES } from '../render/palettes';
   import { app } from '../stores/app.svelte';
@@ -17,6 +19,19 @@
   ];
   const showKeys = Object.keys(DEFAULT_STYLE.show) as (keyof ShowOptions)[];
   const tickSteps = [0, 1, 2, 4, 5, 8, 10, 16, 20, 25, 50, 100];
+
+  /** The rows of the whole chart, for the manual label overrides. */
+  const rowList = $derived.by(() => {
+    const g = renderChart(piece).geometry;
+    const rows: number[] = [];
+    for (let r = g.topRow; r >= g.bottomRow; r--) rows.push(r);
+    return rows;
+  });
+
+  function setRowName(row: number, value: string) {
+    if (value.trim()) piece.style.rowNames[String(row)] = value;
+    else delete piece.style.rowNames[String(row)];
+  }
 
   function reset() {
     piece.style = cloneStyle(DEFAULT_STYLE);
@@ -101,6 +116,28 @@
       </div>
     </div>
     <p class="hint">{t('st.rowRangeHint')}</p>
+    <label class="field">
+      <span>{t('st.detailWidth')}: {st.detailWidth}</span>
+      <input type="range" min="300" max="1600" step="20" bind:value={piece.style.detailWidth} />
+    </label>
+    <div class="two">
+      <label class="field">
+        <span>{t('st.barLines')}</span>
+        <select bind:value={piece.style.barLines}>
+          <option value="auto">{t('common.auto')}</option>
+          <option value="on">{t('common.on')}</option>
+          <option value="off">{t('common.off')}</option>
+        </select>
+      </label>
+      <label class="field">
+        <span>{t('st.beatTicks')}</span>
+        <select bind:value={piece.style.beatTicks}>
+          <option value="auto">{t('common.auto')}</option>
+          <option value="on">{t('common.on')}</option>
+          <option value="off">{t('common.off')}</option>
+        </select>
+      </label>
+    </div>
   </Panel>
 
   <Panel title={t('ex.labels')}>
@@ -127,6 +164,31 @@
       </select>
     </label>
     <label class="check"><input type="checkbox" bind:checked={piece.style.showYear} />{t('st.showYear')}</label>
+    <label class="field">
+      <span>{t('st.enharmonic')}</span>
+      <select bind:value={piece.style.enharmonic}>
+        <option value="auto">{t('common.auto')}</option>
+        <option value="flats">{t('st.enh.flats')}</option>
+        <option value="sharps">{t('st.enh.sharps')}</option>
+      </select>
+      <span class="hint">{t('st.enharmonicHint')}</span>
+    </label>
+    <details class="rowsdetails">
+      <summary>{t('st.rowNames')}</summary>
+      <div class="rownames">
+        {#each rowList as r (r)}
+          <label class="rn">
+            <span class="muted small">{r > 0 ? `+${r}` : r}</span>
+            <input
+              type="text"
+              value={piece.style.rowNames[String(r)] ?? ''}
+              placeholder={rowLabel(r, st.noteNames, st.enharmonic)}
+              oninput={(e) => setRowName(r, e.currentTarget.value)}
+            />
+          </label>
+        {/each}
+      </div>
+    </details>
   </Panel>
 
   <Panel title={t('ex.elements')}>
@@ -157,5 +219,8 @@
   .color { display: flex; align-items: center; gap: 8px; font-size: 0.9rem; }
   .check { display: flex; align-items: center; gap: 8px; font-size: 0.95rem; }
   .shows { display: grid; gap: 8px 12px; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); }
+  .rowsdetails summary { cursor: pointer; font-size: 0.9rem; color: var(--muted); padding: 4px 0; }
+  .rownames { display: grid; gap: 6px; margin-top: 6px; }
+  .rn { display: grid; grid-template-columns: 34px 1fr; gap: 8px; align-items: center; }
   .two { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 </style>

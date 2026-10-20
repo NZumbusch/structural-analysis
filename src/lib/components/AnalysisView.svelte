@@ -1,18 +1,31 @@
 <script lang="ts">
   import type { Piece } from '../domain/types';
+  import { tick } from 'svelte';
   import { t } from '../i18n/index.svelte';
+  import { app } from '../stores/app.svelte';
   import ChartPreview from './ChartPreview.svelte';
   import Panel from './Panel.svelte';
   import AnnotationsEditor from './editors/AnnotationsEditor.svelte';
   import HighlightsEditor from './editors/HighlightsEditor.svelte';
   import PassingEditor from './editors/PassingEditor.svelte';
   import SectionsEditor from './editors/SectionsEditor.svelte';
+  import MarkersEditor from './editors/MarkersEditor.svelte';
   import SegmentsEditor from './editors/SegmentsEditor.svelte';
+  import ViewsEditor from './editors/ViewsEditor.svelte';
 
   let { piece }: { piece: Piece } = $props();
 
   /** On narrow screens only one of input and preview is visible at a time. */
   let pane = $state<'input' | 'preview'>('input');
+
+  const kind = $derived(app.selection?.kind);
+
+  // Bring the editor row of whatever was picked in the preview into view.
+  $effect(() => {
+    const id = app.selection?.id;
+    if (!id) return;
+    void tick().then(() => document.querySelector(`[data-row-id="${id}"]`)?.scrollIntoView({ block: 'nearest', behavior: 'smooth' }));
+  });
 </script>
 
 <div class="switch" role="tablist">
@@ -22,13 +35,13 @@
 
 <div class="layout">
   <section class="inputs" class:hide={pane !== 'input'}>
-    <Panel title={t('an.keys')} count={piece.segments.length} open>
+    <Panel title={t('an.keys')} count={piece.segments.length} open reveal={kind === 'segment'}>
       <SegmentsEditor {piece} />
     </Panel>
-    <Panel title={t('an.passing')} count={piece.passing.length}>
+    <Panel title={t('an.passing')} count={piece.passing.length} reveal={kind === 'passing'}>
       <PassingEditor {piece} />
     </Panel>
-    <Panel title={t('an.annotations')} count={piece.annotations.length}>
+    <Panel title={t('an.annotations')} count={piece.annotations.length} reveal={kind === 'annotation'}>
       <AnnotationsEditor {piece} />
     </Panel>
     <Panel title={t('an.sections')} count={piece.sections.length}>
@@ -37,11 +50,17 @@
     <Panel title={t('an.highlights')} count={piece.highlights.length}>
       <HighlightsEditor {piece} />
     </Panel>
+    <Panel title={t('an.markers')} count={piece.markers.length} reveal={kind === 'marker'}>
+      <MarkersEditor {piece} />
+    </Panel>
+    <Panel title={t('an.views')} count={piece.views.length}>
+      <ViewsEditor {piece} />
+    </Panel>
     <p class="hint">{t('an.undoHint')}</p>
   </section>
 
   <section class="side" class:hide={pane !== 'preview'}>
-    <ChartPreview {piece} />
+    <ChartPreview {piece} editable />
   </section>
 </div>
 

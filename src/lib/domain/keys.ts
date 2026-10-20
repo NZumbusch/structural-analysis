@@ -42,9 +42,19 @@ export function keyName(key: Key, names: NoteNames): string {
   return key.mode === 'major' ? name : lowerFirst(name);
 }
 
+export type Enharmonic = 'auto' | 'flats' | 'sharps';
+
+/** Row whose spelling to show: the same pitches written with flats or sharps for the outer rows. */
+export function spellingRow(row: number, enharmonic: Enharmonic = 'auto'): number {
+  if (enharmonic === 'flats' && row >= 5) return row - 12;
+  if (enharmonic === 'sharps' && row <= -5) return row + 12;
+  return row;
+}
+
 /** Row label such as 'Es · c'. */
-export function rowLabel(row: number, names: NoteNames): string {
-  return `${tonicName(row, names)} · ${lowerFirst(tonicName(row + MINOR_OFFSET, names))}`;
+export function rowLabel(row: number, names: NoteNames, enharmonic: Enharmonic = 'auto'): string {
+  const r = spellingRow(row, enharmonic);
+  return `${tonicName(r, names)} · ${lowerFirst(tonicName(r + MINOR_OFFSET, names))}`;
 }
 
 const MODE_WORDS = /[-\s]*(dur|major|maj|moll|minor|min)$/i;

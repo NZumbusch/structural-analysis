@@ -23,22 +23,50 @@ export interface Segment {
   key: Key;
   /** 'dominant' = secondary dominant aiming at `key`, drawn dashed. */
   kind: SegmentKind;
+  /** Optional text on the bar (chord, function …). */
+  label: string;
 }
 
-/** A chord that only passes through and does not establish a key. */
+/** A chord that only passes through and does not establish a key. `pos` is a position in bars (74.5 = middle of bar 74). */
 export interface PassingChord {
   id: string;
-  bar: number;
+  pos: number;
   key: Key;
 }
 
-/** Free text label placed to the side of `bar` in the row of `key`. */
+/** Free text anchored at `pos` in the row of `key`, optionally nudged by `dx`/`dy` (chart units). */
 export interface Annotation {
   id: string;
-  bar: number;
+  pos: number;
   key: Key;
   text: string;
   align: 'left' | 'right';
+  dx: number;
+  dy: number;
+  hidden: boolean;
+}
+
+/** A labelled position on the bar axis (rehearsal mark, "recapitulation begins" …). */
+export interface Marker {
+  id: string;
+  pos: number;
+  label: string;
+  line: boolean;
+}
+
+/** A named zoom range; `to` is exclusive like a segment's. */
+export interface View {
+  id: string;
+  name: string;
+  from: number;
+  to: number;
+}
+
+export interface Meter {
+  /** Beats per bar (numerator). */
+  beats: number;
+  /** Note value of one beat (denominator): 4 = quarter, 8 = eighth. */
+  unit: number;
 }
 
 /** A formal section; it ends where the next one starts. */
@@ -66,6 +94,7 @@ export interface PieceMeta {
   movement: string;
   /** Home key; its row becomes the centre of the fifths scale. */
   center: Key;
+  meter: Meter;
   /** Empty = generated automatically. */
   subtitle: string;
   /** Null = derived from the last segment. */
@@ -92,6 +121,10 @@ export interface Palette {
 export interface ShowOptions {
   subtitle: boolean;
   sectionLabels: boolean;
+  annotations: boolean;
+  barLabels: boolean;
+  markers: boolean;
+  viewRange: boolean;
   sectionBands: boolean;
   centerBand: boolean;
   grid: boolean;
@@ -102,6 +135,7 @@ export interface ShowOptions {
   legend: boolean;
 }
 
+export type Auto = 'auto' | 'on' | 'off';
 export type FontFamilyId = 'sans' | 'serif' | 'mono';
 export type TitleLayout = 'composer-title' | 'title-composer' | 'title';
 
@@ -116,6 +150,14 @@ export interface Style {
   barWidth: number;
   rowHeight: number;
   barHeight: number;
+  /** Plot width of zoomed views, in chart units. */
+  detailWidth: number;
+  barLines: Auto;
+  beatTicks: Auto;
+  /** Which spelling the outer rows get: natural (auto), flat or sharp keys. */
+  enharmonic: 'auto' | 'flats' | 'sharps';
+  /** Manual row labels by row number (fifths from C); empty = automatic. */
+  rowNames: Record<string, string>;
   /** 0 = automatic */
   tickStep: number;
   /** Extra empty rows above and below the used range. */
@@ -138,5 +180,7 @@ export interface Piece {
   annotations: Annotation[];
   sections: Section[];
   highlights: Highlight[];
+  markers: Marker[];
+  views: View[];
   style: Style;
 }
