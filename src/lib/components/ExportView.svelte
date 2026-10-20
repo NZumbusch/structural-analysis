@@ -3,32 +3,24 @@
   import { validate } from '../domain/validate';
   import type { Piece } from '../domain/types';
   import {
-    chartSize, downloadBlob, pdfBlob, pngBlob, slugify, svgBlob, viewsZip, type FontMode,
+    chartSize, downloadBlob, pdfBlob, pngBlob, slugify, svgBlob, viewsZip,
   } from '../export/files';
-  import { fitFontScale } from '../export/fit';
+  import { defaultExportPrefs } from '../export/prefs';
   import { LINK_WARN_LENGTH, shareLink } from '../export/share';
-  import { FS } from '../render/chart';
   import { app } from '../stores/app.svelte';
   import { t } from '../i18n/index.svelte';
   import CaptionPanel from './CaptionPanel.svelte';
   import DataExportPanel from './DataExportPanel.svelte';
   import ChartPreview from './ChartPreview.svelte';
-  import NumInput from './NumInput.svelte';
+  import SettingsPanel from './settings/SettingsPanel.svelte';
   import SimpleNote from './SimpleNote.svelte';
-  import StylePanel from './StylePanel.svelte';
 
   let { piece }: { piece: Piece } = $props();
 
   let name = $state('');
-  let mode = $state<'scale' | 'physical'>('scale');
-  let scale = $state(3);
-  let widthCm = $state(16);
-  let dpi = $state(300);
+  const exp = $state(defaultExportPrefs());
   let busy = $state(false);
-  let stamp = $state(true);
-  let fonts = $state<FontMode>('embed');
   let zipKind = $state<'svg' | 'png' | 'pdf'>('svg');
-  let targetPt = $state(8);
   let linkLength = $state(0);
   const problems = $derived(validate(piece).filter((i) => i.severity !== 'info').length);
 
@@ -39,11 +31,11 @@
     (name.trim() || fileSlug(piece)) + (view && !name.trim() ? `-${slugify(view.name) || 'ausschnitt'}` : ''),
   );
 
-  const pixelWidth = $derived(mode === 'physical' ? Math.round((widthCm / 2.54) * dpi) : Math.round(size.width * scale));
+  const physical = $derived(exp.mode === 'physical' && !app.simple);
+  const pixelWidth = $derived(physical ? Math.round((exp.widthCm / 2.54) * exp.dpi) : Math.round(size.width * exp.scale));
   const pixelHeight = $derived(Math.round((pixelWidth * size.height) / size.width));
-  /** Printed height of the row labels, so the chart can be sized for a column of a given width. */
-  const labelPt = $derived(((FS.label * piece.style.fontScale * widthCm) / 2.54 / size.width) * 72);
-  const cm = $derived(mode === 'physical' ? widthCm : undefined);
+  const heightCm = $derived((size.height * exp.widthCm) / size.width);
+  const cm = $derived(physical ? exp.widthCm : undefined);
 
   const canCopy = typeof ClipboardItem !== 'undefined' && !!navigator.clipboard?.write;
   const canShareFile =
@@ -60,34 +52,30 @@
     }
   }
 
-  const pngOptions = () => ({ view: range, stamp, ...(mode === 'physical' ? { pixelWidth } : { scale }) });
+  const pngOptions = () => ({ view: range, stamp: exp.stamp, ...(physical ? { pixelWidth } : { scale: exp.scale }) });
 
   const warnMissing = (n: number) => n > 0 && app.notify(t('ex.outlineMissing', { n }));
   const svg = () =>
     run(async () => {
-      const { blob, missing } = await svgBlob(piece, { view: range, widthCm: cm, fonts, stamp });
+      const { blob, missing } = await svgBlob(piece, { view: range, widthCm: cm, fonts: exp.fonts, stamp: exp.stamp });
       downloadBlob(blob, `${base}.svg`);
       warnMissing(missing);
     });
   const png = () => run(async () => downloadBlob(await pngBlob(piece, pngOptions()), `${base}.png`));
   const pdf = () =>
     run(async () => {
-      const { blob, missing } = await pdfBlob(piece, { view: range, widthCm: cm, fonts, stamp });
+      const { blob, missing } = await pdfBlob(piece, { view: range, widthCm: cm, fonts: exp.fonts, stamp: exp.stamp });
       downloadBlob(blob, `${base}.pdf`);
       warnMissing(missing);
     });
-  function fitText() {
-    piece.style.fontScale = fitFontScale(piece, widthCm, targetPt, range);
-    app.notify(t('ex.fitted', { pct: Math.round(piece.style.fontScale * 100) }));
-  }
   const project = () => app.saveProjectFile([piece], name.trim() ? `${base}.tonart.json` : undefined);
   const zipAll = () =>
     run(async () => {
       const blob = await viewsZip(piece, zipKind, name.trim() || fileSlug(piece), {
         widthCm: cm,
-        fonts,
-        stamp,
-        ...(mode === 'physical' ? { pixelWidth } : { scale }),
+        fonts: exp.fonts,
+        stamp: exp.stamp,
+        ...(physical ? { pixelWidth } : { scale: exp.scale }),
       });
       downloadBlob(blob, `${name.trim() || fileSlug(piece)}-${zipKind}.zip`);
     });
@@ -135,57 +123,14 @@
         <span>{t('ex.file')}</span>
         <input type="text" bind:value={name} placeholder={base} autocapitalize="off" autocomplete="off" spellcheck="false" />
       </label>
-
-      {#if !app.simple}
-        <div class="seg" role="group" aria-label={t('ex.size')}>
-          <button class="btn small" class:on={mode === 'scale'} onclick={() => (mode = 'scale')}>{t('ex.sizeScale')}</button>
-          <button class="btn small" class:on={mode === 'physical'} onclick={() => (mode = 'physical')}>{t('ex.sizePhysical')}</button>
-        </div>
-      {/if}
-      {#if mode === 'scale' || app.simple}
-        <label class="field">
-          <span>{t('ex.pngScale')}</span>
-          <select bind:value={scale}>
-            {#each [1, 2, 3, 4, 6] as s (s)}<option value={s}>{s}×</option>{/each}
-          </select>
-        </label>
-      {:else}
-        <div class="two">
-          <div class="field">
-            <span>{t('ex.widthCm')}</span>
-            <NumInput label={t('ex.widthCm')} min={2} max={200} step={0.5} value={widthCm} onchange={(v) => (widthCm = v ?? widthCm)} />
-          </div>
-          <label class="field">
-            <span>{t('ex.dpi')}</span>
-            <select bind:value={dpi}>
-              {#each [150, 300, 600, 1200] as d (d)}<option value={d}>{d}</option>{/each}
-            </select>
-          </label>
-        </div>
-        <p class="hint">{t('ex.labelPt', { pt: labelPt.toFixed(1) })}</p>
-        <div class="line">
-          <label class="inline"><span class="muted small">{t('ex.targetPt')}</span>
-            <span class="pt"><NumInput label={t('ex.targetPt')} min={4} max={24} step={0.5} value={targetPt} onchange={(v) => (targetPt = v ?? targetPt)} /></span>
-          </label>
-          <button class="btn small" onclick={fitText}>{t('ex.fit')}</button>
-        </div>
-      {/if}
-      <p class="hint">{t('ex.pngSize', { w: pixelWidth, h: pixelHeight })}</p>
-
-      <label class="field">
-        <span>{t('ex.fonts')}</span>
-        <select bind:value={fonts}>
-          <option value="embed">{t('ex.fonts.embed')}</option>
-          <option value="outline">{t('ex.fonts.outline')}</option>
-          <option value="none">{t('ex.fonts.none')}</option>
-        </select>
-      </label>
-      <label class="check"><input type="checkbox" bind:checked={stamp} />{t('ex.stamp')}</label>
       <div class="grid">
         <button class="btn primary" onclick={svg} disabled={busy}>SVG</button>
         <button class="btn primary" onclick={png} disabled={busy}>PNG</button>
         <button class="btn primary" onclick={pdf} disabled={busy}>PDF</button>
       </div>
+      <p class="hint">
+        {#if physical}{t('set.fit.size', { w: String(Math.round(exp.widthCm * 10) / 10), h: String(Math.round(heightCm * 10) / 10) })} · {/if}{t('ex.pngSize', { w: pixelWidth, h: pixelHeight })}
+      </p>
       <p class="hint">{t('ex.svgHelp')} {t('ex.pdfHelp')}</p>
 
       <div class="line">
@@ -206,6 +151,9 @@
       {/if}
     </div>
 
+    <h2 class="sub">{t('ex.settings')}</h2>
+    <SettingsPanel {piece} {exp} {range} simple={app.simple} />
+
     <div class="card actions">
       <h3>{t('ex.saveShare')}</h3>
       <button class="btn" onclick={project}>{t('ex.project')}</button>
@@ -221,13 +169,10 @@
       <CaptionPanel {piece} />
       <DataExportPanel {piece} />
     {/if}
-
-    <h2 class="sub">{t('ex.settings')}</h2>
-    <StylePanel {piece} simple={app.simple} />
   </section>
 
   <section class="side">
-    <ChartPreview {piece} editable />
+    <ChartPreview {piece} editable grayscale={exp.grayscale} />
   </section>
 </div>
 
@@ -239,14 +184,7 @@
   .settings { display: grid; gap: 12px; min-width: 0; }
   .actions { padding: 16px; display: grid; gap: 10px; }
   .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
-  .two { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-  .check { display: flex; align-items: center; gap: 8px; font-size: 0.9rem; }
   .zipkind { width: auto; }
-  .pt { display: inline-block; width: 90px; }
-  .inline { display: inline-flex; align-items: center; gap: 8px; }
-  .seg { display: flex; gap: 6px; }
-  .seg .btn { flex: 1; }
-  .seg .on { background: var(--accent-soft); border-color: var(--accent); font-weight: 600; }
   .sub { margin-top: 6px; }
   .warn { margin: 0; color: var(--danger); }
   .link { all: unset; cursor: pointer; text-decoration: underline; color: var(--accent); }

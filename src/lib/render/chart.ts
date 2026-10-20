@@ -5,7 +5,7 @@ import {
 } from '../domain/structure';
 import { rowLabel, rowOf, spellingRow, tonicName } from '../domain/keys';
 import { barRange } from '../domain/positions';
-import { TONICIZATIONS, type FontFamilyId, type Piece, type Segment, type Tonicization } from '../domain/types';
+import { TONICIZATIONS, type FontFamilyId, type LegendKey, type Piece, type Segment, type Tonicization } from '../domain/types';
 import { CHART_LABELS } from './labels';
 import { accidentalPath, accidentalWidth } from './glyphs';
 import { FONT_STACK } from './fonts';
@@ -89,6 +89,12 @@ function autoTickStep(ppb: number): number {
   return [1, 2, 5, 10, 20, 50, 100, 200].find((s) => s * ppb >= 55) ?? 500;
 }
 
+/** Multiplies every stroke width in the drawing (the "line weight" setting for print). */
+function scaleStrokes(svg: string, factor: number): string {
+  if (!(factor > 0) || Math.abs(factor - 1) < 1e-6) return svg;
+  return svg.replace(/stroke-width="([\d.]+)"/g, (_, v) => `stroke-width="${Math.round(Number(v) * factor * 100) / 100}"`);
+}
+
 const overlaps = (a: number, b: number, from: number, to: number) => b > from && a < to;
 
 export function renderChart(source: Piece, options: RenderOptions = {}): Chart {
@@ -96,6 +102,17 @@ export function renderChart(source: Piece, options: RenderOptions = {}): Chart {
   const expanded = source.style.repeatDisplay === 'expanded' && hasRepeats(source) ? expandPlayOrder(source) : null;
   const piece = folded(expanded ? expanded.piece : source);
   const st = piece.style;
+  const tight = st.margins === 'tight';
+  const title = displayTitle(piece);
+  const hasTitle = st.show.title && !!title;
+  const hasSub = st.show.subtitle;
+  // no headline or subtitle: the plot moves up; tight margins crop a little more
+  const headRows = (hasTitle ? 1 : 0) + (hasSub ? 1 : 0);
+  const topShift = (headRows === 2 ? 0 : headRows === 1 ? 22 : 56) + (tight ? (headRows > 0 ? 8 : 10) : 0);
+  const headX = tight ? 8 : 40;
+  const titleY = tight ? 26 : 34;
+  const barTitle = st.axisTitle.trim() || CHART_LABELS[st.language].bar;
+  const fifthsTitle = st.fifthsTitle.trim() || CHART_LABELS[st.language].fifths;
   const c = st.colors;
   const lang = CHART_LABELS[st.language];
   const fam = st.fontFamily;
@@ -137,7 +154,7 @@ export function renderChart(source: Piece, options: RenderOptions = {}): Chart {
   const spans = sectionSpans(piece);
   const hasSubs = st.show.subsections && spans.some((sp) => sp.subs.length > 0);
   const headExtra = hasSubs ? 20 : 0; // room for the second row of part names
-  const firstRowY = FIRST_ROW_Y + headExtra;
+  const firstRowY = FIRST_ROW_Y - topShift + headExtra;
   const rows: { row: number; y: number }[] = [];
   for (let r = top; r >= bottom; r--) rows.push({ row: r, y: firstRowY + (top - r) * st.rowHeight });
   const yOf = (row: number) => firstRowY + (top - row) * st.rowHeight;
@@ -147,10 +164,9 @@ export function renderChart(source: Piece, options: RenderOptions = {}): Chart {
   const labelWidth = st.show.rowLabels
     ? Math.max(...rows.map((r) => textWidth(rowText(r.row), fs(FS.label), fam)))
     : 0;
-  const left = Math.max(110, Math.ceil(labelWidth) + LABEL_X_GAP + 28);
+  const left = tight ? Math.max(50, Math.ceil(labelWidth) + LABEL_X_GAP + 6) : Math.max(110, Math.ceil(labelWidth) + LABEL_X_GAP + 28);
   const xOf = (pos: number) => left + (pos - from) * ppb;
   const plotRight = xOf(to);
-  const title = displayTitle(piece);
   const [firstBarShown, lastBarShown] = barRange(from, to);
   let subtitle = piece.meta.subtitle.trim()
     ? piece.meta.subtitle
@@ -159,16 +175,22 @@ export function renderChart(source: Piece, options: RenderOptions = {}): Chart {
         lowerFirst(tonicName(spellingRow(centerRow, st.enharmonic) + 3, st.noteNames)),
       );
   if (zoomed && st.show.viewRange) {
-    subtitle += ` · ${lang.bar} ${firstBarShown}${lastBarShown > firstBarShown ? `–${lastBarShown}` : ''}`;
+    subtitle += ` · ${barTitle} ${firstBarShown}${lastBarShown > firstBarShown ? `–${lastBarShown}` : ''}`;
   }
   const headWidth =
-    40 +
-    Math.max(
-      textWidth(title, fs(FS.title), fam),
-      st.show.subtitle ? textWidth(subtitle, fs(FS.label), fam) : 0,
-    ) +
-    40;
-  const width = Math.ceil(Math.max(plotRight + RIGHT_MARGIN, headWidth, MIN_WIDTH));
+    headRows === 0
+      ? 0
+      : headX * 2 +
+        Math.max(
+          hasTitle ? textWidth(title, fs(FS.title), fam) : 0,
+          hasSub ? textWidth(subtitle, fs(FS.label), fam) : 0,
+        );
+  // the column heading is centred on the column, so a long heading or a large font needs more room
+  const columnHalf = st.show.fifthsColumn ? Math.max(10, textWidth(fifthsTitle, fs(FS.small), fam) / 2) : 0;
+  const rightPad = tight
+    ? st.show.fifthsColumn ? FIFTHS_COL_GAP + columnHalf + 6 : 18
+    : Math.max(RIGHT_MARGIN, st.show.fifthsColumn ? FIFTHS_COL_GAP + columnHalf + 8 : 0);
+  const width = Math.ceil(Math.max(plotRight + rightPad, headWidth, tight ? 0 : MIN_WIDTH));
   const fifthsX = plotRight + FIFTHS_COL_GAP;
 
   // ---- vertical geometry ---------------------------------------------------------------------
@@ -179,7 +201,7 @@ export function renderChart(source: Piece, options: RenderOptions = {}): Chart {
   // room between the lowest row and the axis for the repeat signs, so they cross neither bars, axis nor labels
   const bottomY = yOf(bottom) + 26 + (hasRepeatSigns ? 10 : 0);
   const axisY = bottomY - 10;
-  const bandTop = TOP + headExtra;
+  const bandTop = TOP - topShift + headExtra;
 
   const parts: string[] = [];
   /** Plot content; clipped to the plot area when zoomed so partly visible bars end cleanly at the edge. */
@@ -251,7 +273,7 @@ export function renderChart(source: Piece, options: RenderOptions = {}): Chart {
     if (st.show.sectionLabels && sp.name.trim()) {
       const x0 = xOf(Math.max(sp.from, from));
       const x1 = xOf(Math.min(sp.to, to));
-      text(parts, (x0 + x1) / 2, TOP - 12, sp.name, { size: FS.section, anchor: 'middle', weight: 500 });
+      text(parts, (x0 + x1) / 2, TOP - topShift - 12, sp.name, { size: FS.section, anchor: 'middle', weight: 500 });
     }
     if (!hasSubs) continue;
     for (const sub of sp.subs) {
@@ -265,6 +287,7 @@ export function renderChart(source: Piece, options: RenderOptions = {}): Chart {
     }
   }
 
+  const fifthsText = (d: number) => (st.fifthsSigned && d !== 0 ? `${d > 0 ? '+' : '−'}${Math.abs(d)}` : String(Math.abs(d)));
   // ---- row labels, fifths column ----------------------------------------------------------------
   for (const r of rows) {
     const isCenter = r.row === centerRow;
@@ -273,10 +296,10 @@ export function renderChart(source: Piece, options: RenderOptions = {}): Chart {
       text(parts, left - LABEL_X_GAP, r.y, rowText(r.row), { size: FS.label, color, anchor: 'end', weight: isCenter ? 500 : 0 });
     }
     if (st.show.fifthsColumn) {
-      text(parts, fifthsX, r.y, String(Math.abs(r.row - centerRow)), { size: FS.label, color, anchor: 'middle', weight: isCenter ? 500 : 0 });
+      text(parts, fifthsX, r.y, fifthsText(r.row - centerRow), { size: FS.label, color, anchor: 'middle', weight: isCenter ? 500 : 0 });
     }
   }
-  if (st.show.fifthsColumn) text(parts, fifthsX, bandTop + 2, lang.fifths, { size: FS.small, color: c.muted, anchor: 'middle' });
+  if (st.show.fifthsColumn) text(parts, fifthsX, bandTop + 2, fifthsTitle, { size: FS.small, color: c.muted, anchor: 'middle' });
 
   // ---- bar axis -------------------------------------------------------------------------------------
   const labelOf = expanded ? expanded.labelOf : (b: number) => String(b);
@@ -304,7 +327,7 @@ export function renderChart(source: Piece, options: RenderOptions = {}): Chart {
       }
     }
     // keep the word "Takt" clear of a tick label that sits on the left edge (e.g. a view starting at bar 38)
-    text(parts, left - LABEL_X_GAP - Math.max(0, firstLabelHalf + 9 - LABEL_X_GAP), bottomY + 2, lang.bar, { size: FS.small, color: c.muted, anchor: 'end' });
+    text(parts, left - LABEL_X_GAP - Math.max(0, firstLabelHalf + 9 - LABEL_X_GAP), bottomY + 2, barTitle, { size: FS.small, color: c.muted, anchor: 'end' });
   }
 
   // ---- structure events: meter, repeats, endings, barlines, markers ---------------------------------------
@@ -487,7 +510,7 @@ export function renderChart(source: Piece, options: RenderOptions = {}): Chart {
     const y = cy - bh / 2;
     const stroke = s.key.mode === 'major' ? c.majorStroke : c.minorStroke;
     const fill = s.key.mode === 'major' ? c.majorFill : minorFill;
-    const r = Math.min(bh / 2, w / 2);
+    const r = Math.min(st.barShape === 'square' ? 2 : bh / 2, w / 2);
     const sel = ia?.selected === s.id;
     const attrs = ia ? ` data-kind="segment" data-id="${s.id}" style="cursor:pointer"` : '';
     let shape: string;
@@ -551,7 +574,9 @@ export function renderChart(source: Piece, options: RenderOptions = {}): Chart {
   }
 
   // ---- legend ----------------------------------------------------------------------------------------------------
-  let height = bottomY + 80 + lanesExtra;
+  const legendText = (k: LegendKey) => st.legendLabels[k]?.trim() || lang[k];
+  const contentBottom = bottomY + (voltas.length > 0 ? 38 + (laneUsed ? 24 : 0) : laneUsed ? 44 : 14);
+  let height = tight ? (st.show.legend ? contentBottom + 32 : contentBottom + 4) : bottomY + 80 + lanesExtra;
   if (st.show.legend) {
     const hasMajor = piece.segments.some((s) => s.key.mode === 'major');
     const hasMinor = piece.segments.some((s) => s.key.mode === 'minor');
@@ -559,20 +584,20 @@ export function renderChart(source: Piece, options: RenderOptions = {}): Chart {
     const none = piece.segments.length === 0;
     type Item = { label: string; draw: (x: number, y: number) => string; w: number };
     const swatch = (fill: string, stroke: string, dash?: string) => (x: number, y: number) =>
-      `<rect x="${n(x)}" y="${n(y - 6)}" width="22" height="12" rx="6" fill="${fill}" stroke="${stroke}" stroke-width="1.4"${dash ? ` stroke-dasharray="${dash}"` : ''}/>`;
+      `<rect x="${n(x)}" y="${n(y - 6)}" width="22" height="12" rx="${st.barShape === 'square' ? 2 : 6}" fill="${fill}" stroke="${stroke}" stroke-width="1.4"${dash ? ` stroke-dasharray="${dash}"` : ''}/>`;
     const items: Item[] = [];
-    if (hasMajor || none) items.push({ label: lang.major, w: 22, draw: swatch(c.majorFill, c.majorStroke) });
-    if (hasMinor || none) items.push({ label: lang.minor, w: 22, draw: swatch(minorFill, c.minorStroke) });
-    for (const k of none ? (['dominant'] as Tonicization[]) : usedKinds) items.push({ label: lang[k], w: 22, draw: swatch(c.surface, c.majorStroke, DASH[k]) });
+    if (hasMajor || none) items.push({ label: legendText('major'), w: 22, draw: swatch(c.majorFill, c.majorStroke) });
+    if (hasMinor || none) items.push({ label: legendText('minor'), w: 22, draw: swatch(minorFill, c.minorStroke) });
+    for (const k of none ? (['dominant'] as Tonicization[]) : usedKinds) items.push({ label: legendText(k), w: 22, draw: swatch(c.surface, c.majorStroke, DASH[k]) });
     if (passing.length > 0 || none) {
       items.push({
-        label: lang.passing,
+        label: legendText('passing'),
         w: 9,
         draw: (x, y) => `<circle cx="${n(x + 4.5)}" cy="${n(y)}" r="3.6" fill="${c.surface}" stroke="${c.text}" stroke-width="${LW.dominant}"/>`,
       });
     }
     let x = left;
-    let y = height - 34;
+    let y = tight ? contentBottom + 18 : height - 34;
     const maxX = width - 30;
     items.forEach((it, i) => {
       const full = it.w + 8 + textWidth(it.label, fs(FS.small), fam);
@@ -589,8 +614,8 @@ export function renderChart(source: Piece, options: RenderOptions = {}): Chart {
 
   // ---- header ------------------------------------------------------------------------------------------------------
   const head: string[] = [];
-  if (title) text(head, 40, 34, title, { size: FS.title, weight: 500 });
-  if (st.show.subtitle) text(head, 40, 56, subtitle, { size: FS.label, color: c.muted });
+  if (hasTitle) text(head, headX, titleY, title, { size: FS.title, weight: 500 });
+  if (hasSub) text(head, headX, hasTitle ? titleY + 22 : titleY, subtitle, { size: FS.label, color: c.muted });
 
   const bg = st.transparentBackground ? '' : `<rect width="${width}" height="${n(height)}" fill="${c.background}"/>`;
   const defs =
@@ -603,11 +628,11 @@ export function renderChart(source: Piece, options: RenderOptions = {}): Chart {
   const label = [title, subtitle].filter(Boolean).join(' – ');
   const svg =
     `<svg xmlns="http://www.w3.org/2000/svg" ${size} viewBox="0 0 ${width} ${n(height)}" font-family="${esc(FONTS[fam])}" role="img" aria-label="${esc(label)}">` +
-    `<title>${esc(title || lang.fifths)}</title><desc>${esc(piece.meta.altText?.trim() || subtitle)}</desc>` +
+    `<title>${esc(title || fifthsTitle)}</title><desc>${esc(piece.meta.altText?.trim() || subtitle)}</desc>` +
     clip +
     bg +
     head.join('') +
-    parts.join('') +
+    scaleStrokes(parts.join(''), st.lineScale) +
     '</svg>';
   return {
     svg,

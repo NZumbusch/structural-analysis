@@ -168,6 +168,8 @@ export interface Palette {
 }
 
 export interface ShowOptions {
+  /** The headline (composer, title, movement) in the picture; off when the caption in the text carries it. */
+  title: boolean;
   subtitle: boolean;
   sectionLabels: boolean;
   subsections: boolean;
@@ -190,6 +192,11 @@ export interface ShowOptions {
 export type Auto = 'auto' | 'on' | 'off';
 export type FontFamilyId = 'sans' | 'serif' | 'mono';
 export type TitleLayout = 'composer-title' | 'title-composer' | 'title';
+
+export type Margins = 'normal' | 'tight';
+export type BarShape = 'round' | 'square';
+/** Texts of the legend entries that can be renamed. */
+export type LegendKey = 'major' | 'minor' | 'dominant' | 'neapolitan' | 'tonicization' | 'passing';
 
 export interface Style {
   colors: Palette;
@@ -222,6 +229,18 @@ export interface Style {
   transparentBackground: boolean;
   /** Minor bars get a diagonal hatch, so major and minor differ without colour. */
   hatch: boolean;
+  /** Space around the picture: 'tight' crops it for placing in a document. */
+  margins: Margins;
+  barShape: BarShape;
+  /** Multiplies every line width (1 = as designed); for fine print or thick lines on slides. */
+  lineScale: number;
+  /** Own wording for legend entries; empty = the standard text. */
+  legendLabels: Partial<Record<LegendKey, string>>;
+  /** Own title of the bar axis ("Takt") and of the fifths column ("Quinten"); empty = the standard text. */
+  axisTitle: string;
+  fifthsTitle: string;
+  /** Distances in the fifths column with a sign (+ towards sharps, − towards flats) instead of plain numbers. */
+  fifthsSigned: boolean;
   /** Tonicisations are not drawn or counted separately: the key stretch before them simply continues. */
   foldTonicizations: boolean;
   show: ShowOptions;

@@ -38,6 +38,12 @@ Set the time signature under **Stück** so beat positions and the beat grid are 
 - **DCML import (Library):** pick a corpus of the [DCML collection](https://github.com/DCMLab/dcml_corpora) (or any
   GitHub link, also to a fixed commit, or your own `.tsv` files) and import pieces with their local-key path,
   repeats, endings, time signatures, anacrusis and more – you choose which details ([what is read](docs/dcml-import.md)).
+- **Export tab for publishing:** settings in four groups (Format & print, Look, Labels, Content) with a search box,
+  everyday settings first and the rest under "More settings". Presets for journal column / text width / slides set
+  width, colours, hatching, margins, title and a legible text size in one go. Also: title off, tight crop,
+  line weight, bar shape, own legend and axis wording, signed fifths, target height, greyscale preview and a
+  checklist (text size and line weight in pt at the printed width, fonts, data check, source, stale image
+  description, distance measure, colour-only distinction).
 - **Views (Ausschnitte):** named zooms of a bar range, with bar/beat grid, rows fitted to what is visible; pick one in
   the preview, export one or all (ZIP).
 - **Edit in the preview:** click to select (the editor row lights up), drag bar edges (neighbours follow, Alt holds

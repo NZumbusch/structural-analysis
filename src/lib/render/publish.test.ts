@@ -1,0 +1,83 @@
+import { describe, expect, it } from 'vitest';
+import { createExample } from '../domain/example';
+import { cloneStyle, DEFAULT_STYLE, normalizeStyle } from '../domain/piece';
+import { renderChart } from './chart';
+
+const example = () => createExample();
+const widths = (svg: string) => [...svg.matchAll(/stroke-width="([\d.]+)"/g)].map((m) => Number(m[1]));
+
+describe('settings for publishing', () => {
+  it('old styles get the new defaults', () => {
+    const s = normalizeStyle({ fontScale: 1.2 });
+    expect(s.show.title).toBe(true);
+    expect(s.margins).toBe('normal');
+    expect(s.lineScale).toBe(1);
+    expect(s.legendLabels).toEqual({});
+  });
+
+  it('leaves out the headline and moves the plot up', () => {
+    const a = renderChart(example());
+    const p = example();
+    p.style.show.title = false;
+    const b = renderChart(p);
+    expect(a.svg).toContain('Haydn · Klaviersonate c-Moll, 1. Satz</text>');
+    expect(b.svg).not.toContain('Haydn · Klaviersonate c-Moll, 1. Satz</text>');
+    expect(b.svg).toContain('Erreichte Tonarten'); // the subtitle stays
+    expect(b.height).toBeLessThan(a.height);
+    p.style.show.subtitle = false;
+    const c = renderChart(p);
+    expect(c.svg).not.toContain('Erreichte Tonarten nach Takt</text>');
+    expect(c.height).toBeLessThan(b.height);
+    expect(c.geometry.firstRowY).toBeLessThan(b.geometry.firstRowY);
+    // the picture still says what it shows, for screen readers
+    expect(c.svg).toContain('aria-label="Haydn');
+  });
+
+  it('crops tight margins', () => {
+    const a = renderChart(example());
+    const p = example();
+    p.style.margins = 'tight';
+    const b = renderChart(p);
+    expect(b.width).toBeLessThan(a.width);
+    expect(b.height).toBeLessThan(a.height);
+    expect(b.geometry.left).toBeLessThan(a.geometry.left);
+    p.style.show.title = false;
+    p.style.show.subtitle = false;
+    const c = renderChart(p);
+    expect(c.height).toBeLessThan(b.height);
+    expect(c.svg).toContain('<svg');
+  });
+
+  it('scales every line width', () => {
+    const a = widths(renderChart(example()).svg);
+    const p = example();
+    p.style.lineScale = 2;
+    const b = widths(renderChart(p).svg);
+    expect(b).toHaveLength(a.length);
+    expect(b.every((w, i) => Math.abs(w - Math.round(a[i] * 2 * 100) / 100) < 0.011)).toBe(true);
+  });
+
+  it('uses own legend wording, axis titles and signed distances', () => {
+    const p = example();
+    p.style.legendLabels = { dominant: 'Dominante', major: 'Dur (hell)' };
+    p.style.axisTitle = 'T.';
+    p.style.fifthsTitle = 'Quintabstand';
+    p.style.fifthsSigned = true;
+    const svg = renderChart(p).svg;
+    expect(svg).toContain('>Dominante</text>');
+    expect(svg).toContain('>Dur (hell)</text>');
+    expect(svg).toContain('>T.</text>');
+    expect(svg).toContain('>Quintabstand</text>');
+    expect(svg).toMatch(/>\+\d<\/text>/);
+    expect(svg).toMatch(/>−\d<\/text>/);
+  });
+
+  it('draws square bars when asked', () => {
+    const p = example();
+    p.style.barShape = 'square';
+    const svg = renderChart(p).svg;
+    expect(svg).toContain('rx="2"');
+    expect(svg).not.toMatch(/rx="7"/);
+    expect(cloneStyle(DEFAULT_STYLE).barShape).toBe('round');
+  });
+});

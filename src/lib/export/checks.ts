@@ -1,0 +1,69 @@
+import { displayTitle } from '../domain/piece';
+import type { Piece } from '../domain/types';
+import { computeStats } from '../analysis/stats';
+import { FS, renderChart, type ViewRange } from '../render/chart';
+import { activePalette } from '../render/palettes';
+import type { TKey } from '../i18n/index.svelte';
+import type { FontMode } from './files';
+
+export type CheckLevel = 'ok' | 'warn' | 'info';
+export interface Check {
+  id: string;
+  level: CheckLevel;
+  key: TKey;
+  params: Record<string, string | number>;
+}
+
+export interface CheckContext {
+  widthCm: number;
+  fonts: FontMode;
+  /** Open items in the data check (errors and warnings). */
+  problems: number;
+  view?: ViewRange | null;
+}
+
+const MIN_TEXT_PT = 6;
+const MIN_LINE_PT = 0.25;
+const pt1 = (n: number) => String(Math.round(n * 10) / 10);
+const pt2 = (n: number) => String(Math.round(n * 100) / 100);
+
+/** Things that go wrong in print and in papers, checked against the current settings. */
+export function publicationChecks(piece: Piece, ctx: CheckContext): Check[] {
+  const st = piece.style;
+  const out: Check[] = [];
+  const add = (id: string, level: CheckLevel, params: Check['params'] = {}) =>
+    out.push({ id, level, key: `chk.${id}.${level === 'info' ? 'info' : level}` as TKey, params });
+
+  const chart = renderChart(piece, { view: ctx.view });
+  const ptPerUnit = ((ctx.widthCm / 2.54) * 72) / chart.width;
+
+  // text: the smallest text that is drawn
+  const hasBarLabels = st.show.barLabels && piece.segments.some((s) => s.label.trim());
+  const smallest = (hasBarLabels ? Math.min(FS.small, FS.barLabel) : FS.small) * st.fontScale * ptPerUnit;
+  add('textSize', smallest >= MIN_TEXT_PT ? 'ok' : 'warn', { pt: pt1(smallest), cm: pt1(ctx.widthCm) });
+
+  // lines: the thinnest stroke in the drawing
+  const widths = [...chart.svg.matchAll(/stroke-width="([\d.]+)"/g)].map((m) => Number(m[1])).filter((w) => w > 0);
+  const thinnest = (widths.length ? Math.min(...widths) : 1) * ptPerUnit;
+  add('lines', thinnest >= MIN_LINE_PT ? 'ok' : 'warn', { pt: pt2(thinnest) });
+
+  add('fonts', ctx.fonts === 'none' ? 'warn' : 'ok');
+  add('valid', ctx.problems > 0 ? 'warn' : 'ok', { n: ctx.problems });
+  add('source', piece.meta.source.trim() ? 'ok' : 'warn');
+
+  // a saved image description that quotes a number of key changes must still agree with the data
+  const alt = piece.meta.altText?.trim() ?? '';
+  const quoted = alt.match(/(\d+) (?:Wechsel|changes of key)/);
+  if (quoted) add('alt', Number(quoted[1]) === computeStats(piece).summary.modulations ? 'ok' : 'warn');
+
+  const measure = piece.meta.distanceMeasure ?? 'rows';
+  if (measure !== 'rows' && st.show.fifthsColumn) add('measure', 'warn', { measure });
+
+  const readableInGrey = st.hatch || activePalette(st.colors) === 'mono';
+  add('color', readableInGrey ? 'ok' : 'warn');
+
+  if (st.show.title && displayTitle(piece).trim()) add('title', 'info');
+  return out;
+}
+
+export const countNotes = (checks: Check[]) => checks.filter((c) => c.level !== 'ok').length;

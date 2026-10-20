@@ -25,3 +25,22 @@ export function fitFontScale(piece: Piece, widthCm: number, targetPt: number, vi
   }
   return Math.min(4, Math.max(0.4, Math.round(scale * 100) / 100));
 }
+
+/**
+ * The row spacing that makes the chart `targetCm` tall when it is printed `widthCm` wide.
+ * Height grows in a straight line with the row spacing, so two measurements are enough.
+ */
+export function fitRowHeight(piece: Piece, widthCm: number, targetCm: number, view?: ViewRange | null): number {
+  const at = (rowHeight: number) => {
+    const probe: Piece = { ...piece, style: { ...piece.style, rowHeight } };
+    const { width, height } = renderChart(probe, { view });
+    return { width, height };
+  };
+  const a = at(40);
+  const b = at(50);
+  const slope = (b.height - a.height) / 10;
+  if (!(slope > 0)) return piece.style.rowHeight;
+  const targetUnits = (targetCm * a.width) / widthCm;
+  const rowHeight = 40 + (targetUnits - a.height) / slope;
+  return Math.min(90, Math.max(14, Math.round(rowHeight)));
+}

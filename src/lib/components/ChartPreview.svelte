@@ -7,7 +7,7 @@
   import { app } from '../stores/app.svelte';
   import { t } from '../i18n/index.svelte';
 
-  let { piece, editable = false }: { piece: Piece; editable?: boolean } = $props();
+  let { piece, editable = false, grayscale = false }: { piece: Piece; editable?: boolean; grayscale?: boolean } = $props();
 
   let full = $state(false);
   let sheetEl: HTMLElement | undefined = $state();
@@ -173,6 +173,7 @@
       class="sheet"
       bind:this={sheetEl}
       bind:clientWidth={sheetWidth}
+      style:filter={grayscale ? 'grayscale(1)' : undefined}
       style:width={full ? `${chart.width}px` : '100%'}
       style:max-width={full ? 'none' : `${chart.width * 1.6}px`}
     >
