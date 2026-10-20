@@ -446,8 +446,8 @@ export const en: Record<keyof typeof de, string> = {
   'data.allCsv': 'All tables (CSV, ZIP)',
   'data.json': 'Analysis as JSON',
   'data.jsonHint': 'The JSON holds only the analysis (no chart settings); the format is described in docs/analysis-format.md. The project file (Save & share) holds everything needed to keep editing.',
-  'backup.none': '· not saved as a file yet – save now',
-  'backup.stale': '· file out of date – save now',
+  'backup.none': 'Not saved as a file yet.',
+  'backup.stale': 'The saved file is out of date.',
   'about.license': 'MIT licence',
   'about.fonts': 'Fonts (SIL OFL) and licences',
   'mob.simple': 'Simple view: rarely needed features are hidden.',
@@ -457,4 +457,5 @@ export const en: Record<keyof typeof de, string> = {
   'an.syntax': 'Syntax help',
   'install.button': 'Install app',
   'install.ios': 'To install as an app: in Safari tap “Share” and choose “Add to Home Screen”. The app then also works offline.',
+  'backup.save': 'Save now',
 };

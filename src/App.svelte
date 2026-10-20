@@ -147,9 +147,7 @@
       <span class="state small" class:error={app.saveState === 'error'}>
         {app.saveState === 'saving' ? t('save.saving') : app.saveState === 'error' ? t('save.error') : '✓ ' + t('save.saved')}
       </span>
-      {#if backup && piece}
-        <button class="link small" onclick={() => app.saveProjectFile([piece])}>{backup === 'none' ? t('backup.none') : t('backup.stale')}</button>
-      {/if}
+
     {/if}
   </div>
   <div class="lang" role="group" aria-label="Language">
@@ -173,6 +171,13 @@
     </button>
   {/each}
 </nav>
+
+{#if backup && piece}
+  <div class="backupbar">
+    <span>{backup === 'none' ? t('backup.none') : t('backup.stale')}</span>
+    <button class="btn small" onclick={() => app.saveProjectFile([piece])}>{t('backup.save')}</button>
+  </div>
+{/if}
 
 {#if app.tab === 'library' || app.tab === 'analysis'}
   <div class="toolbar">
@@ -234,10 +239,10 @@
   .logo { width: 22px; height: 22px; border-radius: 6px; background: linear-gradient(135deg, #9fe1cb 50%, #cecbf6 50%); border: 1.5px solid var(--accent); }
   .current { flex: 1; min-width: 0; display: flex; flex-direction: column; line-height: 1.2; }
   .name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .state { color: var(--muted); }
+  .state { color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .backupbar { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; padding: 6px 16px; font-size: 0.85rem; background: var(--accent-soft); border-bottom: 1px solid var(--border); }
+  .backupbar span { flex: 1 1 200px; }
   .state.error { color: var(--danger); }
-  .link { all: unset; cursor: pointer; text-decoration: underline; color: var(--accent); font-size: 0.8rem; }
-  .link:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
   .lang { display: flex; gap: 4px; }
   .lang .on { background: var(--accent-soft); border-color: var(--accent); font-weight: 600; }
 

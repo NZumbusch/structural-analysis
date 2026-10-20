@@ -444,8 +444,8 @@ export const de = {
   'data.allCsv': 'Alle Tabellen (CSV, ZIP)',
   'data.json': 'Analyse als JSON',
   'data.jsonHint': 'Das JSON enthält nur die Analyse (keine Darstellungseinstellungen); das Format ist in docs/analysis-format.md beschrieben. Die Projektdatei (Sichern & teilen) enthält dagegen alles zum Weiterbearbeiten.',
-  'backup.none': '· noch nicht als Datei gesichert – jetzt sichern',
-  'backup.stale': '· Datei nicht aktuell – jetzt sichern',
+  'backup.none': 'Noch nicht als Datei gesichert.',
+  'backup.stale': 'Die gesicherte Datei ist nicht mehr aktuell.',
   'about.license': 'MIT-Lizenz',
   'about.fonts': 'Schriften (SIL OFL) und Lizenzen',
   'mob.simple': 'Einfache Ansicht: seltene Funktionen sind ausgeblendet.',
@@ -455,4 +455,5 @@ export const de = {
   'an.syntax': 'Syntax-Hilfe',
   'install.button': 'App installieren',
   'install.ios': 'Als App installieren: In Safari auf „Teilen“ tippen und „Zum Home-Bildschirm“ wählen. Danach funktioniert die App auch ohne Internet.',
+  'backup.save': 'Jetzt sichern',
 } as const;
