@@ -48,7 +48,7 @@ p { margin: 0; }
 
 button, input, select, textarea { font: inherit; color: inherit; }
 
-input[type='text'], input[type='number'], select, textarea {
+input[type='text'], input[type='number'], input[type='date'], select, textarea {
   width: 100%;
   min-height: 38px;
   padding: 6px 10px;

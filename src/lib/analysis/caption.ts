@@ -1,7 +1,7 @@
 import { rowOf, tonicName } from '../domain/keys';
 import { barRange } from '../domain/positions';
 import { hasRepeats, lastBarOf, startPos } from '../domain/structure';
-import type { Piece } from '../domain/types';
+import { TONICIZATIONS, type Piece, type SegmentKind } from '../domain/types';
 import { computeStats } from './stats';
 
 export interface CaptionOptions {
@@ -50,11 +50,19 @@ export function buildCaption(piece: Piece, options: CaptionOptions = {}): Captio
   const where = workWithCatalog ? (de ? ` in ${workWithCatalog}` : ` of ${workWithCatalog}`) : '';
 
   const hasKeys = piece.segments.some((s) => s.kind === 'key');
-  const hasDominants = piece.segments.some((s) => s.kind === 'dominant');
+  const usedTonicizations = TONICIZATIONS.filter((k) => piece.segments.some((s) => s.kind === k));
+  const hasDominants = usedTonicizations.length > 0;
   const hasPassing = piece.passing.length > 0;
   const keyDesc: string[] = [];
   if (hasKeys) keyDesc.push(de ? 'Balken zeigen die jeweils erreichte Tonart (Dur und Moll farblich unterschieden)' : 'bars show the key reached (major and minor distinguished by colour)');
-  if (hasDominants) keyDesc.push(de ? 'gestrichelte Balken die Zwischendominante der folgenden Tonart' : 'dashed bars the secondary dominant of the following key');
+  const dashPhrase: Record<SegmentKind, [string, string]> = {
+    key: ['', ''],
+    dominant: ['gestrichelte Balken die Zwischendominante der folgenden Tonart', 'dashed bars the secondary dominant of the following key'],
+    leading: ['strich-punktierte Balken den Zwischenleittonakkord der folgenden Tonart', 'dash-dotted bars the secondary leading-tone chord of the following key'],
+    neapolitan: ['gepunktete Balken den Neapolitaner der folgenden Tonart', 'dotted bars the Neapolitan of the following key'],
+    tonicization: ['lang gestrichelte Balken sonstige Tonikalisierungen der folgenden Tonart', 'long-dashed bars other tonicisations of the following key'],
+  };
+  for (const k of usedTonicizations) keyDesc.push(dashPhrase[k][de ? 0 : 1]);
   if (hasPassing) keyDesc.push(de ? 'Kreise Durchgangsakkorde' : 'circles passing chords');
   const legend = keyDesc.length ? `${keyDesc.join(de ? '; ' : '; ')}. ` : '';
   const rows = de
@@ -117,6 +125,12 @@ export function buildCaption(piece: Piece, options: CaptionOptions = {}): Captio
         ? de ? 'Wiederholungen werden in Spielreihenfolge gezählt.' : 'Repeats are counted in play order.'
         : de ? 'Wiederholte Takte werden einmal gezählt.' : 'Repeated bars are counted once.',
     );
+  }
+  const { source, analyst, analysisDate } = piece.meta;
+  if (source?.trim()) sentences.push(de ? `Grundlage: ${source.trim()}.` : `Based on: ${source.trim()}.`);
+  if (analyst?.trim() || analysisDate?.trim()) {
+    const who = [analyst?.trim(), analysisDate?.trim()].filter(Boolean).join(', ');
+    sentences.push(de ? `Analyse: ${who}.` : `Analysis: ${who}.`);
   }
   return { caption, method: `${de ? 'Methode: ' : 'Method: '}${sentences.join(' ')}` };
 }

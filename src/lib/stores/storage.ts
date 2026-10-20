@@ -10,6 +10,8 @@ export interface Prefs {
   uiLang: Lang;
   lastOpenId: string | null;
   defaultStyle: Style | null;
+  /** When each piece was last saved as a file (ms), to remind about backups. */
+  backups: Record<string, number>;
 }
 
 function read(key: string): unknown {
@@ -36,6 +38,7 @@ export function loadPrefs(): Prefs {
     uiLang: raw?.uiLang === 'de' || raw?.uiLang === 'en' ? raw.uiLang : 'de',
     lastOpenId: raw?.lastOpenId ?? null,
     defaultStyle: raw?.defaultStyle ?? null,
+    backups: raw?.backups && typeof raw.backups === 'object' ? raw.backups : {},
   };
 }
 

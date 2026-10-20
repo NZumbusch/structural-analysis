@@ -13,7 +13,15 @@ export interface Key {
   mode: Mode;
 }
 
-export type SegmentKind = 'key' | 'dominant';
+/**
+ * What a stretch of music is: an established key, or a tonicisation of the key it points at
+ * (drawn dashed): secondary dominant, secondary leading-tone chord, Neapolitan, or another one.
+ */
+export type SegmentKind = 'key' | 'dominant' | 'leading' | 'neapolitan' | 'tonicization';
+
+export type Tonicization = Exclude<SegmentKind, 'key'>;
+export const TONICIZATIONS: Tonicization[] = ['dominant', 'leading', 'neapolitan', 'tonicization'];
+export const isTonicization = (kind: SegmentKind) => kind !== 'key';
 
 /** A stretch of music in one key. `to` is the bar where the next stretch begins (exclusive). */
 export interface Segment {
@@ -21,7 +29,7 @@ export interface Segment {
   from: number;
   to: number;
   key: Key;
-  /** 'dominant' = secondary dominant aiming at `key`, drawn dashed. */
+  /** Anything but 'key' is a tonicisation aiming at `key`, drawn with a dashed outline. */
   kind: SegmentKind;
   /** Optional text on the bar (chord, function …). */
   label: string;
@@ -136,6 +144,11 @@ export interface PieceMeta {
   notes: string;
   /** Description of the figure for readers who cannot see it; written into the SVG. */
   altText: string;
+  /** Edition or source the analysis is based on. */
+  source: string;
+  analyst: string;
+  /** ISO date (yyyy-mm-dd) of the analysis. */
+  analysisDate: string;
 }
 
 export interface Palette {

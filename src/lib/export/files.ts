@@ -2,6 +2,7 @@ import { displayTitle, fileSlug, normalizePiece } from '../domain/piece';
 import { newId } from '../domain/ids';
 import type { Piece } from '../domain/types';
 import { renderChart, type ViewRange } from '../render/chart';
+import { stampOf, withPngText, withSvgMetadata, APP_NAME, APP_VERSION } from './stamp';
 import { zip, type ZipEntry } from './zip';
 
 export function downloadBlob(blob: Blob, filename: string): void {
@@ -23,6 +24,8 @@ export interface ExportOptions {
   /** Physical width of SVG/PDF output in cm. */
   widthCm?: number;
   fonts?: FontMode;
+  /** Write app version, date and provenance into the file (default true). */
+  stamp?: boolean;
 }
 
 /** Applies the font mode to an SVG string. `missing` counts text that could not be outlined. */
@@ -37,7 +40,7 @@ const XML_HEAD = '<?xml version="1.0" encoding="UTF-8"?>\n';
 
 export async function svgBlob(piece: Piece, options: ExportOptions = {}): Promise<{ blob: Blob; missing: number }> {
   const { svg } = renderChart(piece, options);
-  const prepared = await prepareSvg(svg, options.fonts);
+  const prepared = await prepareSvg(options.stamp === false ? svg : withSvgMetadata(svg, stampOf(piece)), options.fonts);
   return { blob: new Blob([XML_HEAD + prepared.svg], { type: 'image/svg+xml;charset=utf-8' }), missing: prepared.missing };
 }
 
@@ -46,7 +49,12 @@ export async function pdfBlob(piece: Piece, options: ExportOptions = {}): Promis
   const { svg } = renderChart(piece, { view: options.view });
   const prepared = options.fonts === 'outline' ? await prepareSvg(svg, 'outline') : { svg, missing: 0 };
   const { svgToPdf } = await import('./pdf');
-  const pdf = await svgToPdf(prepared.svg, { widthCm: options.widthCm, title: displayTitle(piece) || undefined });
+  const stamp = stampOf(piece);
+  const pdf = await svgToPdf(prepared.svg, {
+    widthCm: options.widthCm,
+    title: displayTitle(piece) || undefined,
+    ...(options.stamp === false ? {} : { author: stamp.analyst || stamp.composer, subject: stamp.source, creator: `${APP_NAME} ${APP_VERSION}`, date: new Date() }),
+  });
   return { blob: new Blob([pdf as BlobPart], { type: 'application/pdf' }), missing: prepared.missing };
 }
 
@@ -86,10 +94,13 @@ export async function svgToPng(
 /** Rasterises the main chart. */
 export async function pngBlob(
   piece: Piece,
-  options: { view?: ViewRange | null; scale?: number; pixelWidth?: number },
+  options: { view?: ViewRange | null; scale?: number; pixelWidth?: number; stamp?: boolean },
 ): Promise<Blob> {
   const { svg, width, height } = renderChart(piece, { view: options.view });
-  return svgToPng((await prepareSvg(svg, 'embed')).svg, width, height, options);
+  const png = await svgToPng((await prepareSvg(svg, 'embed')).svg, width, height, options);
+  if (options.stamp === false) return png;
+  const bytes = withPngText(new Uint8Array(await png.arrayBuffer()), stampOf(piece), piece.meta.altText?.trim());
+  return new Blob([bytes as BlobPart], { type: 'image/png' });
 }
 
 /** Every view of the piece (and the whole chart) as one ZIP of SVG or PNG files. */
@@ -97,7 +108,7 @@ export async function viewsZip(
   piece: Piece,
   kind: 'svg' | 'png' | 'pdf',
   base: string,
-  options: { widthCm?: number; scale?: number; pixelWidth?: number; fonts?: FontMode },
+  options: { widthCm?: number; scale?: number; pixelWidth?: number; fonts?: FontMode; stamp?: boolean },
 ): Promise<Blob> {
   const entries: ZipEntry[] = [];
   const targets: { name: string; view: ViewRange | null }[] = [
@@ -110,10 +121,10 @@ export async function viewsZip(
   for (const t of targets) {
     const blob =
       kind === 'svg'
-        ? (await svgBlob(piece, { view: t.view, widthCm: options.widthCm, fonts: options.fonts })).blob
+        ? (await svgBlob(piece, { view: t.view, widthCm: options.widthCm, fonts: options.fonts, stamp: options.stamp })).blob
         : kind === 'pdf'
-          ? (await pdfBlob(piece, { view: t.view, widthCm: options.widthCm, fonts: options.fonts })).blob
-          : await pngBlob(piece, { view: t.view, scale: options.scale, pixelWidth: options.pixelWidth });
+          ? (await pdfBlob(piece, { view: t.view, widthCm: options.widthCm, fonts: options.fonts, stamp: options.stamp })).blob
+          : await pngBlob(piece, { view: t.view, scale: options.scale, pixelWidth: options.pixelWidth, stamp: options.stamp });
     entries.push({ name: `${t.name}.${kind}`, data: new Uint8Array(await blob.arrayBuffer()) });
   }
   return new Blob([zip(entries) as BlobPart], { type: 'application/zip' });
@@ -132,7 +143,7 @@ export function slugify(raw: string): string {
 const FORMAT = 'tonartenverlauf';
 
 export function projectBlob(pieces: Piece[]): Blob {
-  const body = JSON.stringify({ format: FORMAT, version: 1, pieces }, null, 2);
+  const body = JSON.stringify({ format: FORMAT, version: 1, app: { name: APP_NAME, version: APP_VERSION }, exportedAt: new Date().toISOString(), pieces }, null, 2);
   return new Blob([body], { type: 'application/json' });
 }
 

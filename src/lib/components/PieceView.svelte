@@ -46,6 +46,26 @@
       <input type="text" bind:value={piece.meta.subtitle} />
       <span class="hint">{t('piece.subtitleHint')}</span>
     </label>
+    <details class="prov">
+      <summary>{t('piece.provenance')}</summary>
+      <div class="provbody">
+        <label class="field">
+          <span>{t('piece.source')}</span>
+          <input type="text" bind:value={piece.meta.source} placeholder={t('piece.sourceHint')} />
+        </label>
+        <div class="two">
+          <label class="field">
+            <span>{t('piece.analyst')}</span>
+            <input type="text" bind:value={piece.meta.analyst} />
+          </label>
+          <label class="field">
+            <span>{t('piece.analysisDate')}</span>
+            <input type="date" bind:value={piece.meta.analysisDate} />
+          </label>
+        </div>
+        <p class="hint">{t('piece.provenanceHint')}</p>
+      </div>
+    </details>
     <label class="field">
       <span>{t('piece.notes')}</span>
       <textarea rows="3" bind:value={piece.meta.notes}></textarea>
@@ -66,6 +86,8 @@
   }
   .form { padding: 16px; display: grid; gap: 12px; }
   .side { display: grid; gap: 8px; min-width: 0; position: sticky; top: calc(var(--header-h) + var(--tabs-h) + 12px); }
+  .prov summary { cursor: pointer; color: var(--muted); font-size: 0.9rem; padding: 4px 0; }
+  .provbody { display: grid; gap: 10px; margin-top: 6px; }
   .two { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
   @media (max-width: 860px) {
     .layout { grid-template-columns: minmax(0, 1fr); }

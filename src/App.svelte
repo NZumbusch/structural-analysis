@@ -8,7 +8,6 @@
   import { displayTitle } from './lib/domain/piece';
   import { validate } from './lib/domain/validate';
   import { onMount } from 'svelte';
-  import { downloadBlob, projectBlob } from './lib/export/files';
   import { codeFromHash, decodePiece } from './lib/export/share';
   import { t, type TKey } from './lib/i18n/index.svelte';
   import { app, fingerprint, type Tab } from './lib/stores/app.svelte';
@@ -25,8 +24,18 @@
   let fileInput: HTMLInputElement | undefined = $state();
   let dragging = $state(false);
   let saveTimer: ReturnType<typeof setTimeout> | undefined;
+  /** Ticks every minute so the backup reminder appears without any other change. */
+  let now = $state(Date.now());
+  const BACKUP_AFTER_MS = 10 * 60 * 1000;
 
   const piece = $derived(app.piece);
+  const backup = $derived.by(() => {
+    if (!piece) return null;
+    const state = app.backupState(piece);
+    if (state === 'current') return null;
+    const since = app.prefs.backups[piece.id] ?? piece.createdAt;
+    return now - since > BACKUP_AFTER_MS ? state : null;
+  });
   /** Problems (not hints) per tab, shown as a small badge. */
   const badges = $derived.by(() => {
     const out: Partial<Record<Tab, number>> = {};
@@ -65,8 +74,9 @@
 
   // A shared link carries the piece in the URL hash; open it as a new piece.
   onMount(() => {
+    const tick = setInterval(() => (now = Date.now()), 60_000);
     const code = codeFromHash(location.hash);
-    if (!code) return;
+    if (!code) return () => clearInterval(tick);
     void decodePiece(code).then((shared) => {
       if (shared) {
         const [added] = app.importPieces([shared]);
@@ -77,6 +87,7 @@
       }
       history.replaceState(null, '', location.pathname + location.search);
     });
+    return () => clearInterval(tick);
   });
 
   function onKeydown(e: KeyboardEvent) {
@@ -134,6 +145,9 @@
       <span class="state small" class:error={app.saveState === 'error'}>
         {app.saveState === 'saving' ? t('save.saving') : app.saveState === 'error' ? t('save.error') : '✓ ' + t('save.saved')}
       </span>
+      {#if backup && piece}
+        <button class="link small" onclick={() => app.saveProjectFile([piece])}>{backup === 'none' ? t('backup.none') : t('backup.stale')}</button>
+      {/if}
     {/if}
   </div>
   <div class="lang" role="group" aria-label="Language">
@@ -167,7 +181,7 @@
       <button
         class="btn small"
         disabled={app.library.length === 0}
-        onclick={() => downloadBlob(projectBlob(app.library), 'tonartenverlauf-backup.json')}>{t('lib.backup')}</button>
+        onclick={() => app.saveProjectFile(app.library, 'tonartenverlauf-backup.json')}>{t('lib.backup')}</button>
     {:else}
       <button class="btn small" disabled={!app.canUndo} onclick={() => app.undo()}>↶ {t('common.undo')}</button>
       <button class="btn small" disabled={!app.canRedo} onclick={() => app.redo()}>↷ {t('common.redo')}</button>
@@ -212,6 +226,8 @@
   .name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .state { color: var(--muted); }
   .state.error { color: var(--danger); }
+  .link { all: unset; cursor: pointer; text-decoration: underline; color: var(--accent); font-size: 0.8rem; }
+  .link:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
   .lang { display: flex; gap: 4px; }
   .lang .on { background: var(--accent-soft); border-color: var(--accent); font-weight: 600; }
 

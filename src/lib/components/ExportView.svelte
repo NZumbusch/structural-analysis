@@ -3,7 +3,7 @@
   import { validate } from '../domain/validate';
   import type { Piece } from '../domain/types';
   import {
-    chartSize, downloadBlob, pdfBlob, pngBlob, projectBlob, projectFileName, slugify, svgBlob, viewsZip, type FontMode,
+    chartSize, downloadBlob, pdfBlob, pngBlob, slugify, svgBlob, viewsZip, type FontMode,
   } from '../export/files';
   import { fitFontScale } from '../export/fit';
   import { LINK_WARN_LENGTH, shareLink } from '../export/share';
@@ -11,6 +11,7 @@
   import { app } from '../stores/app.svelte';
   import { t } from '../i18n/index.svelte';
   import CaptionPanel from './CaptionPanel.svelte';
+  import DataExportPanel from './DataExportPanel.svelte';
   import ChartPreview from './ChartPreview.svelte';
   import NumInput from './NumInput.svelte';
   import StylePanel from './StylePanel.svelte';
@@ -23,6 +24,7 @@
   let widthCm = $state(16);
   let dpi = $state(300);
   let busy = $state(false);
+  let stamp = $state(true);
   let fonts = $state<FontMode>('embed');
   let zipKind = $state<'svg' | 'png' | 'pdf'>('svg');
   let targetPt = $state(8);
@@ -57,19 +59,19 @@
     }
   }
 
-  const pngOptions = () => ({ view: range, ...(mode === 'physical' ? { pixelWidth } : { scale }) });
+  const pngOptions = () => ({ view: range, stamp, ...(mode === 'physical' ? { pixelWidth } : { scale }) });
 
   const warnMissing = (n: number) => n > 0 && app.notify(t('ex.outlineMissing', { n }));
   const svg = () =>
     run(async () => {
-      const { blob, missing } = await svgBlob(piece, { view: range, widthCm: cm, fonts });
+      const { blob, missing } = await svgBlob(piece, { view: range, widthCm: cm, fonts, stamp });
       downloadBlob(blob, `${base}.svg`);
       warnMissing(missing);
     });
   const png = () => run(async () => downloadBlob(await pngBlob(piece, pngOptions()), `${base}.png`));
   const pdf = () =>
     run(async () => {
-      const { blob, missing } = await pdfBlob(piece, { view: range, widthCm: cm, fonts });
+      const { blob, missing } = await pdfBlob(piece, { view: range, widthCm: cm, fonts, stamp });
       downloadBlob(blob, `${base}.pdf`);
       warnMissing(missing);
     });
@@ -77,12 +79,13 @@
     piece.style.fontScale = fitFontScale(piece, widthCm, targetPt, range);
     app.notify(t('ex.fitted', { pct: Math.round(piece.style.fontScale * 100) }));
   }
-  const project = () => downloadBlob(projectBlob([piece]), name.trim() ? `${base}.tonart.json` : projectFileName(piece));
+  const project = () => app.saveProjectFile([piece], name.trim() ? `${base}.tonart.json` : undefined);
   const zipAll = () =>
     run(async () => {
       const blob = await viewsZip(piece, zipKind, name.trim() || fileSlug(piece), {
         widthCm: cm,
         fonts,
+        stamp,
         ...(mode === 'physical' ? { pixelWidth } : { scale }),
       });
       downloadBlob(blob, `${name.trim() || fileSlug(piece)}-${zipKind}.zip`);
@@ -173,6 +176,7 @@
           <option value="none">{t('ex.fonts.none')}</option>
         </select>
       </label>
+      <label class="check"><input type="checkbox" bind:checked={stamp} />{t('ex.stamp')}</label>
       <div class="grid">
         <button class="btn primary" onclick={svg} disabled={busy}>SVG</button>
         <button class="btn primary" onclick={png} disabled={busy}>PNG</button>
@@ -210,6 +214,7 @@
     </div>
 
     <CaptionPanel {piece} />
+    <DataExportPanel {piece} />
 
     <h2 class="sub">{t('ex.settings')}</h2>
     <StylePanel {piece} />
@@ -229,6 +234,7 @@
   .actions { padding: 16px; display: grid; gap: 10px; }
   .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
   .two { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .check { display: flex; align-items: center; gap: 8px; font-size: 0.9rem; }
   .zipkind { width: auto; }
   .pt { display: inline-block; width: 90px; }
   .inline { display: inline-flex; align-items: center; gap: 8px; }

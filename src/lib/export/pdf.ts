@@ -158,6 +158,10 @@ export interface PdfOptions {
   /** Width of the page in cm (the chart is scaled to it); default: 96 dpi. */
   widthCm?: number;
   title?: string;
+  author?: string;
+  subject?: string;
+  creator?: string;
+  date?: Date;
 }
 
 /** Converts the SVG of a chart into a PDF file. */
@@ -429,6 +433,14 @@ export async function svgToPdf(svg: string, options: PdfOptions = {}): Promise<U
   w.object(page, `<< /Type /Page /Parent ${pages} 0 R /MediaBox [0 0 ${f(pageW)} ${f(pageH)}] /Contents ${contents} 0 R /Resources << /Font << ${fontRefs.join(' ')} >> /ExtGState << ${gsDict} >> >> >>`);
   w.object(pages, `<< /Type /Pages /Kids [${page} 0 R] /Count 1 >>`);
   w.object(catalog, `<< /Type /Catalog /Pages ${pages} 0 R >>`);
-  w.object(info, `<< /Title ${pdfString(options.title ?? 'Tonartenverlauf')} /Producer ${pdfString('Tonartenverlauf')} /Creator ${pdfString('Tonartenverlauf')} >>`);
+  const pdfDate = (d: Date) => `(D:${d.toISOString().replace(/[-:T]/g, '').slice(0, 14)}Z)`;
+  w.object(
+    info,
+    `<< /Title ${pdfString(options.title ?? 'Tonartenverlauf')} /Producer ${pdfString('Tonartenverlauf')} /Creator ${pdfString(options.creator ?? 'Tonartenverlauf')}` +
+      (options.author ? ` /Author ${pdfString(options.author)}` : '') +
+      (options.subject ? ` /Subject ${pdfString(options.subject)}` : '') +
+      (options.date ? ` /CreationDate ${pdfDate(options.date)}` : '') +
+      ' >>',
+  );
   return w.finish(catalog, info);
 }

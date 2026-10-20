@@ -52,6 +52,14 @@ Set the time signature under **Stück** so beat positions and the beat grid are 
 - **Print helpers:** optional hatching for minor (black-and-white print), a "target label size in pt" fit for a given
   figure width, CMYK values for the palette (rough conversion, no colour profile), and an alt text that is written
   into the SVG.
+- **Tonicisation types:** besides `>` (secondary dominant) there are `>L` (secondary leading-tone chord), `>N`
+  (Neapolitan) and `>T` (other tonicisation); each has its own dash pattern, legend entry and rows in the statistics.
+- **Data export:** every table as CSV (Excel-friendly) or LaTeX (booktabs), all tables as a ZIP, and the analysis as
+  JSON without chart settings ([format](docs/analysis-format.md)).
+- **Provenance:** optional source / analyst / date fields; exported SVG, PDF and PNG carry the app version and export
+  date in their metadata (switchable); project files record the app version too.
+- **Backups:** the app saves to the browser automatically, asks the browser to keep that data, and reminds you
+  (quietly) when a piece has not been saved as a file for a while.
 - Works offline once opened (service worker); installable on phones.
 
 Capital letter = major, lower case = minor (`Es`, `c`, `Fis`, `b` = B-flat minor); `Cm`, `A-Dur`, `F# minor` also work.
@@ -80,6 +88,12 @@ src/lib/components/  views (Library, Piece, Analysis, Export) and editors
 
 The preview, library thumbnails and all exports use the same `renderChart()`, so what you see is what you export.
 PNG export rasterises the SVG in the browser using system fonts.
+
+## Documentation, licence, citation
+
+- [Method notes](docs/method.md) – what the chart and statistics count, in methods-section terms
+- [Analysis JSON format](docs/analysis-format.md)
+- [MIT licence](LICENSE), [third-party notices](THIRD_PARTY_NOTICES.md) (fonts under the SIL OFL), [CITATION.cff](CITATION.cff)
 
 ## Publishing on GitHub Pages
 

@@ -1,7 +1,7 @@
 import { keyName, parseKey } from './keys';
 import { newId } from './ids';
 import { formatPos, parsePos, type MeterSource } from './positions';
-import type { NoteNames, Segment } from './types';
+import type { NoteNames, Segment, SegmentKind } from './types';
 
 export interface ParseError {
   line: number;
@@ -13,8 +13,12 @@ export interface ParseResult {
   errors: ParseError[];
 }
 
+/** `>` secondary dominant, `>L` leading-tone chord, `>N` Neapolitan, `>T` other tonicisation. */
+const KIND_OF_PREFIX: Record<string, SegmentKind> = { '>': 'dominant', '>L': 'leading', '>N': 'neapolitan', '>T': 'tonicization' };
+const PREFIX_OF_KIND: Record<SegmentKind, string> = { key: '', dominant: '>', leading: '>L ', neapolitan: '>N ', tonicization: '>T ' };
+
 const POS = String.raw`\d+(?:[.,]\d+)?(?::\d+(?:[.,]\d+)?)?`;
-const LINE = new RegExp(String.raw`^(${POS})\s*[-–—]\s*(${POS})\s+(>)?\s*([^"]+?)\s*(?:"([^"]*)")?$`);
+const LINE = new RegExp(String.raw`^(${POS})\s*[-–—]\s*(${POS})\s+(>[LNT]?)?\s*([^"]+?)\s*(?:"([^"]*)")?$`);
 
 /**
  * Parses the quick-entry text, one stretch per line:
@@ -63,7 +67,7 @@ export function parseSegments(
       from,
       to,
       key,
-      kind: m[3] ? 'dominant' : 'key',
+      kind: KIND_OF_PREFIX[m[3] ?? ''] ?? 'key',
       label: m[5] ?? '',
     });
   });
@@ -74,7 +78,7 @@ export function serializeSegments(segments: Segment[], names: NoteNames, meter: 
   return segments
     .map(
       (s) =>
-        `${formatPos(s.from, meter)}-${formatPos(s.to, meter)} ${s.kind === 'dominant' ? '>' : ''}${keyName(s.key, names)}` +
+        `${formatPos(s.from, meter)}-${formatPos(s.to, meter)} ${PREFIX_OF_KIND[s.kind]}${keyName(s.key, names)}` +
         (s.label ? ` "${s.label.replace(/"/g, "'")}"` : ''),
     )
     .join('\n');

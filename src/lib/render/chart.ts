@@ -4,7 +4,7 @@ import {
 } from '../domain/structure';
 import { rowLabel, rowOf, spellingRow, tonicName } from '../domain/keys';
 import { barRange } from '../domain/positions';
-import type { FontFamilyId, Piece, Segment } from '../domain/types';
+import { TONICIZATIONS, type FontFamilyId, type Piece, type Segment, type Tonicization } from '../domain/types';
 import { CHART_LABELS } from './labels';
 import { accidentalPath, accidentalWidth } from './glyphs';
 import { FONT_STACK } from './fonts';
@@ -67,7 +67,7 @@ const SELECT = '#0a84ff';
 export const FS = { title: 20.8, label: 13.2, small: 12.5, section: 14.6, barLabel: 11 };
 /** Line widths and dash patterns, ditto. */
 const LW = { bar: 1.25, dominant: 1.5, grid: 0.7, divider: 1.1, link: 1.25, axis: 1.1 };
-const DASH = { dominant: '3 2.4', grid: '1.4 2.1', dotted: '1.5 2.8', marker: '4 3' };
+const DASH = { dominant: '3 2.4', leading: '4 2 1 2', neapolitan: '1.2 2.2', tonicization: '6 2.6', grid: '1.4 2.1', dotted: '1.5 2.8', marker: '4 3' };
 
 export const FONTS: Record<FontFamilyId, string> = FONT_STACK;
 
@@ -477,8 +477,8 @@ export function renderChart(source: Piece, options: RenderOptions = {}): Chart {
     const sel = ia?.selected === s.id;
     const attrs = ia ? ` data-kind="segment" data-id="${s.id}" style="cursor:pointer"` : '';
     let shape: string;
-    if (s.kind === 'dominant') {
-      shape = `<rect x="${n(x + 0.4)}" y="${n(y + 0.4)}" width="${n(Math.max(0, w - 0.8))}" height="${n(bh - 0.8)}" rx="${n(Math.max(0, r - 0.4))}" fill="${c.surface}" stroke="${stroke}" stroke-width="${LW.dominant}" stroke-dasharray="${DASH.dominant}"/>`;
+    if (s.kind !== 'key') {
+      shape = `<rect x="${n(x + 0.4)}" y="${n(y + 0.4)}" width="${n(Math.max(0, w - 0.8))}" height="${n(bh - 0.8)}" rx="${n(Math.max(0, r - 0.4))}" fill="${c.surface}" stroke="${stroke}" stroke-width="${LW.dominant}" stroke-dasharray="${DASH[s.kind]}"/>`;
     } else {
       shape = `<rect x="${n(x)}" y="${n(y)}" width="${n(w)}" height="${n(bh)}" rx="${n(r)}" fill="${fill}" stroke="${stroke}" stroke-width="${LW.bar}"/>`;
     }
@@ -541,15 +541,15 @@ export function renderChart(source: Piece, options: RenderOptions = {}): Chart {
   if (st.show.legend) {
     const hasMajor = piece.segments.some((s) => s.key.mode === 'major');
     const hasMinor = piece.segments.some((s) => s.key.mode === 'minor');
-    const hasDominant = piece.segments.some((s) => s.kind === 'dominant');
+    const usedKinds = TONICIZATIONS.filter((k) => piece.segments.some((s) => s.kind === k));
     const none = piece.segments.length === 0;
     type Item = { label: string; draw: (x: number, y: number) => string; w: number };
-    const swatch = (fill: string, stroke: string, dashed: boolean) => (x: number, y: number) =>
-      `<rect x="${n(x)}" y="${n(y - 6)}" width="22" height="12" rx="6" fill="${fill}" stroke="${stroke}" stroke-width="1.4"${dashed ? ` stroke-dasharray="${DASH.dominant}"` : ''}/>`;
+    const swatch = (fill: string, stroke: string, dash?: string) => (x: number, y: number) =>
+      `<rect x="${n(x)}" y="${n(y - 6)}" width="22" height="12" rx="6" fill="${fill}" stroke="${stroke}" stroke-width="1.4"${dash ? ` stroke-dasharray="${dash}"` : ''}/>`;
     const items: Item[] = [];
-    if (hasMajor || none) items.push({ label: lang.major, w: 22, draw: swatch(c.majorFill, c.majorStroke, false) });
-    if (hasMinor || none) items.push({ label: lang.minor, w: 22, draw: swatch(minorFill, c.minorStroke, false) });
-    if (hasDominant || none) items.push({ label: lang.dominant, w: 22, draw: swatch(c.surface, c.majorStroke, true) });
+    if (hasMajor || none) items.push({ label: lang.major, w: 22, draw: swatch(c.majorFill, c.majorStroke) });
+    if (hasMinor || none) items.push({ label: lang.minor, w: 22, draw: swatch(minorFill, c.minorStroke) });
+    for (const k of none ? (['dominant'] as Tonicization[]) : usedKinds) items.push({ label: lang[k], w: 22, draw: swatch(c.surface, c.majorStroke, DASH[k]) });
     if (passing.length > 0 || none) {
       items.push({
         label: lang.passing,

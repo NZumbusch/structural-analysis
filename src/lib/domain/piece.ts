@@ -2,7 +2,7 @@ import { CLASSIC } from '../render/palettes';
 import { newId } from './ids';
 import { DEFAULT_METER } from './positions';
 import { makeEvent } from './structure';
-import type { Key, Piece, PieceMeta, Style } from './types';
+import { TONICIZATIONS, type Key, type Piece, type PieceMeta, type Style } from './types';
 
 export const DEFAULT_STYLE: Style = {
   colors: { ...CLASSIC },
@@ -57,7 +57,7 @@ export function createPiece(overrides: Partial<Piece> = {}, style: Style = DEFAU
   const center: Key = { fifths: 0, mode: 'major' };
   const meta: PieceMeta = {
     title: '', composer: '', year: '', catalog: '', movement: '',
-    center, meter: { ...DEFAULT_METER }, pickup: 0, distanceMeasure: 'rows', subtitle: '', lastBar: 16, notes: '', altText: '',
+    center, meter: { ...DEFAULT_METER }, pickup: 0, distanceMeasure: 'rows', subtitle: '', lastBar: 16, notes: '', altText: '', source: '', analyst: '', analysisDate: '',
   };
   return {
     version: 1,
@@ -152,7 +152,7 @@ export function normalizePiece(data: unknown): Piece | null {
     isObj(k) && typeof k.fifths === 'number' && (k.mode === 'major' || k.mode === 'minor');
   piece.segments = (data.segments as unknown[]).filter(
     (s): s is Piece['segments'][number] => isObj(s) && validKey(s.key) && typeof s.from === 'number' && typeof s.to === 'number',
-  ).map((s) => ({ ...s, id: s.id || newId(), kind: s.kind === 'dominant' ? 'dominant' : 'key', label: typeof s.label === 'string' ? s.label : '' }));
+  ).map((s) => ({ ...s, id: s.id || newId(), kind: (TONICIZATIONS as string[]).includes(s.kind) ? s.kind : 'key', label: typeof s.label === 'string' ? s.label : '' }));
   for (const list of ['passing', 'annotations', 'highlights', 'views'] as const) {
     const src = Array.isArray(data[list]) ? (data[list] as unknown[]) : [];
     (piece[list] as unknown[]) = src.filter(isObj).map((x) => ({ ...x, id: typeof x.id === 'string' && x.id ? x.id : newId() }));

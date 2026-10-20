@@ -1,7 +1,7 @@
 import { createExample } from '../domain/example';
 import { cloneStyle, createPiece, DEFAULT_STYLE } from '../domain/piece';
 import type { Piece } from '../domain/types';
-import { freshIdentity, readProjectFile } from '../export/files';
+import { downloadBlob, freshIdentity, projectBlob, projectFileName, readProjectFile } from '../export/files';
 import type { Snap } from '../domain/positions';
 import { deletePiece, loadAllPieces, loadPrefs, savePiece, savePrefs } from './storage';
 
@@ -162,6 +162,23 @@ class AppState {
 
   saveCurrent(): void {
     if (this.piece) this.commit(this.piece);
+  }
+
+  // ---- backups -------------------------------------------------------------------------------------
+  /** Saves pieces as a project file and remembers when, so the app can remind about stale backups. */
+  saveProjectFile(pieces: Piece[], filename?: string): void {
+    if (pieces.length === 0) return;
+    downloadBlob(projectBlob(pieces), filename ?? projectFileName(pieces[0]));
+    const now = Date.now();
+    this.prefs.backups = { ...this.prefs.backups, ...Object.fromEntries(pieces.map((p) => [p.id, now])) };
+    savePrefs(this.prefs);
+  }
+
+  /** 'none' = never saved as a file, 'stale' = edited since, 'current' = file is up to date. */
+  backupState(piece: Piece): 'none' | 'stale' | 'current' {
+    const at = this.prefs.backups[piece.id];
+    if (!at) return 'none';
+    return piece.updatedAt > at + 1000 ? 'stale' : 'current';
   }
 
   // ---- undo / redo ----------------------------------------------------------------------------------

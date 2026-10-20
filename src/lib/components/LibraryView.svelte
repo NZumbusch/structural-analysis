@@ -1,7 +1,7 @@
 <script lang="ts">
-  import { downloadBlob, projectBlob, projectFileName } from '../export/files';
   import { displayTitle } from '../domain/piece';
   import { renderChart } from '../render/chart';
+  import { APP_VERSION } from '../export/stamp';
   import { app } from '../stores/app.svelte';
   import { t } from '../i18n/index.svelte';
   import type { Piece } from '../domain/types';
@@ -49,13 +49,19 @@
           <div class="line tools">
             <button class="btn small primary" onclick={() => app.open(p)}>{t('lib.open')}</button>
             <button class="btn small" onclick={() => app.duplicate(p)}>{t('lib.duplicate')}</button>
-            <button class="btn small" onclick={() => downloadBlob(projectBlob([p]), projectFileName(p))}>{t('lib.export')}</button>
+            <button class="btn small" onclick={() => app.saveProjectFile([p])}>{t('lib.export')}</button>
             <button class="btn small danger" onclick={() => remove(p)}>{t('common.delete')}</button>
           </div>
         </li>
       {/each}
     </ul>
   {/if}
+
+  <footer class="about muted small">
+    <span>{t('appName')} {APP_VERSION}</span> ·
+    <span>{t('about.license')}</span> ·
+    <a href="./licenses/Inter-OFL.txt" target="_blank" rel="noopener">{t('about.fonts')}</a>
+  </footer>
 </section>
 
 <style>
@@ -74,4 +80,6 @@
   .thumb :global(svg) { display: block; width: 100%; height: auto; }
   .info { display: grid; gap: 2px; }
   .tools { gap: 6px; }
+  .about { margin-top: 8px; }
+  .about a { color: inherit; }
 </style>

@@ -3,6 +3,7 @@
   import { meterMap } from '../../domain/structure';
   import { parseSegments, serializeSegments, type ParseError } from '../../domain/segments-text';
   import { newId } from '../../domain/ids';
+  import { TONICIZATIONS } from '../../domain/types';
   import type { Piece, Segment } from '../../domain/types';
   import { t, type TKey } from '../../i18n/index.svelte';
   import { app } from '../../stores/app.svelte';
@@ -95,9 +96,10 @@
         <button class="btn small toggle" class:on={seg.key.mode === 'minor'} title={t('an.mode')} onclick={() => flipMode(seg)}>
           {seg.key.mode === 'major' ? 'Dur' : 'Moll'}
         </button>
-        <button class="btn small toggle" class:on={seg.kind === 'dominant'} title={t('an.dominant')} onclick={() => (seg.kind = seg.kind === 'dominant' ? 'key' : 'dominant')}>
-          {t('an.domShort')}
-        </button>
+        <select class="kindsel" aria-label={t('an.kind')} title={t('an.kind')} bind:value={seg.kind}>
+          <option value="key">{t('kind.key')}</option>
+          {#each TONICIZATIONS as k (k)}<option value={k}>{t(`kind.${k}` as TKey)}</option>{/each}
+        </select>
         <input class="grow" type="text" aria-label={t('an.barLabel')} placeholder={t('an.barLabel')} bind:value={seg.label} />
         <button class="btn small icon" title={t('an.addRow')} onclick={() => add(i)}>+</button>
         <button class="btn small icon danger" title={t('common.delete')} onclick={() => piece.segments.splice(i, 1)}>×</button>
@@ -114,4 +116,5 @@
 
 <style>
   .grid { display: grid; gap: 10px; }
+  .kindsel { flex: 0 0 auto; width: auto; max-width: 150px; min-height: 32px; padding: 2px 6px; }
 </style>

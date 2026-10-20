@@ -4,6 +4,8 @@ import { join, relative } from 'node:path';
 import { defineConfig, type Plugin } from 'vitest/config';
 import { svelte } from '@sveltejs/vite-plugin-svelte';
 
+const pkg = JSON.parse(readFileSync(new URL('./package.json', import.meta.url), 'utf8')) as { version: string };
+
 /** Writes dist/sw.js: a cache-first service worker that precaches every built file (offline use). */
 function offlineWorker(): Plugin {
   let outDir = 'dist';
@@ -55,6 +57,7 @@ self.addEventListener('fetch', (e) => {
 // Relative base so the build works on any GitHub Pages path (user.github.io/<repo>/).
 export default defineConfig({
   base: './',
+  define: { __APP_VERSION__: JSON.stringify(pkg.version) },
   plugins: [svelte(), offlineWorker()],
   test: { include: ['src/**/*.test.ts'], environment: 'node' },
 });

@@ -1,14 +1,14 @@
 import { keyDistance, sameKeyExactly, type DistanceMeasure } from '../domain/distance';
 import { rowOf } from '../domain/keys';
 import { expandPlayOrder, hasRepeats, lastBarOf, sectionSpans } from '../domain/structure';
-import type { Key, Piece } from '../domain/types';
+import type { Key, Piece, SegmentKind } from '../domain/types';
 
 /** A stretch of music after overlaps are removed: every moment belongs to at most one span. */
 export interface Span {
   from: number;
   to: number;
   key: Key;
-  kind: 'key' | 'dominant';
+  kind: SegmentKind;
 }
 
 export interface KeyStat {
@@ -263,7 +263,7 @@ export function computeStats(source: Piece, options: StatsOptions = {}): Stats {
     if (s.key.mode === 'major') majorBars += len(s);
   }
   const homeBars = spans.filter((s) => dist(s.key) === 0).reduce((n, s) => n + len(s), 0);
-  const dominants = spans.filter((s) => s.kind === 'dominant');
+  const dominants = spans.filter((s) => s.kind !== 'key');
   const longestRun = runs.reduce<{ key: Key; bars: number } | null>(
     (best, r) => (!best || r.bars > best.bars ? { key: r.key, bars: r.bars } : best),
     null,
