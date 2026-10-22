@@ -112,3 +112,13 @@ describe('marker stacking', () => {
     expect(new Set(ys).size).toBeGreaterThan(1);
   });
 });
+
+describe('legend in zoomed views', () => {
+  it('lists only what is visible in the section', () => {
+    const p = example();
+    const whole = renderChart(p).svg;
+    expect(whole).toContain('Durchgangsakkord');
+    const zoom = renderChart(p, { view: { from: 1, to: 20 } as never }).svg;
+    expect(zoom).not.toContain('Durchgangsakkord');
+  });
+});

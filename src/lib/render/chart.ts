@@ -610,9 +610,11 @@ export function renderChart(source: Piece, options: RenderOptions = {}): Chart {
   const legendAir = laneUsed || voltas.length > 0 ? 12 : 0;
   let height = tight ? (st.show.legend ? contentBottom + 32 + legendAir : contentBottom + 4) : bottomY + 80 + lanesVolta + laneStack + legendAir;
   if (st.show.legend) {
-    const hasMajor = piece.segments.some((s) => s.key.mode === 'major');
-    const hasMinor = piece.segments.some((s) => s.key.mode === 'minor');
-    const usedKinds = TONICIZATIONS.filter((k) => piece.segments.some((s) => s.kind === k));
+    // only what is actually visible in this view (a zoomed section may have no passing chords or tonicizations)
+    const shown = piece.segments.filter((s) => overlaps(s.from, s.to, from, to));
+    const hasMajor = shown.some((s) => s.key.mode === 'major');
+    const hasMinor = shown.some((s) => s.key.mode === 'minor');
+    const usedKinds = TONICIZATIONS.filter((k) => shown.some((s) => s.kind === k));
     const none = piece.segments.length === 0;
     type Item = { label: string; draw: (x: number, y: number) => string; w: number };
     const swatch = (fill: string, stroke: string, dash?: string) => (x: number, y: number) =>
@@ -621,7 +623,7 @@ export function renderChart(source: Piece, options: RenderOptions = {}): Chart {
     if (hasMajor || none) items.push({ label: legendText('major'), w: 22, draw: swatch(c.majorFill, c.majorStroke) });
     if (hasMinor || none) items.push({ label: legendText('minor'), w: 22, draw: swatch(minorFill, c.minorStroke) });
     for (const k of none ? (['dominant'] as Tonicization[]) : usedKinds) items.push({ label: legendText(k), w: 22, draw: swatch(c.surface, c.majorStroke, DASH[k]) });
-    if (passing.length > 0 || none) {
+    if (passing.some((p) => inView(p.pos)) || none) {
       items.push({
         label: legendText('passing'),
         w: 9,
