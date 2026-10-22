@@ -1,23 +1,36 @@
 <script lang="ts">
-  import type { Snippet } from 'svelte';
+  import { untrack, type Snippet } from 'svelte';
+
+  import { rememberOpen, wasOpen } from '../ui/remember';
 
   let {
     title,
     count,
     open = false,
     reveal = false,
+    id,
     actions,
     children,
-  }: { title: string; count?: number; open?: boolean; reveal?: boolean; actions?: Snippet; children: Snippet } = $props();
+  }: { title: string; count?: number; open?: boolean; reveal?: boolean; id?: string; actions?: Snippet; children: Snippet } = $props();
 
+  // With an id the panel remembers whether the user left it open; `open` is only the first-time default.
+  const startOpen = untrack(() => (id ? wasOpen(id, open) : open));
   let el: HTMLDetailsElement | undefined = $state();
-  // Opens the panel when something inside it gets selected elsewhere (e.g. in the preview).
+  let revealed = false;
+  // Opens the panel when something inside it gets selected elsewhere (e.g. in the preview); that is not a choice to remember.
   $effect(() => {
-    if (reveal && el) el.open = true;
+    if (reveal && el && !el.open) {
+      revealed = true;
+      el.open = true;
+    }
   });
+  function toggled() {
+    if (revealed) revealed = false;
+    else if (id && el) rememberOpen(id, el.open);
+  }
 </script>
 
-<details class="panel card" {open} bind:this={el}>
+<details class="panel card" open={startOpen} bind:this={el} ontoggle={toggled}>
   <summary>
     <span class="chev" aria-hidden="true"></span>
     <h3>{title}</h3>

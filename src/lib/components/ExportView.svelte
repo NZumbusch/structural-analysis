@@ -151,8 +151,8 @@
       {/if}
     </div>
 
-    <h2 class="sub">{t('ex.settings')}</h2>
-    <SettingsPanel {piece} {exp} {range} simple={app.simple} />
+    <h2 class="sub">{t('set.g.print')}</h2>
+    <SettingsPanel {piece} {exp} {range} groups={['print']} simple={app.simple} />
 
     <div class="card actions">
       <h3>{t('ex.saveShare')}</h3>
@@ -172,7 +172,7 @@
   </section>
 
   <section class="side">
-    <ChartPreview {piece} editable grayscale={exp.grayscale} />
+    <ChartPreview {piece} />
   </section>
 </div>
 

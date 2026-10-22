@@ -5,6 +5,7 @@
   import type { ViewRange } from '../../render/chart';
   import { GROUPS, searchSettings, SETTINGS, type GroupId, type Setting } from '../../settings/registry';
   import { t } from '../../i18n/index.svelte';
+  import { remember } from '../../ui/remember';
   import BarWidth from './BarWidth.svelte';
   import ChecksBlock from './ChecksBlock.svelte';
   import ColorGrid from './ColorGrid.svelte';
@@ -16,17 +17,24 @@
   import RowNames from './RowNames.svelte';
   import WidthsBlock from './WidthsBlock.svelte';
 
-  let { piece, exp, range, simple = false }: { piece: Piece; exp: ExportPrefs; range: ViewRange | null; simple?: boolean } = $props();
+  let {
+    piece,
+    exp,
+    range = null,
+    groups = ['look', 'text', 'content'],
+    simple = false,
+  }: { piece: Piece; exp?: ExportPrefs; range?: ViewRange | null; groups?: GroupId[]; simple?: boolean } = $props();
 
   /** Blocks that carry their own label. */
   const NO_HEADING = ['rowNames', 'barWidth', 'cmyk'];
   const KEY = 'tonartenverlauf.exportGroup';
+  const mine = $derived(GROUPS.filter((g) => groups.includes(g.id)));
   const remembered = (() => {
     try {
       const v = localStorage.getItem(KEY);
-      return GROUPS.some((g) => g.id === v) ? (v as GroupId) : 'print';
+      return groups.includes(v as GroupId) ? (v as GroupId) : groups[0];
     } catch {
-      return 'print';
+      return groups[0];
     }
   })();
   let group = $state<GroupId>(remembered);
@@ -41,13 +49,13 @@
     }
   }
 
-  const roots = $derived({ style: piece.style, export: exp });
+  const roots = $derived({ style: piece.style, meta: piece.meta, export: exp ?? {} });
   const searching = $derived(query.trim().length > 0);
   const allowed = (s: Setting) => !simple || !s.advanced;
   const found = $derived(
     searching
-      ? searchSettings(query, (k) => t(k), SETTINGS).filter(allowed)
-      : SETTINGS.filter((s) => s.group === group && allowed(s) && (!s.when || s.when === exp.mode)),
+      ? searchSettings(query, (k) => t(k), SETTINGS).filter((s) => allowed(s) && groups.includes(s.group))
+      : SETTINGS.filter((s) => s.group === group && allowed(s) && (!s.when || s.when === exp?.mode)),
   );
   // browsing shows the everyday settings; the rest sits behind one disclosure (searching shows everything that matches)
   const basics = $derived(searching ? found : found.filter((s) => !s.advanced));
@@ -57,6 +65,7 @@
 </script>
 
 <div class="panel card">
+  {#if groups.length > 1}
   <div class="search">
     <input
       type="search"
@@ -69,10 +78,11 @@
       spellcheck="false"
     />
   </div>
+  {/if}
 
-  {#if !searching}
+  {#if !searching && groups.length > 1}
     <div class="tabs" role="tablist" aria-label={t('ex.settings')}>
-      {#each GROUPS as g (g.id)}
+      {#each mine as g (g.id)}
         <button role="tab" class="tab" class:on={group === g.id} aria-selected={group === g.id} onclick={() => pick(g.id)}>{t(g.label)}</button>
       {/each}
     </div>
@@ -84,10 +94,10 @@
       {#if searching}<span class="badge">{groupLabel(s.group)}</span>{/if}
       {#if c.type === 'custom'}
         {#if !NO_HEADING.includes(c.id)}<h4>{t(s.label)}</h4>{/if}
-        {#if c.id === 'presets'}<PresetsBlock {piece} {exp} {range} />
-        {:else if c.id === 'widths'}<WidthsBlock {exp} {simple} />
-        {:else if c.id === 'fit'}<FitBlock {piece} {exp} {range} />
-        {:else if c.id === 'checks'}<ChecksBlock {piece} {exp} {range} />
+        {#if c.id === 'presets'}{#if exp}<PresetsBlock {piece} {exp} {range} />{/if}
+        {:else if c.id === 'widths'}{#if exp}<WidthsBlock {exp} {simple} />{/if}
+        {:else if c.id === 'fit'}{#if exp}<FitBlock {piece} {exp} {range} />{/if}
+        {:else if c.id === 'checks'}{#if exp}<ChecksBlock {piece} {exp} {range} />{/if}
         {:else if c.id === 'palette'}<PaletteChips {piece} />
         {:else if c.id === 'colors'}
           <details><summary class="light"><span class="chev" aria-hidden="true"></span>{t('set.s.colorsEach')}</summary><ColorGrid {piece} /></details>
@@ -106,7 +116,7 @@
   <div class="list">
     {#each basics as s (s.id)}{@render row(s)}{/each}
     {#if more.length > 0}
-      <details class="more">
+      <details class="more" use:remember={`look.more.${groups.join('-')}.${group}`}>
         <summary class="light"><span class="chev" aria-hidden="true"></span>{t('set.more', { n: more.length })}</summary>
         <div class="list inner">
           {#each more as s (s.id)}{@render row(s)}{/each}

@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { remember } from '../ui/remember';
   import { formatPos } from '../domain/positions';
   import { termDefinition, termName, termsOf, TERM_DISPLAYS, VOCABULARIES, type FormTerm, type VocabId } from '../domain/formterms';
   import { endPos, insertBars, deleteBars, lastBarOf, makeEvent, meterMap, sectionSpans, sortedEvents } from '../domain/structure';
@@ -265,7 +266,7 @@
 <div class="layout">
   <section class="main" class:hide={pane !== 'edit'}>
     <SimpleNote />
-    <details class="card structure" open={!app.simple}>
+    <details class="card structure" open={piece.events.length === 0 && piece.segments.length === 0} use:remember={'setup.structure'}>
       <summary class="head"><span class="chev" aria-hidden="true"></span><h3>{t('setup.structure')}</h3></summary>
       <div class="box">
       <div class="row">

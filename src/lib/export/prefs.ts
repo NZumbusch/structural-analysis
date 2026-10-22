@@ -11,8 +11,6 @@ export interface ExportPrefs {
   stamp: boolean;
   /** Row-label size in pt that "Fit text" aims for. */
   targetPt: number;
-  /** Preview in greys, to see how the picture survives a black-and-white print. */
-  grayscale: boolean;
 }
 
 export const defaultExportPrefs = (): ExportPrefs => ({
@@ -23,5 +21,4 @@ export const defaultExportPrefs = (): ExportPrefs => ({
   fonts: 'embed',
   stamp: true,
   targetPt: 8,
-  grayscale: false,
 });

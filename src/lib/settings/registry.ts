@@ -62,7 +62,6 @@ export const SETTINGS: Setting[] = [
   { id: 'margins', group: 'print', label: 'set.s.margins', hint: 'set.h.margins', keywords: 'rand ränder beschnitt weißraum zuschneiden eng margin crop whitespace tight padding', control: { type: 'select', path: 'style.margins', options: [{ value: 'normal', label: 'set.margins.normal' }, { value: 'tight', label: 'set.margins.tight' }] } },
   { id: 'fonts', group: 'print', label: 'ex.fonts', keywords: 'schrift einbetten umrisse pfade font embed outline paths', control: { type: 'select', path: 'export.fonts', options: [{ value: 'embed', label: 'ex.fonts.embed' }, { value: 'outline', label: 'ex.fonts.outline' }, { value: 'none', label: 'ex.fonts.none' }] }, advanced: true },
   toggle('stamp', 'print', 'ex.stamp', 'export.stamp', 'metadaten herkunft version datum stempel metadata provenance', { advanced: true }),
-  toggle('grayscale', 'print', 'set.s.grayscale', 'export.grayscale', 'graustufen schwarz weiß s/w vorschau grayscale black white preview', { advanced: true }),
   { id: 'checks', group: 'print', label: 'set.s.checks', keywords: 'prüfliste prüfen kontrolle veröffentlichung checkliste check checklist publish', control: { type: 'custom', id: 'checks' } },
 
   // ---- look --------------------------------------------------------------------------------------------
@@ -81,11 +80,11 @@ export const SETTINGS: Setting[] = [
   // ---- text ----------------------------------------------------------------------------------------------
   toggle('title', 'text', 'show.title', 'style.show.title', 'titel überschrift kopfzeile headline heading title caption bildunterschrift'),
   toggle('subtitle', 'text', 'show.subtitle', 'style.show.subtitle', 'untertitel zeile unter dem titel subtitle'),
+  { id: 'subtitleText', group: 'text', label: 'set.s.subtitleText', hint: 'piece.subtitleHint', keywords: 'untertitel text zeile eigener subtitle custom', control: { type: 'text', path: 'meta.subtitle', placeholder: 'common.auto' }, advanced: true },
   { id: 'titleLayout', group: 'text', label: 'st.titleLayout', keywords: 'titel komponist reihenfolge layout composer order', control: { type: 'select', path: 'style.titleLayout', options: [{ value: 'composer-title', label: 'st.layout.composer-title' }, { value: 'title-composer', label: 'st.layout.title-composer' }, { value: 'title', label: 'st.layout.title' }] }, advanced: true },
   toggle('showYear', 'text', 'st.showYear', 'style.showYear', 'jahr entstehung year date', { advanced: true }),
   { id: 'language', group: 'text', label: 'st.language', keywords: 'sprache deutsch englisch language german english', control: { type: 'select', path: 'style.language', options: [{ value: 'de', label: { text: 'Deutsch' } }, { value: 'en', label: { text: 'English' } }] } },
   { id: 'termDisplay', group: 'text', label: 'set.s.termDisplay', hint: 'set.h.termDisplay', keywords: 'formenlehre begriffe hauptsatz seitensatz überleitung schlussgruppe hepokoski darcy caplin sonata theory terms mc eec esc kürzel abkürzung abbreviation vocabulary translate umschalten', control: { type: 'select', path: 'style.termDisplay', options: (['entered', 'sonata-theory', 'caplin', 'german', 'name-de', 'name-en', 'abbr-name-de'] as const).map((m) => ({ value: m, label: `set.td.${m}` as const })) } },
-  { id: 'noteNames', group: 'text', label: 'st.noteNames', keywords: 'notennamen h b es bb eb deutsch englisch note names spelling', control: { type: 'select', path: 'style.noteNames', options: [{ value: 'de', label: 'st.names.de' }, { value: 'en', label: 'st.names.en' }] } },
   { id: 'axisTitle', group: 'text', label: 'set.s.axisTitle', keywords: 'takt achse beschriftung titel bar axis label', control: { type: 'text', path: 'style.axisTitle', placeholder: 'common.auto' }, advanced: true },
   { id: 'fifthsTitle', group: 'text', label: 'set.s.fifthsTitle', keywords: 'quinten spalte überschrift abstand fifths column heading distance', control: { type: 'text', path: 'style.fifthsTitle', placeholder: 'common.auto' }, advanced: true },
   toggle('fifthsSigned', 'text', 'set.s.fifthsSigned', 'style.fifthsSigned', 'quinten vorzeichen plus minus kreuze b signed sharps flats', { advanced: true }),
@@ -112,7 +111,6 @@ export const SETTINGS: Setting[] = [
   toggle('markers', 'content', 'show.markers', 'style.show.markers', 'marken marker kadenz cadence pac hc rehearsal'),
   toggle('connectors', 'content', 'show.connectors', 'style.show.connectors', 'verbindungslinien linien connectors joins'),
   toggle('fifthsColumn', 'content', 'show.fifthsColumn', 'style.show.fifthsColumn', 'quinten spalte rechts abstand fifths column distance'),
-  toggle('fold', 'content', 'st.fold', 'style.foldTonicizations', 'zwischendominante tonikalisierung einrechnen verbergen secondary dominant tonicization fold hide'),
   { id: 'barLines', group: 'content', label: 'st.barLines', keywords: 'taktlinien vergrößern ausschnitt bar lines zoom', control: { type: 'select', path: 'style.barLines', options: [auto, on, off] }, advanced: true },
   { id: 'beatTicks', group: 'content', label: 'st.beatTicks', keywords: 'schlag striche achse beat ticks', control: { type: 'select', path: 'style.beatTicks', options: [auto, on, off] }, advanced: true },
   { id: 'extraRows', group: 'content', label: 'st.extraRows', keywords: 'zeilen zusätzliche mehr platz extra rows', control: { type: 'number', path: 'style.extraRows', min: 0, max: 6 }, advanced: true },

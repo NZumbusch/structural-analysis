@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { remember } from '../ui/remember';
   import { buildAltText, buildCaption } from '../analysis/caption';
   import type { Piece } from '../domain/types';
   import { t } from '../i18n/index.svelte';
@@ -26,7 +27,7 @@
   }
 </script>
 
-<details class="card box">
+<details class="card box" use:remember={'ex.caption'}>
   <summary>
     <span class="chev" aria-hidden="true"></span>
     <h3>{t('cap.title')}</h3>

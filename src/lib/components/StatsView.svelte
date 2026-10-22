@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { remember } from '../ui/remember';
   import { chartDistance, chartKeys, chartProfile, chartSections, keyDisplay, unitPlural, type KeyOrder } from '../analysis/charts';
   import { formatNumber, formatPercent, type Column } from '../analysis/csv';
   import { computeStats } from '../analysis/stats';
@@ -72,7 +73,7 @@
   {#if piece.segments.length === 0}
     <p class="card empty">{t('stats.empty')}</p>
   {:else}
-    <details class="card optbox">
+    <details class="card optbox" use:remember={'stats.options'}>
       <summary class="head"><span class="chev" aria-hidden="true"></span><h3>{t('stats.options')}</h3></summary>
       <div class="optbody">
         <label class="field">

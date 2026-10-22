@@ -4,9 +4,11 @@ Web app for drawing key-plan charts of a piece of music: which keys are reached 
 they sit from the home key on the circle of fifths. Runs entirely in the browser; data is stored in
 `localStorage` and can be saved to / loaded from `.tonart.json` files.
 
-Workflow: **Bibliothek** (new / open / import) → **Stück** (title, composer, year, home key …) →
-**Aufbau** (bars, meter, repeats, sections) → **Analyse** (enter the modulations) → **Auswertung** (statistics) →
-**Export** (appearance, SVG, PNG, project file).
+Workflow: **Bibliothek** (new / open / import) → **Angaben** (title, composer, year, home key, note names …) →
+**Taktgerüst** (bars, meter, repeats, sections, form terms) → **Tonarten** (enter the modulations) →
+**Auswertung** (statistics) → **Darstellung** (colours, title, legend, what is shown) →
+**Export** (print size, checklist, SVG, PNG, PDF, project file). The gear in the header holds app settings
+(language, defaults for new pieces, sync); the icon next to the title shows whether the piece is saved and synced.
 
 ## Quick entry syntax
 
@@ -18,11 +20,11 @@ Workflow: **Bibliothek** (new / open / import) → **Stück** (title, composer, 
 // comment
 ```
 
-Set the time signature under **Stück** so beat positions and the beat grid are right.
+Set the time signature under **Taktgerüst** so beat positions and the beat grid are right.
 
 ## Features
 
-- **Aufbau (score setup):** a MuseScore-style measure grid without notes. Select bars, then add events from the
+- **Taktgerüst (score setup):** a MuseScore-style measure grid without notes. Select bars, then add events from the
   palette: time-signature changes, repeats, 1st/2nd endings, parts of the form (with sub-parts, e.g.
   Exposition → Thema 1) and other markers (rehearsal letters, text, barlines, key signatures, fermatas). Bars can be
   inserted or deleted anywhere (everything after them moves). Anacrusis counts as bar 0. Repeats are drawn as signs
@@ -30,7 +32,7 @@ Set the time signature under **Stück** so beat positions and the beat grid are 
 
 - **Settings (gear in the header):** a drawer on laptops, a page elsewhere: interface language, defaults for new pieces
   (note names, look), simple view on phones, Drive sync, licences. Settings that change what a piece means (note
-  names, folding secondary dominants) live in the *Piece* tab; the look of the graphic stays in *Export*.
+  names, folding secondary dominants) live in the *Angaben* tab; the look of the graphic is in *Darstellung*.
 - **Sync with Google Drive (Settings):** keeps your pieces identical on all devices through a hidden app folder in your
   own Drive (no server, no cost; needs a free one-time Google Cloud client ID, see [setup](docs/sync-setup.md)).
   Works in the browser and the installed app, offline-first; conflicts keep both versions. The sign-in script is
@@ -38,12 +40,13 @@ Set the time signature under **Stück** so beat positions and the beat grid are 
 - **DCML import (Library):** pick a corpus of the [DCML collection](https://github.com/DCMLab/dcml_corpora) (or any
   GitHub link, also to a fixed commit, or your own `.tsv` files) and import pieces with their local-key path,
   repeats, endings, time signatures, anacrusis and more – you choose which details ([what is read](docs/dcml-import.md)).
-- **Export tab for publishing:** settings in four groups (Format & print, Look, Labels, Content) with a search box,
-  everyday settings first and the rest under "More settings". Presets for journal column / text width / slides set
-  width, colours, hatching, margins, title and a legible text size in one go. Also: title off, tight crop,
-  line weight, bar shape, own legend and axis wording, signed fifths, target height, greyscale preview and a
-  checklist (text size and line weight in pt at the printed width, fonts, data check, source, stale image
-  description, distance measure, colour-only distinction).
+- **Darstellung (look):** settings in three groups (Look, Labels, Content) with a search box, everyday settings
+  first and the rest under "More settings". Title off, colours and hatching, line weight, bar shape, own legend and
+  axis wording, signed fifths, form-term display, greyscale preview in the preview bar.
+- **Export (print and files):** presets for a journal column / text width / slides (width, colours, hatching,
+  margins, title and a legible text size in one go), print size by width in cm and target height, DPI, font
+  embedding, and a checklist (text size and line weight in pt at the printed width, fonts, data check, source,
+  stale image description, distance measure, colour-only distinction).
 - **Views (Ausschnitte):** named zooms of a bar range, with bar/beat grid, rows fitted to what is visible; pick one in
   the preview, export one or all (ZIP).
 - **Edit in the preview:** click to select (the editor row lights up), drag bar edges (neighbours follow, Alt holds

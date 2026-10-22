@@ -14,7 +14,7 @@ describe('registry', () => {
   it('has unique ids, known texts and sensible paths', () => {
     expect(new Set(SETTINGS.map((s) => s.id)).size).toBe(SETTINGS.length);
     const p = createExample();
-    const roots = { style: p.style, export: defaultExportPrefs() };
+    const roots = { style: p.style, meta: p.meta, export: defaultExportPrefs() };
     for (const s of SETTINGS) {
       expect(de[s.label], s.id).toBeTruthy();
       if (s.hint) expect(de[s.hint], s.id).toBeTruthy();

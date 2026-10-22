@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { remember } from '../ui/remember';
   import { computeStats } from '../analysis/stats';
   import { toCsv, type Column } from '../analysis/csv';
   import { buildTables, TABLE_IDS, toLatex, type Table, type TableId } from '../analysis/tables';
@@ -45,7 +46,7 @@
     downloadBlob(new Blob([JSON.stringify(analysisJson(piece, stats), null, 2)], { type: 'application/json' }), `${base}.analysis.json`);
 </script>
 
-<details class="card box">
+<details class="card box" use:remember={'ex.data'}>
   <summary>
     <span class="chev" aria-hidden="true"></span>
     <h3>{t('data.title')}</h3>

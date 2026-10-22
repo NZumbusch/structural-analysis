@@ -19,7 +19,7 @@
   });
 </script>
 
-<Panel title={t('sync.title')} open={app.prefs.sync.enabled}>
+<Panel id="set.sync" title={t('sync.title')} open={app.prefs.sync.enabled}>
   <div class="box">
     <p class="muted small">{t('sync.intro')}</p>
 

@@ -2,6 +2,7 @@
   import AnalysisView from './lib/components/AnalysisView.svelte';
   import ErrorScreen from './lib/components/ErrorScreen.svelte';
   import ExportView from './lib/components/ExportView.svelte';
+  import LookView from './lib/components/LookView.svelte';
   import LibraryView from './lib/components/LibraryView.svelte';
   import PieceView from './lib/components/PieceView.svelte';
   import SetupView from './lib/components/SetupView.svelte';
@@ -16,32 +17,23 @@
   import SettingsView from './lib/components/SettingsView.svelte';
   import { sync } from './lib/stores/sync.svelte';
 
+  /** Tabs where the piece can be edited, so undo and redo show up in the header. */
+  const EDITING: Tab[] = ['piece', 'setup', 'analysis', 'look'];
   const tabs: { id: Tab; icon: string }[] = [
     { id: 'library', icon: '▤' },
     { id: 'piece', icon: '✎' },
     { id: 'setup', icon: '▦' },
     { id: 'analysis', icon: '≣' },
     { id: 'stats', icon: '▥' },
+    { id: 'look', icon: 'Aa' },
     { id: 'export', icon: '⤓' },
   ];
 
   let fileInput: HTMLInputElement | undefined = $state();
   let dragging = $state(false);
   let saveTimer: ReturnType<typeof setTimeout> | undefined;
-  /** Ticks every minute so the backup reminder appears without any other change. */
-  let now = $state(Date.now());
-  const BACKUP_AFTER_MS = 10 * 60 * 1000;
 
   const piece = $derived(app.piece);
-  const backup = $derived.by(() => {
-    if (!piece) return null;
-    // Drive keeps a copy while syncing works; the file reminder is only for when it does not.
-    if (app.prefs.sync.enabled && (sync.status === 'idle' || sync.status === 'syncing')) return null;
-    const state = app.backupState(piece);
-    if (state === 'current') return null;
-    const since = app.prefs.backups[piece.id] ?? piece.createdAt;
-    return now - since > BACKUP_AFTER_MS ? state : null;
-  });
   /** Problems (not hints) per tab, shown as a small badge. */
   const badges = $derived.by(() => {
     const out: Partial<Record<Tab, number>> = {};
@@ -82,7 +74,6 @@
   onMount(() => {
     sync.init();
     const tick = setInterval(() => {
-      now = Date.now();
       sync.refresh();
     }, 60_000);
     const code = codeFromHash(location.hash);
@@ -154,6 +145,12 @@
     {#if piece}
       <span class="name">{displayTitle(piece) || t('common.untitled')}</span>
       <SaveIndicator />
+      {#if EDITING.includes(app.tab)}
+        <span class="history" role="group" aria-label={t('common.undo')}>
+          <button class="btn small icon" disabled={!app.canUndo} title={`${t('common.undo')} (Strg/Cmd+Z)`} aria-label={t('common.undo')} onclick={() => app.undo()}>↶</button>
+          <button class="btn small icon" disabled={!app.canRedo} title={`${t('common.redo')} (Strg/Cmd+Shift+Z)`} aria-label={t('common.redo')} onclick={() => app.redo()}>↷</button>
+        </span>
+      {/if}
     {/if}
   </div>
   <button class="btn small icon gear" class:on={app.settingsOpen} aria-label={t('set.title')} aria-expanded={app.settingsOpen} title={t('set.title')} onclick={() => (app.settingsOpen = !app.settingsOpen)}>
@@ -171,18 +168,11 @@
       onclick={() => go(tab.id)}
     >
       <span class="ico" aria-hidden="true">{tab.icon}</span>
-      <span>{t(`tab.${tab.id}` as TKey)}</span>
+      <span class="full">{t(`tab.${tab.id}` as TKey)}</span><span class="short">{t(`tab.${tab.id}.short` as TKey)}</span>
       {#if badges[tab.id]}<span class="badge" title={t('val.title')}>{badges[tab.id]}</span>{/if}
     </button>
   {/each}
 </nav>
-
-{#if backup && piece}
-  <div class="backupbar">
-    <span>{backup === 'none' ? t('backup.none') : t('backup.stale')}</span>
-    <button class="btn small" onclick={() => app.saveProjectFile([piece])}>{t('backup.save')}</button>
-  </div>
-{/if}
 
 {#if sync.status === 'signed-out' && app.prefs.sync.enabled}
   <div class="backupbar">
@@ -191,23 +181,18 @@
   </div>
 {/if}
 
-{#if app.tab === 'library' || app.tab === 'analysis'}
+{#if app.tab === 'library'}
   <div class="toolbar">
-    {#if app.tab === 'library'}
-      <button class="btn primary small" onclick={() => app.create()}>{t('lib.new')}</button>
-      <button class="btn small" onclick={() => app.createExample()}>{t('lib.example')}</button>
-      <button class="btn small" onclick={() => fileInput?.click()}>{t('lib.import')}</button>
-      {#if app.installEvent}
-        <button class="btn small" onclick={() => app.install()}>⤓ {t('install.button')}</button>
-      {/if}
-      <button
-        class="btn small"
-        disabled={app.library.length === 0}
-        onclick={() => app.saveProjectFile(app.library, 'tonartenverlauf-backup.json')}>{t('lib.backup')}</button>
-    {:else}
-      <button class="btn small" disabled={!app.canUndo} onclick={() => app.undo()}>↶ {t('common.undo')}</button>
-      <button class="btn small" disabled={!app.canRedo} onclick={() => app.redo()}>↷ {t('common.redo')}</button>
+    <button class="btn primary small" onclick={() => app.create()}>{t('lib.new')}</button>
+    <button class="btn small" onclick={() => app.createExample()}>{t('lib.example')}</button>
+    <button class="btn small" onclick={() => fileInput?.click()}>{t('lib.import')}</button>
+    {#if app.installEvent}
+      <button class="btn small" onclick={() => app.install()}>⤓ {t('install.button')}</button>
     {/if}
+    <button
+      class="btn small"
+      disabled={app.library.length === 0}
+      onclick={() => app.saveProjectFile(app.library, 'tonartenverlauf-backup.json')}>{t('lib.backup')}</button>
   </div>
 {/if}
 
@@ -224,6 +209,8 @@
         <AnalysisView {piece} />
       {:else if app.tab === 'stats'}
         <StatsView {piece} />
+      {:else if app.tab === 'look'}
+        <LookView {piece} />
       {:else}
         <ExportView {piece} />
       {/if}
@@ -255,6 +242,7 @@
   .name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .backupbar { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; padding: 6px 16px; font-size: 0.85rem; background: var(--accent-soft); border-bottom: 1px solid var(--border); }
   .backupbar span { flex: 1 1 200px; }
+  .history { display: inline-flex; gap: 4px; flex: none; margin-left: 4px; }
   .gear.on { background: var(--accent-soft); border-color: var(--accent); }
 
   .tabs {
@@ -269,6 +257,7 @@
   .tab.active { color: var(--text); border-bottom-color: var(--accent); font-weight: 700; }
   .tab.disabled { opacity: 0.4; }
   .ico { font-size: 1.1rem; }
+  .tab .short { display: none; }
   .badge { min-width: 18px; height: 18px; padding: 0 5px; border-radius: 9px; background: var(--danger); color: #fff; font-size: 0.7rem; font-weight: 700; line-height: 18px; text-align: center; }
 
   .toolbar {
@@ -293,7 +282,9 @@
       position: fixed; top: auto; bottom: 0; left: 0; right: 0; height: calc(var(--tabs-h) + 8px + env(safe-area-inset-bottom));
       padding: 0 0 env(safe-area-inset-bottom); border-top: 1px solid var(--border); border-bottom: 0; justify-content: space-around;
     }
-    .tab { flex: 1 1 0; min-width: 0; flex-direction: column; gap: 0; justify-content: center; align-items: center; padding: 0 2px; border-bottom: 0; border-top: 3px solid transparent; font-size: 0.66rem; position: relative; }
+    .tab { flex: 1 1 0; min-width: 0; flex-direction: column; gap: 0; justify-content: center; align-items: center; padding: 0 2px; border-bottom: 0; border-top: 3px solid transparent; font-size: 0.62rem; position: relative; }
+    .tab .full { display: none; }
+    .tab .short { display: inline; }
     .tab span:not(.ico):not(.badge) { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .badge { position: absolute; top: 2px; right: 6px; min-width: 16px; height: 16px; line-height: 16px; font-size: 0.62rem; }
     .tab.active { border-top-color: var(--accent); }

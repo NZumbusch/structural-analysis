@@ -7,7 +7,10 @@
   import { app } from '../stores/app.svelte';
   import { t } from '../i18n/index.svelte';
 
-  let { piece, editable = false, grayscale = false }: { piece: Piece; editable?: boolean; grayscale?: boolean } = $props();
+  let { piece, editable = false }: { piece: Piece; editable?: boolean } = $props();
+
+  /** Preview in greys, to see how the picture survives a black-and-white print. */
+  let grayscale = $state(false);
 
   let full = $state(false);
   let sheetEl: HTMLElement | undefined = $state();
@@ -156,6 +159,7 @@
       {/if}
     {/if}
     <span class="spacer"></span>
+    <button class="btn small" class:on={grayscale} aria-pressed={grayscale} title={t('set.s.grayscale')} onclick={() => (grayscale = !grayscale)}>{t('view.gray')}</button>
     <button class="btn small" class:on={!full} onclick={() => (full = false)}>{t('view.fit')}</button>
     <button class="btn small" class:on={full} onclick={() => (full = true)}>{t('view.full')}</button>
   </div>

@@ -37,22 +37,22 @@
   <section class="inputs" class:hide={pane !== 'input'}>
     <SimpleNote />
     <ValidationPanel {piece} />
-    <Panel title={t('an.keys')} count={piece.segments.length} open reveal={kind === 'segment'}>
+    <Panel id="an.keys" title={t('an.keys')} count={piece.segments.length} open={piece.segments.length === 0} reveal={kind === 'segment'}>
       <SegmentsEditor {piece} />
     </Panel>
-    <Panel title={t('an.passing')} count={piece.passing.length} reveal={kind === 'passing'}>
+    <Panel id="an.passing" title={t('an.passing')} count={piece.passing.length} reveal={kind === 'passing'}>
       <PassingEditor {piece} />
     </Panel>
-    <Panel title={t('an.annotations')} count={piece.annotations.length} reveal={kind === 'annotation'}>
+    <Panel id="an.annotations" title={t('an.annotations')} count={piece.annotations.length} reveal={kind === 'annotation'}>
       <AnnotationsEditor {piece} />
     </Panel>
     {#if !app.simple}
-      <Panel title={t('an.highlights')} count={piece.highlights.length}>
+      <Panel id="an.highlights" title={t('an.highlights')} count={piece.highlights.length}>
         <HighlightsEditor {piece} />
       </Panel>
     {/if}
     {#if !app.simple}
-      <Panel title={t('an.views')} count={piece.views.length}>
+      <Panel id="an.views" title={t('an.views')} count={piece.views.length}>
         <ViewsEditor {piece} />
       </Panel>
     {/if}

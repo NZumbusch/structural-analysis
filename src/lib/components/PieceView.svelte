@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { remember } from '../ui/remember';
   import { displayTitle } from '../domain/piece';
   import type { Piece } from '../domain/types';
   import { t } from '../i18n/index.svelte';
@@ -51,12 +52,7 @@
     </label>
     <label class="check"><input type="checkbox" bind:checked={piece.style.foldTonicizations} />{t('st.fold')}</label>
 
-    <label class="field">
-      <span>{t('piece.subtitle')}</span>
-      <input type="text" bind:value={piece.meta.subtitle} />
-      <span class="hint">{t('piece.subtitleHint')}</span>
-    </label>
-    <details class="prov">
+    <details class="prov" use:remember={'piece.provenance'}>
       <summary class="light"><span class="chev" aria-hidden="true"></span>{t('piece.provenance')}</summary>
       <div class="provbody">
         <label class="field">

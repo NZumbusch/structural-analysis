@@ -123,7 +123,7 @@
   const warning = (code: WarningCode, arg?: string) => t(`dcml.w.${code}` as TKey, { arg: arg ?? '' });
 </script>
 
-<Panel title={t('dcml.title')}>
+<Panel id="lib.dcml" title={t('dcml.title')}>
   <div class="box">
     <p class="muted small">{t('dcml.intro')}</p>
 

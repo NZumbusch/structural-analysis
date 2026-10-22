@@ -11,7 +11,7 @@ interface InstallPromptEvent extends Event {
   userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }>;
 }
 
-export type Tab = 'library' | 'piece' | 'setup' | 'analysis' | 'stats' | 'export';
+export type Tab = 'library' | 'piece' | 'setup' | 'analysis' | 'stats' | 'look' | 'export';
 export type SaveState = 'saved' | 'saving' | 'error';
 export type SelectionKind = 'segment' | 'passing' | 'annotation' | 'event';
 export interface Selection {

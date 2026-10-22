@@ -1,5 +1,6 @@
 <script lang="ts">
-    import { untrack } from 'svelte';
+  import { untrack } from 'svelte';
+  import { remember } from '../../ui/remember';
   import { meterMap } from '../../domain/structure';
   import { parseSegments, serializeSegments, type ParseError } from '../../domain/segments-text';
   import { newId } from '../../domain/ids';
@@ -12,6 +13,28 @@
   import NumInput from '../NumInput.svelte';
 
   let { piece }: { piece: Piece } = $props();
+
+  const MODE_KEY = 'tonartenverlauf.keyMode';
+  /** Quick text on laptops, the table on phones, until the user picks one. */
+  let mode = $state<'text' | 'table'>(
+    (() => {
+      try {
+        const v = localStorage.getItem(MODE_KEY);
+        if (v === 'text' || v === 'table') return v;
+      } catch {
+        /* default */
+      }
+      return app.isMobile ? 'table' : 'text';
+    })(),
+  );
+  function setMode(m: 'text' | 'table') {
+    mode = m;
+    try {
+      localStorage.setItem(MODE_KEY, m);
+    } catch {
+      /* not remembered */
+    }
+  }
 
   const names = $derived(piece.style.noteNames);
   const meter = $derived(meterMap(piece));
@@ -62,11 +85,17 @@
 </script>
 
 <div class="grid">
-  <details class="help" open={!app.isMobile}>
+
+  <div class="seg" role="group" aria-label={t('an.entry')}>
+    <button class="btn small" class:on={mode === 'text'} aria-pressed={mode === 'text'} onclick={() => setMode('text')}>{t('an.mode.text')}</button>
+    <button class="btn small" class:on={mode === 'table'} aria-pressed={mode === 'table'} onclick={() => setMode('table')}>{t('an.mode.table')}</button>
+  </div>
+
+  {#if mode === 'text'}
+  <details class="help" use:remember={'an.keyHelp'}>
     <summary class="light"><span class="chev" aria-hidden="true"></span>{t('an.syntax')}</summary>
     <p class="hint">{t('an.keysHelp')}</p>
   </details>
-
   <label class="field">
     <span>{t('an.textLabel')}</span>
     <textarea
@@ -85,7 +114,7 @@
     <p class="err">{t(`an.err.${e.message}` as TKey, { line: e.line })}</p>
   {/each}
 
-  <div class="label">{t('an.tableLabel')}</div>
+  {:else}
   <div class="lines">
     {#each piece.segments as seg, i (i)}
       <div
@@ -119,10 +148,14 @@
     <button class="btn" onclick={() => add()}>{t('an.addRow')}</button>
     <button class="btn" onclick={sort} disabled={piece.segments.length < 2}>{t('an.sort')}</button>
   </div>
+  {/if}
 </div>
 
 <style>
   .grid { display: grid; gap: 10px; }
+  .seg { display: flex; gap: 6px; }
+  .seg .btn { flex: 1; }
+  .seg .on { background: var(--accent-soft); border-color: var(--accent); font-weight: 600; }
   .line > .len { flex: 0 0 64px; }
   .kindsel { flex: 0 0 auto; width: auto; max-width: 150px; min-height: 32px; padding: 2px 6px; }
 </style>
