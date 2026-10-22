@@ -66,7 +66,8 @@ function device(drive: Drive) {
 
 const piece = (id: string, title: string, at: number): Piece => {
   const p = createPiece();
-  return { ...p, id, updatedAt: at, meta: { ...p.meta, title } };
+  // a fixed creation time, so two pieces built a millisecond apart are still equal
+  return { ...p, id, createdAt: 1, updatedAt: at, meta: { ...p.meta, title } };
 };
 
 describe('sync', () => {
