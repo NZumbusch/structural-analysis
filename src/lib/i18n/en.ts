@@ -399,7 +399,7 @@ export const en: Record<keyof typeof de, string> = {
   'view.snapBar': 'Bar',
   'view.snapBeat': 'Beat',
   'view.snapHalf': '½ beat',
-  'view.dragHint': 'Click selects; bar edges, dots and annotations can be dragged. Alt keeps neighbours in place. Del deletes the selection.',
+  'view.dragHint': 'Click selects; bar edges, dots, annotations, parts, markers, repeats and barlines can be dragged. Alt keeps neighbours in place. Del deletes the selection.',
   'st.detailWidth': 'Width of views',
   'st.barLines': 'Bar lines when zoomed in',
   'st.beatTicks': 'Beat ticks on the axis',

@@ -122,6 +122,9 @@ export function renderChart(source: Piece, options: RenderOptions = {}): Chart {
   const meters = meterMap(piece);
   const beatsAt = (pos: number) => meters.at(pos).beats;
   const ia = expanded ? undefined : options.interactive;
+  /** An invisible, draggable hit area for a structure event (only in the interactive preview). */
+  const evHit = (id: string, x: number, y: number, w: number, h: number) =>
+    ia && id ? `<g data-kind="event" data-id="${id}" style="cursor:ew-resize"><rect x="${n(x)}" y="${n(y)}" width="${n(w)}" height="${n(h)}" fill="transparent"/></g>` : '';
   const start = startPos(piece);
   const EPS = 1e-9;
 
@@ -275,15 +278,22 @@ export function renderChart(source: Piece, options: RenderOptions = {}): Chart {
       const x0 = xOf(Math.max(sp.from, from));
       const x1 = xOf(Math.min(sp.to, to));
       text(parts, (x0 + x1) / 2, TOP - topShift - 12, sp.name, { size: FS.section, anchor: 'middle', weight: 500 });
+      const lw = textWidth(sp.name, fs(FS.section), fam) + 10;
+      parts.push(evHit(sp.id, (x0 + x1) / 2 - lw / 2, TOP - topShift - 24, lw, 22));
     }
     if (!hasSubs) continue;
     for (const sub of sp.subs) {
       if (!overlaps(sub.from, sub.to, from, to)) continue;
-      if (sub.from > sp.from + EPS && sub.from > from && sub.from < to) line(parts, xOf(sub.from), bandTop - 15, xOf(sub.from), bandTop, c.grid, LW.divider);
+      if (sub.from > sp.from + EPS && sub.from > from && sub.from < to) {
+        line(parts, xOf(sub.from), bandTop - 15, xOf(sub.from), bandTop, c.grid, LW.divider);
+        parts.push(evHit(sub.id, xOf(sub.from) - 5, bandTop - 16, 10, 16));
+      }
       if (sub.name.trim()) {
         const x0 = xOf(Math.max(sub.from, from));
         const x1 = xOf(Math.min(sub.to, to));
         text(parts, (x0 + x1) / 2, bandTop - 8, sub.name, { size: FS.small, color: c.muted, anchor: 'middle' });
+        const sw = textWidth(sub.name, fs(FS.small), fam) + 10;
+        parts.push(evHit(sub.id, (x0 + x1) / 2 - sw / 2, bandTop - 20, sw, 18));
       }
     }
   }
@@ -348,6 +358,7 @@ export function renderChart(source: Piece, options: RenderOptions = {}): Chart {
 
   // Lane items are laid out left to right so signs, texts and markers never sit on top of each other.
   interface LaneItem {
+    id: string;
     pos: number;
     width: number;
     center: boolean;
@@ -361,7 +372,7 @@ export function renderChart(source: Piece, options: RenderOptions = {}): Chart {
       if (e.label.trim()) {
         const w = tw(e.label, FS.small, 12);
         laneItems.push({
-          pos: e.pos, width: w, center: true,
+          id: e.id, pos: e.pos, width: w, center: true,
           draw: (x, dy) => {
             parts.push(`<g><rect x="${n(x)}" y="${n(laneY + dy)}" width="${n(w)}" height="${n(fs(FS.small) + 6)}" rx="3" fill="${c.surface}" stroke="${c.axis}" stroke-width="1"/>`);
             text(parts, x + w / 2, laneMid + dy, e.label, { size: FS.small, anchor: 'middle' });
@@ -370,13 +381,13 @@ export function renderChart(source: Piece, options: RenderOptions = {}): Chart {
         });
       }
     } else if (e.kind === 'text' && e.label.trim()) {
-      laneItems.push({ pos: e.pos, width: tw(e.label, FS.small, 4), center: false, draw: (x, dy) => text(parts, x, laneMid + dy, e.label, { size: FS.small, color: c.muted, attrs: ' font-style="italic"' }) });
+      laneItems.push({ id: e.id, pos: e.pos, width: tw(e.label, FS.small, 4), center: false, draw: (x, dy) => text(parts, x, laneMid + dy, e.label, { size: FS.small, color: c.muted, attrs: ' font-style="italic"' }) });
     } else if (e.kind === 'keysig') {
       const k = Math.abs(e.fifths);
       const digits = k === 0 ? '' : String(k);
       const size = fs(FS.small);
       laneItems.push({
-        pos: e.pos, width: tw(digits, FS.small, 0) + accidentalWidth(size) + 4, center: false,
+        id: e.id, pos: e.pos, width: tw(digits, FS.small, 0) + accidentalWidth(size) + 4, center: false,
         draw: (x, dy) => {
           if (digits) text(parts, x, laneMid + dy, digits, { size: FS.small, color: c.muted });
           const ax = x + tw(digits, FS.small, 1);
@@ -385,7 +396,7 @@ export function renderChart(source: Piece, options: RenderOptions = {}): Chart {
       });
     } else if (e.kind === 'fermata') {
       laneItems.push({
-        pos: e.pos, width: 14, center: true,
+        id: e.id, pos: e.pos, width: 14, center: true,
         draw: (x, dy) =>
           parts.push(
             `<path d="M${n(x + 1)},${n(laneMid + dy + 3)} C${n(x + 1)},${n(laneMid + dy - 8)} ${n(x + 13)},${n(laneMid + dy - 8)} ${n(x + 13)},${n(laneMid + dy + 3)}" fill="none" stroke="${c.text}" stroke-width="1.3"/>` +
@@ -395,13 +406,13 @@ export function renderChart(source: Piece, options: RenderOptions = {}): Chart {
     }
   }
   if (meterEvents.length > 0) {
-    const shown = meterEvents.filter((e) => at(e.pos)).map((e) => ({ pos: e.pos, beats: e.beats, unit: e.unit }));
+    const shown = meterEvents.filter((e) => at(e.pos)).map((e) => ({ id: e.id, pos: e.pos, beats: e.beats, unit: e.unit }));
     if (!shown.some((e) => Math.abs(e.pos - start) < EPS) && at(start)) {
-      shown.unshift({ pos: start, beats: meters.at(start).beats, unit: meters.at(start).unit });
+      shown.unshift({ id: '', pos: start, beats: meters.at(start).beats, unit: meters.at(start).unit });
     }
     for (const e of shown) {
       const label = `${e.beats}/${e.unit}`;
-      laneItems.push({ pos: e.pos, width: tw(label, FS.small, 4), center: false, draw: (x, dy) => text(parts, x, laneMid + dy, label, { size: FS.small, weight: 500 }) });
+      laneItems.push({ id: e.id, pos: e.pos, width: tw(label, FS.small, 4), center: false, draw: (x, dy) => text(parts, x, laneMid + dy, label, { size: FS.small, weight: 500 }) });
     }
   }
   // Items that would collide drop onto a further row instead of drifting away from their bar.
@@ -415,7 +426,10 @@ export function renderChart(source: Piece, options: RenderOptions = {}): Chart {
     rowRight[row] = x + it.width;
     placed.push({ it, x, row });
   }
-  for (const p of placed) p.it.draw(p.x, p.row * laneRowH);
+  for (const p of placed) {
+    p.it.draw(p.x, p.row * laneRowH);
+    parts.push(evHit(p.it.id, p.x - 2, laneY + p.row * laneRowH - 2, p.it.width + 4, laneRowH));
+  }
   const laneStack = Math.max(0, rowRight.length - 1) * laneRowH;
 
   if (st.show.repeats) {
@@ -431,6 +445,7 @@ export function renderChart(source: Piece, options: RenderOptions = {}): Chart {
           line(parts, x - 2, bandTop - 2, x - 2, axisY, col, 1, ' stroke-opacity="0.7"');
           line(parts, x + 1.5, bandTop - 2, x + 1.5, axisY, col, 1, ' stroke-opacity="0.7"');
         }
+        parts.push(evHit(e.id, x - 7, axisY - 20, 14, 20));
       } else if (e.kind === 'repeat-start' || e.kind === 'repeat-end') {
         const dir = e.kind === 'repeat-start' ? 1 : -1;
         const y1 = axisY - 17;
@@ -441,6 +456,7 @@ export function renderChart(source: Piece, options: RenderOptions = {}): Chart {
         line(parts, x, y1, x, y2, c.text, 2.4);
         line(parts, x + dir * 3.6, y1, x + dir * 3.6, y2, c.text, 0.9);
         parts.push(`<circle cx="${n(x + dir * 7)}" cy="${n(ym - 3)}" r="1.3" fill="${c.text}"/><circle cx="${n(x + dir * 7)}" cy="${n(ym + 3)}" r="1.3" fill="${c.text}"/>`);
+        parts.push(evHit(e.id, x - 9, y1 - 2, 18, y2 - y1 + 4));
         if (e.kind === 'repeat-end' && e.times !== 2) text(parts, x, y1 - 5, `${e.times}×`, { size: FS.small, color: c.muted, anchor: 'middle' });
       }
     }
@@ -451,7 +467,14 @@ export function renderChart(source: Piece, options: RenderOptions = {}): Chart {
       line(parts, x0, yb, x1, yb, c.text, 1);
       if (v.pos >= from - EPS) line(parts, x0, yb, x0, yb + 8, c.text, 1);
       text(parts, x0 + 5, yb + 9, `${v.numbers.join(', ')}.`, { size: FS.small });
+      parts.push(evHit(v.id, x0, yb - 4, Math.max(14, x1 - x0), 22));
     });
+  }
+
+  // the selected structure event: a thin line through the chart at its position
+  const selEvent = ia ? events.find((e) => e.id === ia.selected) : undefined;
+  if (selEvent && at(selEvent.pos)) {
+    parts.push(`<line x1="${n(xOf(selEvent.pos))}" y1="${n(bandTop - headExtra - 4)}" x2="${n(xOf(selEvent.pos))}" y2="${n(axisY + 4)}" stroke="${SELECT}" stroke-width="1.5" stroke-opacity="0.8" stroke-dasharray="4 3" pointer-events="none"/>`);
   }
 
   // ---- connectors between consecutive segments ----------------------------------------------------

@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { tick } from 'svelte';
   import { remember } from '../ui/remember';
   import { formatPos } from '../domain/positions';
   import { termDefinition, termName, termsOf, TERM_DISPLAYS, VOCABULARIES, type FormTerm, type VocabId } from '../domain/formterms';
@@ -19,6 +20,13 @@
   const COLORS = ['#7cc4a6', '#9a93e6', '#f0b45a', '#e08aa5', '#6fb0e0', '#b5c46a'];
 
   let pane = $state<'edit' | 'preview'>('edit');
+
+  // Bring the list row of whatever was picked in the preview into view.
+  $effect(() => {
+    const id = app.selection?.kind === 'event' ? app.selection.id : null;
+    if (!id) return;
+    void tick().then(() => document.querySelector(`[data-row-id="${id}"]`)?.scrollIntoView({ block: 'nearest', behavior: 'smooth' }));
+  });
   let sel = $state<{ from: number; to: number } | null>(null);
   let anchor = $state<number | null>(null);
   let extend = $state(false);
@@ -480,7 +488,7 @@
   </section>
 
   <section class="side" class:hide={pane !== 'preview'}>
-    <ChartPreview {piece} />
+    <ChartPreview {piece} editable />
   </section>
 </div>
 

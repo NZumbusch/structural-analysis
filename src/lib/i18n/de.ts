@@ -397,7 +397,7 @@ export const de = {
   'view.snapBar': 'Takt',
   'view.snapBeat': 'Schlag',
   'view.snapHalf': '½ Schlag',
-  'view.dragHint': 'Anklicken wählt aus; Balkenkanten, Punkte und Anmerkungen lassen sich ziehen. Alt hält Nachbarn fest. Entf löscht die Auswahl.',
+  'view.dragHint': 'Anklicken wählt aus; Balkenkanten, Punkte, Anmerkungen sowie Teile, Marken, Wiederholungen und Taktstriche lassen sich ziehen. Alt hält Nachbarn fest. Entf löscht die Auswahl.',
   'st.detailWidth': 'Breite der Ausschnitte',
   'st.barLines': 'Taktlinien beim Vergrößern',
   'st.beatTicks': 'Schlagstriche auf der Achse',

@@ -38,6 +38,7 @@
   type Drag =
     | { kind: 'edge'; id: string; edge: 'from' | 'to'; linked: Segment[] }
     | { kind: 'passing'; id: string }
+    | { kind: 'event'; id: string; offset: number }
     | { kind: 'annotation'; id: string; x: number; y: number; dx: number; dy: number };
   let drag: Drag | null = null;
 
@@ -63,7 +64,7 @@
       app.selection = null;
       return;
     }
-    const kind = el.dataset.kind as 'segment' | 'passing' | 'annotation';
+    const kind = el.dataset.kind as 'segment' | 'passing' | 'annotation' | 'event';
     const id = el.dataset.id!;
     app.selection = { kind, id };
     if (e.button !== 0) return;
@@ -79,6 +80,10 @@
         ? []
         : piece.segments.filter((o) => o.id !== id && Math.abs(edge === 'from' ? o.to - seg.from : o.from - seg.to) < 1e-9);
       drag = { kind: 'edge', id, edge, linked };
+    } else if (kind === 'event') {
+      const ev = piece.events.find((x) => x.id === id);
+      if (!ev) return;
+      drag = { kind: 'event', id, offset: ev.pos - posAt(pt.x) }; // grab anywhere on a label without the event jumping to the pointer
     } else if (kind === 'passing') {
       drag = { kind: 'passing', id };
     } else if (kind === 'annotation') {
@@ -116,6 +121,12 @@
         seg.to = v;
         for (const o of drag.linked) o.from = v;
       }
+    } else if (drag.kind === 'event') {
+      const ev = piece.events.find((x) => x.id === drag!.id);
+      if (!ev) return;
+      const v = Math.max(startPos(piece), snapPos(raw + drag.offset, snap, meters, startPos(piece)));
+      if (ev.kind === 'volta') ev.to += v - ev.pos;
+      ev.pos = v;
     } else if (drag.kind === 'passing') {
       const p = piece.passing.find((x) => x.id === drag!.id);
       if (!p) return;
