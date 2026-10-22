@@ -236,14 +236,14 @@ export function renderChart(source: Piece, options: RenderOptions = {}): Chart {
       if (sp.from <= from + EPS && sp.to >= to - EPS) continue; // a view of just this part: the shading would only grey the whole plot
       const x0 = xOf(Math.max(sp.from, from));
       const x1 = xOf(Math.min(sp.to, to));
-      plot.push(`<rect x="${n(x0)}" y="${bandTop}" width="${n(x1 - x0)}" height="${n(bottomY - bandTop)}" fill="${c.sectionBand}" opacity="0.7"/>`);
+      plot.push(`<rect x="${n(x0)}" y="${bandTop}" width="${n(x1 - x0)}" height="${n(axisY - bandTop)}" fill="${c.sectionBand}" opacity="0.7"/>`);
     }
   }
   for (const h of piece.highlights) {
     if (!overlaps(h.from, h.to + 1, from, to)) continue;
     const x0 = xOf(Math.max(h.from, from));
     const x1 = xOf(Math.min(h.to + 1, to));
-    plot.push(`<rect x="${n(x0)}" y="${bandTop}" width="${n(x1 - x0)}" height="${n(bottomY - bandTop)}" fill="${h.color}" opacity="0.22"/>`);
+    plot.push(`<rect x="${n(x0)}" y="${bandTop}" width="${n(x1 - x0)}" height="${n(axisY - bandTop)}" fill="${h.color}" opacity="0.22"/>`);
     if (h.label.trim()) text(plot, (x0 + x1) / 2, bandTop + 10, h.label, { size: FS.small, color: c.muted, anchor: 'middle' });
   }
   if (st.show.centerBand) {
@@ -274,7 +274,7 @@ export function renderChart(source: Piece, options: RenderOptions = {}): Chart {
   // ---- parts of the form: dividers, names, and the second row of sub-parts ---------------------------
   for (const sp of spans) {
     if (!overlaps(sp.from, sp.to, from, to)) continue;
-    if (sp.id && sp.from > start + EPS && sp.from > from && sp.from < to) line(parts, xOf(sp.from), bandTop - headExtra, xOf(sp.from), bottomY, c.grid, LW.divider);
+    if (sp.id && sp.from > start + EPS && sp.from > from && sp.from < to) line(parts, xOf(sp.from), bandTop - headExtra, xOf(sp.from), axisY, c.grid, LW.divider);
     if (st.show.sectionLabels && sp.name.trim()) {
       const x0 = xOf(Math.max(sp.from, from));
       const x1 = xOf(Math.min(sp.to, to));
