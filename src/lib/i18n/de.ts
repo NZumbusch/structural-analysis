@@ -126,6 +126,19 @@ export const de = {
   'form.full': 'ausgeschrieben statt Kürzel',
   'form.hint': 'Ein Klick fügt den Begriff am gewählten Takt ein (Mauszeiger darauf zeigt die Definition). Marken wie MC und EEC lassen sich in der Ereignisliste unten taktgenau verschieben, z. B. auf 24:3.',
 
+  'set.s.termDisplay': 'Begriffe der Formenlehre anzeigen als',
+  'set.h.termDisplay': 'Wirkt auf Teile und Marken, die mit den Begriffs-Schaltflächen (oder dem DCML-Import) eingefügt wurden; selbst Getipptes bleibt unverändert, ebenso Begriffe ohne Entsprechung.',
+  'set.td.entered': 'wie eingegeben',
+  'set.td.sonata-theory': 'Kürzel nach Hepokoski & Darcy (P, TR, S …)',
+  'set.td.caplin': 'Kürzel nach Caplin (MT, TR, ST …)',
+  'set.td.german': 'Deutsche Kürzel (HS, Ü, SS …)',
+  'set.td.name-de': 'Deutsche Namen (Hauptsatz, Seitensatz …)',
+  'set.td.name-en': 'Englische Namen (main theme, secondary theme …)',
+  'set.td.abbr-name-de': 'Kürzel + deutscher Name (S (Seitensatz))',
+
+  'form.recognise': 'Vorhandene Beschriftungen als Begriffe erkennen',
+  'form.recognised': '{n} Beschriftung(en) als Begriff erkannt.',
+
   'sync.title': 'Mit Google Drive synchronisieren',
   'sync.intro': 'Hält deine Stücke auf allen Geräten gleich – in einem versteckten App-Ordner deines eigenen Google Drive, den nur diese App sieht. Kein Server, keine Kosten.',
   'sync.clientId': 'OAuth-Client-ID',

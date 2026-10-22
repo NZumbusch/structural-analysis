@@ -27,6 +27,7 @@ export const DEFAULT_STYLE: Style = {
   rowMin: null,
   transparentBackground: false,
   hatch: false,
+  termDisplay: 'entered',
   margins: 'normal',
   barShape: 'round',
   lineScale: 1,

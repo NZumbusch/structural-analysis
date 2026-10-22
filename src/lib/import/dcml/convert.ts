@@ -76,6 +76,8 @@ export interface DcmlResult {
   counts: DcmlCounts;
 }
 
+/** Cadence labels of the tables that are form-theory terms, so the chart can show them in German too. */
+const CADENCE_TERMS: Record<string, string> = { PAC: 'pac', IAC: 'iac', HC: 'hc', DC: 'dc' };
 const EPS = 1e-9;
 const round = (n: number) => Math.round(n * 1e6) / 1e6;
 
@@ -365,7 +367,7 @@ export function convertDcml(input: DcmlInput, options: DcmlOptions = DEFAULT_DCM
   if (options.cadences) {
     for (const l of labels) {
       if (!l.cadence) continue;
-      events.push(makeEvent('marker', l.pos, { label: l.cadence, line: false }));
+      events.push(makeEvent('marker', l.pos, { label: l.cadence, line: false, term: CADENCE_TERMS[l.cadence] ?? '' }));
       counts.cadences += 1;
     }
   }

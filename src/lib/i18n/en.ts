@@ -128,6 +128,19 @@ export const en: Record<keyof typeof de, string> = {
   'form.full': 'spelled out instead of abbreviations',
   'form.hint': 'One click adds the term at the selected bar (hover for the definition). Marks such as MC and EEC can be moved to the exact beat in the event list below, e.g. to 24:3.',
 
+  'set.s.termDisplay': 'Show form-theory terms as',
+  'set.h.termDisplay': 'Affects parts and marks added with the term buttons (or the DCML import); anything typed by hand stays as it is, and so do terms without a counterpart.',
+  'set.td.entered': 'as entered',
+  'set.td.sonata-theory': 'Abbreviations after Hepokoski & Darcy (P, TR, S …)',
+  'set.td.caplin': 'Abbreviations after Caplin (MT, TR, ST …)',
+  'set.td.german': 'German abbreviations (HS, Ü, SS …)',
+  'set.td.name-de': 'German names (Hauptsatz, Seitensatz …)',
+  'set.td.name-en': 'English names (main theme, secondary theme …)',
+  'set.td.abbr-name-de': 'Abbreviation + German name (S (Seitensatz))',
+
+  'form.recognise': 'Recognise existing labels as terms',
+  'form.recognised': '{n} label(s) recognised as terms.',
+
   'sync.title': 'Sync with Google Drive',
   'sync.intro': 'Keeps your pieces the same on all devices – in a hidden app folder of your own Google Drive that only this app can see. No server, no cost.',
   'sync.clientId': 'OAuth client ID',

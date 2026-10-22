@@ -97,6 +97,8 @@ export interface StructEvent {
   style: 'double' | 'final';
   /** keysig: -7 (7 flats) … 7 (7 sharps) */
   fifths: number;
+  /** The form-theory concept this part or mark was taken from (e.g. 'second'); empty for free text. */
+  term: string;
 }
 
 /** A named zoom range; `to` is exclusive like a segment's. */
@@ -193,6 +195,8 @@ export type Auto = 'auto' | 'on' | 'off';
 export type FontFamilyId = 'sans' | 'serif' | 'mono';
 export type TitleLayout = 'composer-title' | 'title-composer' | 'title';
 
+/** How terms from form theory are shown: as entered, in the abbreviations of a vocabulary, or by name. */
+export type TermDisplayMode = 'entered' | 'sonata-theory' | 'caplin' | 'german' | 'name-de' | 'name-en' | 'abbr-name-de';
 export type Margins = 'normal' | 'tight';
 export type BarShape = 'round' | 'square';
 /** Texts of the legend entries that can be renamed. */
@@ -229,6 +233,8 @@ export interface Style {
   transparentBackground: boolean;
   /** Minor bars get a diagonal hatch, so major and minor differ without colour. */
   hatch: boolean;
+  /** Terms of form theory in the chart: 'entered' leaves them as typed. */
+  termDisplay: TermDisplayMode;
   /** Space around the picture: 'tight' crops it for placing in a document. */
   margins: Margins;
   barShape: BarShape;

@@ -8,7 +8,7 @@ export function makeEvent(kind: EventKind, pos: number, extra: Partial<StructEve
   return {
     id: newId(), kind, pos,
     beats: 4, unit: 4, times: 2, to: pos + 1, numbers: [1],
-    name: '', shade: false, label: '', line: true, style: 'double', fifths: 0,
+    name: '', shade: false, label: '', line: true, style: 'double', fifths: 0, term: '',
     ...extra,
   };
 }

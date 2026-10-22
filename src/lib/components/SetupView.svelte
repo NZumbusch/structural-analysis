@@ -1,6 +1,6 @@
 <script lang="ts">
   import { formatPos } from '../domain/positions';
-  import { termDefinition, termName, termsOf, VOCABULARIES, type FormTerm, type VocabId } from '../domain/formterms';
+  import { termDefinition, termName, termsOf, TERM_DISPLAYS, VOCABULARIES, type FormTerm, type VocabId } from '../domain/formterms';
   import { endPos, insertBars, deleteBars, lastBarOf, makeEvent, meterMap, sectionSpans, sortedEvents } from '../domain/structure';
   import type { EventKind, Piece, StructEvent } from '../domain/types';
   import { t, type TKey } from '../i18n/index.svelte';
@@ -38,6 +38,8 @@
     })(),
   );
   let fullNames = $state(false);
+  /** The concept of the term button that was clicked, remembered on the new event. */
+  let pendingTerm = '';
   function setVocab(v: VocabId) {
     vocab = v;
     try {
@@ -171,8 +173,8 @@
         break;
       }
       case 'section': created = upsert('section', from, { name, shade }); break;
-      case 'subsection': created = upsert('subsection', from, { name }); break;
-      case 'marker': created = upsert('marker', from, { label, line }); break;
+      case 'subsection': created = upsert('subsection', from, { name, term: pendingTerm }); break;
+      case 'marker': created = upsert('marker', from, { label, line, term: pendingTerm }); break;
       case 'text': created = upsert('text', from, { label }); break;
       case 'barline': created = upsert('barline', after, { style: barStyle }); break;
       case 'keysig': created = upsert('keysig', from, { fifths }); break;
@@ -181,17 +183,36 @@
     if (created) app.selection = { kind: 'event', id: created.id };
     name = '';
     label = '';
+    pendingTerm = '';
   }
 
   /** One click on a term adds it at the selected bar (undo takes it back). */
   function addTerm(term: FormTerm) {
-    const text = fullNames ? termName(term, piece.style.language) : term.abbr;
+    const text = fullNames ? termName(term, piece.style.language) : term.short;
+    pendingTerm = term.id;
     if (tool === 'subsection') name = text;
     else {
       label = text;
       line = !!term.line;
     }
     addEvent();
+  }
+
+  /** Labels that were typed (or added before terms were remembered) become terms when they match the vocabulary exactly. */
+  function recognise() {
+    const terms = VOCABULARIES.find((v) => v.id === vocab)!.terms;
+    let n = 0;
+    for (const e of piece.events) {
+      if (e.term) continue;
+      const zone = e.kind === 'subsection';
+      if (!zone && e.kind !== 'marker' && e.kind !== 'text') continue;
+      const hit = terms.find((x) => x.short === (zone ? e.name : e.label).trim() && (x.kind === 'zone') === zone);
+      if (hit) {
+        e.term = hit.id;
+        n++;
+      }
+    }
+    app.notify(t('form.recognised', { n }));
   }
 
   const toolNeedsInput = (k: Tool) => !['repeat', 'fermata'].includes(k);
@@ -343,10 +364,16 @@
               <label class="check"><input type="checkbox" bind:checked={fullNames} />{t('form.full')}</label>
             </div>
             <div class="chips">
-              {#each termsOf(vocab, tool === 'subsection' ? 'zone' : 'point') as term (term.abbr)}
-                <button class="chip" title={`${termName(term, piece.style.language)} – ${termDefinition(term, piece.style.language)}`} onclick={() => addTerm(term)}>{term.abbr}</button>
+              {#each termsOf(vocab, tool === 'subsection' ? 'zone' : 'point') as term (term.id)}
+                <button class="chip" title={`${termName(term, piece.style.language)} – ${termDefinition(term, piece.style.language)}`} onclick={() => addTerm(term)}>{term.short}</button>
               {/each}
             </div>
+            <label class="inline"><span class="muted small">{t('set.s.termDisplay')}</span>
+              <select bind:value={piece.style.termDisplay}>
+                {#each TERM_DISPLAYS as m (m)}<option value={m}>{t(`set.td.${m}` as TKey)}</option>{/each}
+              </select>
+            </label>
+            <div class="line"><button class="btn small" onclick={recognise}>{t('form.recognise')}</button></div>
             <p class="hint">{t('form.hint')}</p>
           </div>
         {/if}
@@ -429,10 +456,10 @@
               <input class="k" type="text" aria-label={t('ev.endings')} value={e.numbers.join(',')}
                 oninput={(ev) => { const nums = ev.currentTarget.value.split(/[,\s]+/).map((x) => parseInt(x, 10)).filter((x) => x > 0); if (nums.length) e.numbers = nums; }} />
             {:else if e.kind === 'section' || e.kind === 'subsection'}
-              <input class="grow" type="text" aria-label={t('ev.name')} placeholder={t('ev.name')} bind:value={e.name} />
+              <input class="grow" type="text" aria-label={t('ev.name')} placeholder={t('ev.name')} bind:value={e.name} oninput={() => (e.term = '')} />
               {#if e.kind === 'section'}<label class="check"><input type="checkbox" bind:checked={e.shade} />{t('ev.shade')}</label>{/if}
             {:else if e.kind === 'marker' || e.kind === 'text'}
-              <input class="grow" type="text" aria-label={t('ev.label')} placeholder={t('ev.label')} bind:value={e.label} />
+              <input class="grow" type="text" aria-label={t('ev.label')} placeholder={t('ev.label')} bind:value={e.label} oninput={() => (e.term = '')} />
               {#if e.kind === 'marker'}<label class="check"><input type="checkbox" bind:checked={e.line} />{t('ev.line')}</label>{/if}
             {:else if e.kind === 'barline'}
               <select class="sel" aria-label={t('ev.style')} bind:value={e.style}>
