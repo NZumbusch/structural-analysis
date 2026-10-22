@@ -525,6 +525,8 @@
     background-size: 100% 4px, 100% 3px; background-position: top, 0 4px; background-repeat: no-repeat;
   }
   .cell.pickup { background: var(--surface-2); cursor: default; border-style: dashed; }
+  .lines .line.selected { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 8px; background: var(--accent-soft); animation: pick 1.2s ease-out; }
+  @keyframes pick { from { box-shadow: 0 0 0 6px var(--accent-soft); } to { box-shadow: 0 0 0 0 transparent; } }
   .cell.selected { outline: 2px solid var(--accent); outline-offset: -1px; background-color: var(--accent-soft); }
   .cell.rs { border-left: 4px double var(--text); }
   .cell.re { border-right: 4px double var(--text); }

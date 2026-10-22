@@ -68,6 +68,12 @@
     const id = el.dataset.id!;
     app.selection = { kind, id };
     if (e.button !== 0) return;
+    // Structure events live in "Bar structure", everything else in "Keys": jump there, where the row is opened and highlighted.
+    const home = kind === 'event' ? 'setup' : 'analysis';
+    if (app.tab !== home) {
+      app.tab = home;
+      return;
+    }
     const pt = point(e);
     if (!pt) return;
 
