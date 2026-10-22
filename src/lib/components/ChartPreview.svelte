@@ -7,7 +7,8 @@
   import { app } from '../stores/app.svelte';
   import { t } from '../i18n/index.svelte';
 
-  let { piece, editable = false }: { piece: Piece; editable?: boolean } = $props();
+  /** `jump`: clicking an element opens the tab where it is edited, without dragging. */
+  let { piece, editable = false, jump = false }: { piece: Piece; editable?: boolean; jump?: boolean } = $props();
 
   /** Preview in greys, to see how the picture survives a black-and-white print. */
   let grayscale = $state(false);
@@ -19,7 +20,7 @@
   const view = $derived(piece.views.find((v) => v.id === app.activeViewId) ?? null);
   const range = $derived(view ? { from: view.from, to: view.to } : null);
   // Play-order layouts are derived copies, so there is nothing to edit directly in them.
-  const interactive = $derived(editable && app.editInPreview && piece.style.repeatDisplay === 'symbols');
+  const interactive = $derived((jump || (editable && app.editInPreview)) && piece.style.repeatDisplay === 'symbols');
 
   // Handles stay about 14 px wide on screen however far the chart is scaled down.
   const baseWidth = $derived(renderChart(piece, { view: range }).width);
@@ -70,7 +71,7 @@
     if (e.button !== 0) return;
     // Structure events live in "Bar structure", everything else in "Keys": jump there, where the row is opened and highlighted.
     const home = kind === 'event' ? 'setup' : 'analysis';
-    if (app.tab !== home) {
+    if (jump || app.tab !== home) {
       app.tab = home;
       return;
     }
@@ -202,7 +203,7 @@
       {@html chart.svg}
     </div>
   </div>
-  {#if interactive}<p class="hint">{t('view.dragHint')}</p>{/if}
+  {#if interactive}<p class="hint">{jump ? t('view.jumpHint') : t('view.dragHint')}</p>{/if}
 </div>
 
 <style>

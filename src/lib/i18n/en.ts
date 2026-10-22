@@ -399,6 +399,7 @@ export const en: Record<keyof typeof de, string> = {
   'view.snapBar': 'Bar',
   'view.snapBeat': 'Beat',
   'view.snapHalf': '½ beat',
+  'view.jumpHint': 'Click an element to open the tab where it is edited.',
   'view.dragHint': 'Click selects; bar edges, dots, annotations, parts, markers, repeats and barlines can be dragged. Alt keeps neighbours in place. Del deletes the selection.',
   'st.detailWidth': 'Width of views',
   'st.barLines': 'Bar lines when zoomed in',

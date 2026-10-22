@@ -172,7 +172,7 @@
   </section>
 
   <section class="side">
-    <ChartPreview {piece} />
+    <ChartPreview {piece} jump />
   </section>
 </div>
 
