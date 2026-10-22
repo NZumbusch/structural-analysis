@@ -81,3 +81,20 @@ describe('settings for publishing', () => {
     expect(cloneStyle(DEFAULT_STYLE).barShape).toBe('round');
   });
 });
+
+describe('legend spacing', () => {
+  it('leaves room between the marker lane and the legend', async () => {
+    const { makeEvent } = await import('../domain/structure');
+    const plain = renderChart(example());
+    const p = example();
+    p.events.push(makeEvent('marker', 30, { label: 'EEC', line: true }));
+    const withMark = renderChart(p);
+    expect(withMark.height).toBeGreaterThan(plain.height); // the lane and the extra air
+    const legendY = (svg: string) => Number(svg.match(/<text x="[\d.]+" y="([\d.]+)"[^>]*>Dur<\/text>/)![1]);
+    const laneBottom = (svg: string) => {
+      const m = svg.match(/<rect x="[\d.]+" y="([\d.]+)" width="[\d.]+" height="([\d.]+)" rx="3"[^>]*>/);
+      return Number(m![1]) + Number(m![2]);
+    };
+    expect(legendY(withMark.svg) - laneBottom(withMark.svg)).toBeGreaterThanOrEqual(18);
+  });
+});

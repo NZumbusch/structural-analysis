@@ -577,7 +577,9 @@ export function renderChart(source: Piece, options: RenderOptions = {}): Chart {
   // ---- legend ----------------------------------------------------------------------------------------------------
   const legendText = (k: LegendKey) => st.legendLabels[k]?.trim() || lang[k];
   const contentBottom = bottomY + (voltas.length > 0 ? 38 + (laneUsed ? 24 : 0) : laneUsed ? 44 : 14);
-  let height = tight ? (st.show.legend ? contentBottom + 32 : contentBottom + 4) : bottomY + 80 + lanesExtra;
+  // marks and ending brackets sit under the axis; the legend below them needs some air of its own
+  const legendAir = laneUsed || voltas.length > 0 ? 12 : 0;
+  let height = tight ? (st.show.legend ? contentBottom + 32 + legendAir : contentBottom + 4) : bottomY + 80 + lanesExtra + legendAir;
   if (st.show.legend) {
     const hasMajor = piece.segments.some((s) => s.key.mode === 'major');
     const hasMinor = piece.segments.some((s) => s.key.mode === 'minor');
@@ -598,7 +600,7 @@ export function renderChart(source: Piece, options: RenderOptions = {}): Chart {
       });
     }
     let x = left;
-    let y = tight ? contentBottom + 18 : height - 34;
+    let y = tight ? contentBottom + 18 + legendAir : height - 34;
     const maxX = width - 30;
     items.forEach((it, i) => {
       const full = it.w + 8 + textWidth(it.label, fs(FS.small), fam);

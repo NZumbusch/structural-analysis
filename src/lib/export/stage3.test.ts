@@ -60,7 +60,8 @@ describe('pdf', () => {
     const p = createExample();
     p.style.hatch = true;
     p.events.push(makeEvent('keysig', 30, { fifths: -3 }), makeEvent('fermata', 60.5), makeEvent('marker', 38, { label: 'A' }));
-    const bytes = await svgToPdf(renderChart(p).svg, { widthCm: 16, title: 'Titel ä' });
+    const chart = renderChart(p);
+    const bytes = await svgToPdf(chart.svg, { widthCm: 16, title: 'Titel ä' });
     const text = new TextDecoder('latin1').decode(bytes);
     expect(text.startsWith('%PDF-1.5')).toBe(true);
     expect(text.trimEnd().endsWith('%%EOF')).toBe(true);
@@ -69,7 +70,7 @@ describe('pdf', () => {
     expect(text).toContain('/Inter-Regular');
     const box = text.match(/\/MediaBox \[0 0 ([\d.]+) ([\d.]+)\]/)!;
     expect(parseFloat(box[1])).toBeCloseTo((16 / 2.54) * 72, 1);
-    expect(parseFloat(box[2])).toBeCloseTo(((16 / 2.54) * 72 * 565) / 900, 0);
+    expect(parseFloat(box[2])).toBeCloseTo(((16 / 2.54) * 72 * chart.height) / chart.width, 0);
     // every object listed in the cross-reference table is where it says
     const xref = text.lastIndexOf('xref\n');
     const entries = [...text.slice(xref).matchAll(/^(\d{10}) 00000 n $/gm)].map((m) => parseInt(m[1], 10));
