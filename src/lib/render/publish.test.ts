@@ -98,3 +98,17 @@ describe('legend spacing', () => {
     expect(legendY(withMark.svg) - laneBottom(withMark.svg)).toBeGreaterThanOrEqual(18);
   });
 });
+
+describe('marker stacking', () => {
+  it('puts colliding marker labels on a second row instead of shifting them', async () => {
+    const { makeEvent } = await import('../domain/structure');
+    const p = example();
+    p.events.push(makeEvent('marker', 30, { label: 'EEC' }));
+    const one = renderChart(p);
+    p.events.push(makeEvent('marker', 30.1, { label: 'PAC' }));
+    const two = renderChart(p);
+    expect(two.height).toBeGreaterThan(one.height);
+    const ys = [...two.svg.matchAll(/<rect x="[\d.]+" y="([\d.]+)" width="[\d.]+" height="[\d.]+" rx="3"/g)].map((m) => Number(m[1]));
+    expect(new Set(ys).size).toBeGreaterThan(1);
+  });
+});

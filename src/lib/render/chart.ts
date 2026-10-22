@@ -342,7 +342,7 @@ export function renderChart(source: Piece, options: RenderOptions = {}): Chart {
   const meterEvents = st.show.meterSigns ? events.filter((e) => e.kind === 'meter') : [];
   const laneUsed = markEvents.some((e) => e.kind !== 'marker' || e.label.trim()) || meterEvents.some((e) => at(e.pos));
   const voltas = st.show.repeats ? events.filter((e) => e.kind === 'volta' && overlaps(e.pos, e.to, from, to)) : [];
-  const lanesExtra = laneUsed && voltas.length > 0 ? 24 : 0;
+  const lanesVolta = laneUsed && voltas.length > 0 ? 24 : 0;
   const laneY = bottomY + 16;
   const laneMid = bottomY + 16 + (fs(FS.small) + 6) / 2;
 
@@ -351,7 +351,7 @@ export function renderChart(source: Piece, options: RenderOptions = {}): Chart {
     pos: number;
     width: number;
     center: boolean;
-    draw: (x: number) => void;
+    draw: (x: number, dy: number) => void;
   }
   const laneItems: LaneItem[] = [];
   const tw = (label: string, size: number, extra = 0) => textWidth(label, fs(size), fam) + extra;
@@ -362,34 +362,34 @@ export function renderChart(source: Piece, options: RenderOptions = {}): Chart {
         const w = tw(e.label, FS.small, 12);
         laneItems.push({
           pos: e.pos, width: w, center: true,
-          draw: (x) => {
-            parts.push(`<g><rect x="${n(x)}" y="${n(laneY)}" width="${n(w)}" height="${n(fs(FS.small) + 6)}" rx="3" fill="${c.surface}" stroke="${c.axis}" stroke-width="1"/>`);
-            text(parts, x + w / 2, laneMid, e.label, { size: FS.small, anchor: 'middle' });
+          draw: (x, dy) => {
+            parts.push(`<g><rect x="${n(x)}" y="${n(laneY + dy)}" width="${n(w)}" height="${n(fs(FS.small) + 6)}" rx="3" fill="${c.surface}" stroke="${c.axis}" stroke-width="1"/>`);
+            text(parts, x + w / 2, laneMid + dy, e.label, { size: FS.small, anchor: 'middle' });
             parts.push('</g>');
           },
         });
       }
     } else if (e.kind === 'text' && e.label.trim()) {
-      laneItems.push({ pos: e.pos, width: tw(e.label, FS.small, 4), center: false, draw: (x) => text(parts, x, laneMid, e.label, { size: FS.small, color: c.muted, attrs: ' font-style="italic"' }) });
+      laneItems.push({ pos: e.pos, width: tw(e.label, FS.small, 4), center: false, draw: (x, dy) => text(parts, x, laneMid + dy, e.label, { size: FS.small, color: c.muted, attrs: ' font-style="italic"' }) });
     } else if (e.kind === 'keysig') {
       const k = Math.abs(e.fifths);
       const digits = k === 0 ? '' : String(k);
       const size = fs(FS.small);
       laneItems.push({
         pos: e.pos, width: tw(digits, FS.small, 0) + accidentalWidth(size) + 4, center: false,
-        draw: (x) => {
-          if (digits) text(parts, x, laneMid, digits, { size: FS.small, color: c.muted });
+        draw: (x, dy) => {
+          if (digits) text(parts, x, laneMid + dy, digits, { size: FS.small, color: c.muted });
           const ax = x + tw(digits, FS.small, 1);
-          parts.push(accidentalPath(k === 0 ? 'natural' : e.fifths > 0 ? 'sharp' : 'flat', ax, laneMid + size * 0.35, size, c.muted));
+          parts.push(accidentalPath(k === 0 ? 'natural' : e.fifths > 0 ? 'sharp' : 'flat', ax, laneMid + dy + size * 0.35, size, c.muted));
         },
       });
     } else if (e.kind === 'fermata') {
       laneItems.push({
         pos: e.pos, width: 14, center: true,
-        draw: (x) =>
+        draw: (x, dy) =>
           parts.push(
-            `<path d="M${n(x + 1)},${n(laneMid + 3)} C${n(x + 1)},${n(laneMid - 8)} ${n(x + 13)},${n(laneMid - 8)} ${n(x + 13)},${n(laneMid + 3)}" fill="none" stroke="${c.text}" stroke-width="1.3"/>` +
-              `<circle cx="${n(x + 7)}" cy="${n(laneMid - 0.5)}" r="1.5" fill="${c.text}"/>`,
+            `<path d="M${n(x + 1)},${n(laneMid + dy + 3)} C${n(x + 1)},${n(laneMid + dy - 8)} ${n(x + 13)},${n(laneMid + dy - 8)} ${n(x + 13)},${n(laneMid + dy + 3)}" fill="none" stroke="${c.text}" stroke-width="1.3"/>` +
+              `<circle cx="${n(x + 7)}" cy="${n(laneMid + dy - 0.5)}" r="1.5" fill="${c.text}"/>`,
           ),
       });
     }
@@ -401,16 +401,22 @@ export function renderChart(source: Piece, options: RenderOptions = {}): Chart {
     }
     for (const e of shown) {
       const label = `${e.beats}/${e.unit}`;
-      laneItems.push({ pos: e.pos, width: tw(label, FS.small, 4), center: false, draw: (x) => text(parts, x, laneMid, label, { size: FS.small, weight: 500 }) });
+      laneItems.push({ pos: e.pos, width: tw(label, FS.small, 4), center: false, draw: (x, dy) => text(parts, x, laneMid + dy, label, { size: FS.small, weight: 500 }) });
     }
   }
-  let laneRight = -Infinity;
+  // Items that would collide drop onto a further row instead of drifting away from their bar.
+  const laneRowH = fs(FS.small) + 8;
+  const rowRight: number[] = [];
+  const placed: { it: LaneItem; x: number; row: number }[] = [];
   for (const it of laneItems.sort((a, b) => a.pos - b.pos)) {
-    const natural = xOf(it.pos) + (it.center ? -it.width / 2 : 2);
-    const x = Math.max(natural, laneRight + 6);
-    it.draw(x);
-    laneRight = x + it.width;
+    const x = xOf(it.pos) + (it.center ? -it.width / 2 : 2);
+    let row = rowRight.findIndex((r) => x >= r + 4);
+    if (row < 0) row = rowRight.length;
+    rowRight[row] = x + it.width;
+    placed.push({ it, x, row });
   }
+  for (const p of placed) p.it.draw(p.x, p.row * laneRowH);
+  const laneStack = Math.max(0, rowRight.length - 1) * laneRowH;
 
   if (st.show.repeats) {
     for (const e of events) {
@@ -441,7 +447,7 @@ export function renderChart(source: Piece, options: RenderOptions = {}): Chart {
     voltas.forEach((v) => {
       const x0 = xOf(Math.max(v.pos, from));
       const x1 = xOf(Math.min(v.to, to));
-      const yb = bottomY + 16 + (laneUsed ? 24 : 0) + 2;
+      const yb = bottomY + 16 + (laneUsed ? 24 : 0) + laneStack + 2;
       line(parts, x0, yb, x1, yb, c.text, 1);
       if (v.pos >= from - EPS) line(parts, x0, yb, x0, yb + 8, c.text, 1);
       text(parts, x0 + 5, yb + 9, `${v.numbers.join(', ')}.`, { size: FS.small });
@@ -576,10 +582,10 @@ export function renderChart(source: Piece, options: RenderOptions = {}): Chart {
 
   // ---- legend ----------------------------------------------------------------------------------------------------
   const legendText = (k: LegendKey) => st.legendLabels[k]?.trim() || lang[k];
-  const contentBottom = bottomY + (voltas.length > 0 ? 38 + (laneUsed ? 24 : 0) : laneUsed ? 44 : 14);
+  const contentBottom = bottomY + (voltas.length > 0 ? 38 + (laneUsed ? 24 : 0) : laneUsed ? 44 : 14) + laneStack;
   // marks and ending brackets sit under the axis; the legend below them needs some air of its own
   const legendAir = laneUsed || voltas.length > 0 ? 12 : 0;
-  let height = tight ? (st.show.legend ? contentBottom + 32 + legendAir : contentBottom + 4) : bottomY + 80 + lanesExtra + legendAir;
+  let height = tight ? (st.show.legend ? contentBottom + 32 + legendAir : contentBottom + 4) : bottomY + 80 + lanesVolta + laneStack + legendAir;
   if (st.show.legend) {
     const hasMajor = piece.segments.some((s) => s.key.mode === 'major');
     const hasMinor = piece.segments.some((s) => s.key.mode === 'minor');
