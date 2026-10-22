@@ -1,3 +1,4 @@
+import { sectionSpans } from '../domain/structure';
 import { describe, expect, it } from 'vitest';
 import { createExample } from '../domain/example';
 import { cloneStyle, DEFAULT_STYLE, normalizeStyle } from '../domain/piece';
@@ -120,5 +121,18 @@ describe('legend in zoomed views', () => {
     expect(whole).toContain('Durchgangsakkord');
     const zoom = renderChart(p, { view: { from: 1, to: 20 } as never }).svg;
     expect(zoom).not.toContain('Durchgangsakkord');
+  });
+});
+
+describe('section shading in zoomed views', () => {
+  it('is left out when the view is exactly the shaded part', () => {
+    const p = example();
+    const spans = sectionSpans(p).filter((sp) => sp.shade);
+    expect(spans.length).toBeGreaterThan(0);
+    const sp = spans[0];
+    const whole = renderChart(p).svg;
+    const zoom = renderChart(p, { view: { from: sp.from, to: sp.to } as never }).svg;
+    const bands = (svg: string) => (svg.match(/opacity="0.7"/g) ?? []).length;
+    expect(bands(zoom)).toBeLessThan(bands(whole));
   });
 });

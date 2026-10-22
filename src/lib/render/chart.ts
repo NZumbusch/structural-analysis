@@ -233,6 +233,7 @@ export function renderChart(source: Piece, options: RenderOptions = {}): Chart {
   if (st.show.sectionBands) {
     for (const sp of spans) {
       if (!sp.shade || !overlaps(sp.from, sp.to, from, to)) continue;
+      if (sp.from <= from + EPS && sp.to >= to - EPS) continue; // a view of just this part: the shading would only grey the whole plot
       const x0 = xOf(Math.max(sp.from, from));
       const x1 = xOf(Math.min(sp.to, to));
       plot.push(`<rect x="${n(x0)}" y="${bandTop}" width="${n(x1 - x0)}" height="${n(bottomY - bandTop)}" fill="${c.sectionBand}" opacity="0.7"/>`);
