@@ -121,6 +121,13 @@ export const en: Record<keyof typeof de, string> = {
 
   'set.more': 'More settings ({n})',
 
+  'form.vocab': 'Terms from form theory',
+  'form.v.sonata-theory': 'Hepokoski & Darcy (Sonata Theory)',
+  'form.v.caplin': 'Caplin (formal functions)',
+  'form.v.german': 'German (Hauptsatz, Seitensatz …)',
+  'form.full': 'spelled out instead of abbreviations',
+  'form.hint': 'One click adds the term at the selected bar (hover for the definition). Marks such as MC and EEC can be moved to the exact beat in the event list below, e.g. to 24:3.',
+
   'sync.title': 'Sync with Google Drive',
   'sync.intro': 'Keeps your pieces the same on all devices – in a hidden app folder of your own Google Drive that only this app can see. No server, no cost.',
   'sync.clientId': 'OAuth client ID',

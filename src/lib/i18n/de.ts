@@ -119,6 +119,13 @@ export const de = {
 
   'set.more': 'Weitere Einstellungen ({n})',
 
+  'form.vocab': 'Begriffe aus der Formenlehre',
+  'form.v.sonata-theory': 'Hepokoski & Darcy (Sonata Theory)',
+  'form.v.caplin': 'Caplin (Formfunktionen)',
+  'form.v.german': 'Deutsch (Hauptsatz, Seitensatz …)',
+  'form.full': 'ausgeschrieben statt Kürzel',
+  'form.hint': 'Ein Klick fügt den Begriff am gewählten Takt ein (Mauszeiger darauf zeigt die Definition). Marken wie MC und EEC lassen sich in der Ereignisliste unten taktgenau verschieben, z. B. auf 24:3.',
+
   'sync.title': 'Mit Google Drive synchronisieren',
   'sync.intro': 'Hält deine Stücke auf allen Geräten gleich – in einem versteckten App-Ordner deines eigenen Google Drive, den nur diese App sieht. Kein Server, keine Kosten.',
   'sync.clientId': 'OAuth-Client-ID',

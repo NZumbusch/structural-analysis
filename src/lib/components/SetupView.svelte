@@ -1,5 +1,6 @@
 <script lang="ts">
   import { formatPos } from '../domain/positions';
+  import { termDefinition, termName, termsOf, VOCABULARIES, type FormTerm, type VocabId } from '../domain/formterms';
   import { endPos, insertBars, deleteBars, lastBarOf, makeEvent, meterMap, sectionSpans, sortedEvents } from '../domain/structure';
   import type { EventKind, Piece, StructEvent } from '../domain/types';
   import { t, type TKey } from '../i18n/index.svelte';
@@ -23,6 +24,28 @@
   let tool = $state<Tool | null>(null);
   let count = $state(1);
   let moreOpen = $state(false);
+
+  // vocabulary of form theory for the chips under "Unterteil" and "Marke"
+  const VOCAB_KEY = 'tonartenverlauf.vocab';
+  let vocab = $state<VocabId>(
+    (() => {
+      try {
+        const v = localStorage.getItem(VOCAB_KEY);
+        return VOCABULARIES.some((x) => x.id === v) ? (v as VocabId) : 'sonata-theory';
+      } catch {
+        return 'sonata-theory';
+      }
+    })(),
+  );
+  let fullNames = $state(false);
+  function setVocab(v: VocabId) {
+    vocab = v;
+    try {
+      localStorage.setItem(VOCAB_KEY, v);
+    } catch {
+      /* not remembered */
+    }
+  }
 
   // tool inputs
   let beats = $state(3);
@@ -158,6 +181,17 @@
     if (created) app.selection = { kind: 'event', id: created.id };
     name = '';
     label = '';
+  }
+
+  /** One click on a term adds it at the selected bar (undo takes it back). */
+  function addTerm(term: FormTerm) {
+    const text = fullNames ? termName(term, piece.style.language) : term.abbr;
+    if (tool === 'subsection') name = text;
+    else {
+      label = text;
+      line = !!term.line;
+    }
+    addEvent();
   }
 
   const toolNeedsInput = (k: Tool) => !['repeat', 'fermata'].includes(k);
@@ -298,6 +332,24 @@
           {/if}
           <button class="btn primary small" onclick={addEvent} disabled={toolNeedsInput(tool) && (tool === 'section' || tool === 'subsection') && !name.trim()}>{t('setup.add')}</button>
         </div>
+        {#if tool === 'subsection' || tool === 'marker'}
+          <div class="terms">
+            <div class="line">
+              <label class="inline"><span class="muted small">{t('form.vocab')}</span>
+                <select value={vocab} onchange={(e) => setVocab(e.currentTarget.value as VocabId)}>
+                  {#each VOCABULARIES as v (v.id)}<option value={v.id}>{t(`form.v.${v.id}` as TKey)}</option>{/each}
+                </select>
+              </label>
+              <label class="check"><input type="checkbox" bind:checked={fullNames} />{t('form.full')}</label>
+            </div>
+            <div class="chips">
+              {#each termsOf(vocab, tool === 'subsection' ? 'zone' : 'point') as term (term.abbr)}
+                <button class="chip" title={`${termName(term, piece.style.language)} – ${termDefinition(term, piece.style.language)}`} onclick={() => addTerm(term)}>{term.abbr}</button>
+              {/each}
+            </div>
+            <p class="hint">{t('form.hint')}</p>
+          </div>
+        {/if}
       {/if}
     </div>
 
@@ -423,6 +475,10 @@
   .palette .on, .line .on { background: var(--accent-soft); border-color: var(--accent); }
   .toolform { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; padding-top: 4px; }
   .toolform .grow { flex: 1 1 160px; }
+  .terms { display: grid; gap: 8px; padding-top: 8px; }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .chip { padding: 4px 12px; border-radius: 99px; border: 1px solid var(--border); background: var(--surface); cursor: pointer; font-weight: 500; }
+  .chip:hover { border-color: var(--accent); background: var(--accent-soft); }
   .check { display: inline-flex; align-items: center; gap: 6px; font-size: 0.9rem; }
   .gridhead { display: flex; justify-content: space-between; gap: 8px; align-items: baseline; flex-wrap: wrap; }
   .bars { display: grid; gap: 4px; grid-template-columns: repeat(auto-fill, minmax(84px, 1fr)); }
