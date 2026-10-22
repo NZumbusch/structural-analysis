@@ -4,7 +4,6 @@
   import { groupFiles, listCorpora, listPieces, loadPiece, parseRepoRef, type Corpus, type RepoRef } from '../import/dcml/source';
   import { t, type TKey } from '../i18n/index.svelte';
   import { app } from '../stores/app.svelte';
-  import Panel from './Panel.svelte';
 
   interface Item {
     id: string;
@@ -116,15 +115,17 @@
     if (pieces.length === 0) return;
     const added = app.importPieces(pieces);
     app.notify(t('dcml.done', { n: added.length }));
-    if (added.length === 1) app.open(added[0], 'analysis');
+    if (added.length === 1) {
+      app.open(added[0], 'analysis');
+      app.dcmlOpen = false;
+    }
   }
 
   const summary = (r: DcmlResult) => t('dcml.summary', { bars: r.counts.bars, keys: r.counts.keys, rep: r.counts.repeats, end: r.counts.endings });
   const warning = (code: WarningCode, arg?: string) => t(`dcml.w.${code}` as TKey, { arg: arg ?? '' });
 </script>
 
-<Panel id="lib.dcml" title={t('dcml.title')}>
-  <div class="box">
+<div class="box">
     <p class="muted small">{t('dcml.intro')}</p>
 
     <div class="field">
@@ -199,11 +200,10 @@
         {/each}
       </ul>
     {/if}
-  </div>
-</Panel>
+</div>
 
 <style>
-  .box { display: grid; gap: 12px; padding: 0 14px 14px; }
+  .box { display: grid; gap: 12px; }
   .pieces { list-style: none; margin: 0; padding: 4px 8px; display: grid; gap: 2px; max-height: 280px; overflow: auto; border: 1px solid var(--border); border-radius: 8px; background: var(--surface); }
   .check { display: flex; align-items: flex-start; gap: 8px; font-size: 0.9rem; padding: 3px 0; }
   .check input { flex: none; margin-top: 2px; }

@@ -13,6 +13,8 @@
   import { codeFromHash, decodePiece } from './lib/export/share';
   import { t, type TKey } from './lib/i18n/index.svelte';
   import { app, fingerprint, type Tab } from './lib/stores/app.svelte';
+  import AppMenu from './lib/components/AppMenu.svelte';
+  import DcmlDialog from './lib/components/DcmlDialog.svelte';
   import SaveIndicator from './lib/components/SaveIndicator.svelte';
   import SettingsView from './lib/components/SettingsView.svelte';
   import { sync } from './lib/stores/sync.svelte';
@@ -137,10 +139,7 @@
 <input bind:this={fileInput} type="file" accept=".json,application/json" multiple hidden onchange={(e) => onFiles(e.currentTarget.files)} />
 
 <header class="top">
-  <div class="brand">
-    <span class="logo" aria-hidden="true"></span>
-    <strong>{t('appName')}</strong>
-  </div>
+  <AppMenu onImportFile={() => fileInput?.click()} />
   <div class="current">
     {#if piece}
       <span class="name">{displayTitle(piece) || t('common.untitled')}</span>
@@ -189,10 +188,6 @@
     {#if app.installEvent}
       <button class="btn small" onclick={() => app.install()}>⤓ {t('install.button')}</button>
     {/if}
-    <button
-      class="btn small"
-      disabled={app.library.length === 0}
-      onclick={() => app.saveProjectFile(app.library, 'tonartenverlauf-backup.json')}>{t('lib.backup')}</button>
   </div>
 {/if}
 
@@ -219,6 +214,7 @@
 </main>
 
 {#if app.settingsOpen}<SettingsView />{/if}
+{#if app.dcmlOpen}<DcmlDialog />{/if}
 
 {#if dragging}<div class="drop">{t('lib.drop')}</div>{/if}
 {#if app.toast}
@@ -236,8 +232,6 @@
     display: flex; align-items: center; gap: 14px; padding: 0 16px;
     background: var(--surface); border-bottom: 1px solid var(--border);
   }
-  .brand { display: flex; align-items: center; gap: 8px; white-space: nowrap; }
-  .logo { width: 22px; height: 22px; border-radius: 6px; background: linear-gradient(135deg, #9fe1cb 50%, #cecbf6 50%); border: 1.5px solid var(--accent); }
   .current { flex: 1; min-width: 0; display: flex; align-items: center; gap: 6px; line-height: 1.2; }
   .name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .backupbar { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; padding: 6px 16px; font-size: 0.85rem; background: var(--accent-soft); border-bottom: 1px solid var(--border); }

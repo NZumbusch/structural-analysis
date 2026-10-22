@@ -37,6 +37,8 @@ class AppState {
   toast = $state('');
   /** The settings drawer (laptop) or page (everything else) is showing. */
   settingsOpen = $state(false);
+  /** The dialog for importing from a DCML corpus is showing. */
+  dcmlOpen = $state(false);
 
   /** Element picked in the preview; the matching editor row is highlighted. */
   selection = $state<Selection | null>(null);
