@@ -55,6 +55,8 @@
 
   {#if open}
     <div class="drop" role="menu" aria-label={t('appName')} bind:this={list}>
+      <button role="menuitem" onclick={() => run(() => (app.tab = 'library'))}>{t('menu.library')}</button>
+      <hr />
       <button role="menuitem" onclick={() => run(() => app.create())}>{t('lib.new')}</button>
       <button role="menuitem" onclick={() => run(() => app.createExample())}>{t('lib.example')}</button>
       <hr />

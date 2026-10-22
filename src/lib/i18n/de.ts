@@ -1,5 +1,7 @@
 export const de = {
   appName: 'Tonartenverlauf',
+  'menu.library': 'Bibliothek öffnen …',
+  'lib.back': 'Zurück zum Stück',
   'tab.library': 'Bibliothek',
   'tab.piece': 'Angaben',
   'tab.analysis': 'Tonarten',

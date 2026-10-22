@@ -2,6 +2,8 @@ import type { de } from './de';
 
 export const en: Record<keyof typeof de, string> = {
   appName: 'Key Plot',
+  'menu.library': 'Open library …',
+  'lib.back': 'Back to piece',
   'tab.library': 'Library',
   'tab.piece': 'Details',
   'tab.analysis': 'Keys',

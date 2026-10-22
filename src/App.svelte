@@ -22,7 +22,6 @@
   /** Tabs where the piece can be edited, so undo and redo show up in the header. */
   const EDITING: Tab[] = ['piece', 'setup', 'analysis', 'look'];
   const tabs: { id: Tab; icon: string }[] = [
-    { id: 'library', icon: '▤' },
     { id: 'piece', icon: '✎' },
     { id: 'setup', icon: '▦' },
     { id: 'analysis', icon: '≣' },
@@ -111,12 +110,14 @@
   }
 
   function go(tab: Tab) {
-    if (tab !== 'library' && !app.piece) {
-      app.tab = 'library';
-      return;
-    }
     app.tab = tab;
   }
+
+  /** The tab to return to after a visit to the library. */
+  let lastTab: Tab = 'analysis';
+  $effect(() => {
+    if (app.tab !== 'library') lastTab = app.tab;
+  });
 </script>
 
 <svelte:window
@@ -141,7 +142,10 @@
 <header class="top">
   <AppMenu onImportFile={() => fileInput?.click()} />
   <div class="current">
-    {#if piece}
+    {#if piece && app.tab === 'library'}
+      <button class="btn small back" onclick={() => (app.tab = lastTab)} title={t('lib.back')}>← <span class="name">{displayTitle(piece) || t('common.untitled')}</span></button>
+    {:else if piece}
+      <button class="btn small back" onclick={() => (app.tab = 'library')} title={t('menu.library')}>▤ <span class="lib">{t('tab.library')}</span></button>
       <span class="name">{displayTitle(piece) || t('common.untitled')}</span>
       <SaveIndicator />
       {#if EDITING.includes(app.tab)}
@@ -157,12 +161,13 @@
   </button>
 </header>
 
+{#if app.tab !== 'library'}
 <nav class="tabs" aria-label="Workflow">
   {#each tabs as tab (tab.id)}
     <button
       class="tab"
       class:active={app.tab === tab.id}
-      class:disabled={tab.id !== 'library' && !piece}
+      class:disabled={!piece}
       aria-current={app.tab === tab.id ? 'page' : undefined}
       onclick={() => go(tab.id)}
     >
@@ -172,6 +177,7 @@
     </button>
   {/each}
 </nav>
+{/if}
 
 {#if sync.status === 'signed-out' && app.prefs.sync.enabled}
   <div class="backupbar">
@@ -233,6 +239,8 @@
     background: var(--surface); border-bottom: 1px solid var(--border);
   }
   .current { flex: 1; min-width: 0; display: flex; align-items: center; gap: 6px; line-height: 1.2; }
+  .back { flex: none; max-width: 45%; display: inline-flex; gap: 4px; }
+  .back .name { min-width: 0; }
   .name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .backupbar { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; padding: 6px 16px; font-size: 0.85rem; background: var(--accent-soft); border-bottom: 1px solid var(--border); }
   .backupbar span { flex: 1 1 200px; }
@@ -255,7 +263,7 @@
   .badge { min-width: 18px; height: 18px; padding: 0 5px; border-radius: 9px; background: var(--danger); color: #fff; font-size: 0.7rem; font-weight: 700; line-height: 18px; text-align: center; }
 
   .toolbar {
-    position: sticky; top: calc(var(--header-h) + var(--tabs-h)); z-index: 18;
+    position: sticky; top: var(--header-h); z-index: 18;
     display: flex; flex-wrap: wrap; gap: 8px; padding: 8px 16px;
     background: var(--surface-2); border-bottom: 1px solid var(--border);
   }
@@ -285,5 +293,6 @@
     .toolbar { top: var(--header-h); }
     main { padding-bottom: calc(var(--tabs-h) + 16px + env(safe-area-inset-bottom)); }
     .name { font-size: 0.9rem; }
+    .back .lib { display: none; }
   }
 </style>
