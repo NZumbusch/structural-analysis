@@ -19,8 +19,6 @@
   import SettingsView from './lib/components/SettingsView.svelte';
   import { sync } from './lib/stores/sync.svelte';
 
-  /** Tabs where the piece can be edited, so undo and redo show up in the header. */
-  const EDITING: Tab[] = ['piece', 'setup', 'analysis', 'look'];
   const tabs: { id: Tab; icon: string }[] = [
     { id: 'piece', icon: '✎' },
     { id: 'setup', icon: '▦' },
@@ -113,11 +111,6 @@
     app.tab = tab;
   }
 
-  /** The tab to return to after a visit to the library. */
-  let lastTab: Tab = 'analysis';
-  $effect(() => {
-    if (app.tab !== 'library') lastTab = app.tab;
-  });
 </script>
 
 <svelte:window
@@ -142,18 +135,9 @@
 <header class="top">
   <AppMenu onImportFile={() => fileInput?.click()} />
   <div class="current">
-    {#if piece && app.tab === 'library'}
-      <button class="btn small back" onclick={() => (app.tab = lastTab)} title={t('lib.back')}>← <span class="name">{displayTitle(piece) || t('common.untitled')}</span></button>
-    {:else if piece}
-      <button class="btn small back" onclick={() => (app.tab = 'library')} title={t('menu.library')}>▤ <span class="lib">{t('tab.library')}</span></button>
+    {#if piece}
       <span class="name">{displayTitle(piece) || t('common.untitled')}</span>
       <SaveIndicator />
-      {#if EDITING.includes(app.tab)}
-        <span class="history" role="group" aria-label={t('common.undo')}>
-          <button class="btn small icon" disabled={!app.canUndo} title={`${t('common.undo')} (Strg/Cmd+Z)`} aria-label={t('common.undo')} onclick={() => app.undo()}>↶</button>
-          <button class="btn small icon" disabled={!app.canRedo} title={`${t('common.redo')} (Strg/Cmd+Shift+Z)`} aria-label={t('common.redo')} onclick={() => app.redo()}>↷</button>
-        </span>
-      {/if}
     {/if}
   </div>
   <button class="btn small icon gear" class:on={app.settingsOpen} aria-label={t('set.title')} aria-expanded={app.settingsOpen} title={t('set.title')} onclick={() => (app.settingsOpen = !app.settingsOpen)}>
@@ -239,12 +223,9 @@
     background: var(--surface); border-bottom: 1px solid var(--border);
   }
   .current { flex: 1; min-width: 0; display: flex; align-items: center; gap: 6px; line-height: 1.2; }
-  .back { flex: none; max-width: 45%; display: inline-flex; gap: 4px; }
-  .back .name { min-width: 0; }
   .name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .backupbar { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; padding: 6px 16px; font-size: 0.85rem; background: var(--accent-soft); border-bottom: 1px solid var(--border); }
   .backupbar span { flex: 1 1 200px; }
-  .history { display: inline-flex; gap: 4px; flex: none; margin-left: 4px; }
   .gear.on { background: var(--accent-soft); border-color: var(--accent); }
 
   .tabs {
@@ -293,6 +274,5 @@
     .toolbar { top: var(--header-h); }
     main { padding-bottom: calc(var(--tabs-h) + 16px + env(safe-area-inset-bottom)); }
     .name { font-size: 0.9rem; }
-    .back .lib { display: none; }
   }
 </style>

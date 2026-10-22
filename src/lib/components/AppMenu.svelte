@@ -56,6 +56,10 @@
   {#if open}
     <div class="drop" role="menu" aria-label={t('appName')} bind:this={list}>
       <button role="menuitem" onclick={() => run(() => (app.tab = 'library'))}>{t('menu.library')}</button>
+      {#if app.piece && app.tab === 'library'}<button role="menuitem" onclick={() => run(() => (app.tab = 'analysis'))}>{t('lib.back')}</button>{/if}
+      <hr />
+      <button role="menuitem" disabled={!app.canUndo} onclick={() => run(() => app.undo())}>{t('common.undo')}</button>
+      <button role="menuitem" disabled={!app.canRedo} onclick={() => run(() => app.redo())}>{t('common.redo')}</button>
       <hr />
       <button role="menuitem" onclick={() => run(() => app.create())}>{t('lib.new')}</button>
       <button role="menuitem" onclick={() => run(() => app.createExample())}>{t('lib.example')}</button>
