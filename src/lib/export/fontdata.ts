@@ -1,6 +1,6 @@
 import * as opentype from 'opentype.js';
 import type { FontFamilyId } from '../domain/types';
-import { FAMILY_NAME, FONT_FILES, UNICODE_RANGE, familyOf, fontFile, type FontFile, type Subset, type Weight } from '../render/fonts';
+import { FAMILY_NAME, FONT_FILES, SUBSETS, UNICODE_RANGE, familyOf, fontFile, subsetOf, type FontFile, type Subset, type Weight } from '../render/fonts';
 
 /** Font data for exports: embedding into SVG, turning text into outlines, and the PDF writer. */
 
@@ -39,11 +39,14 @@ export function loadFont(file: FontFile): Promise<opentype.Font> {
   return p;
 }
 
-const OUTSIDE_LATIN = /[^\u0000-ÿıŒœʻʼˆ˚˜ -⁯€™↑↓−∕﻿�]/;
-
-/** Subsets needed to show this text. */
+/** Subsets needed to show this text (latin is always included). */
 export function subsetsFor(text: string): Subset[] {
-  return OUTSIDE_LATIN.test(text) ? ['latin', 'latin-ext'] : ['latin'];
+  const needed = new Set<Subset>(['latin']);
+  for (const ch of text) {
+    const sub = subsetOf(ch.codePointAt(0)!);
+    if (sub) needed.add(sub);
+  }
+  return SUBSETS.filter((s) => needed.has(s));
 }
 
 // ---- reading our own SVG ---------------------------------------------------------------------------------
@@ -108,7 +111,7 @@ export async function outlineText(svg: string): Promise<Outlined> {
   const family = svgFamily(svg);
   const fonts: Record<Weight, opentype.Font[]> = { 400: [], 500: [] };
   for (const w of [400, 500] as Weight[]) {
-    for (const subset of ['latin', 'latin-ext'] as Subset[]) fonts[w].push(await loadFont(fontFile(family, w, subset)));
+    for (const subset of SUBSETS) fonts[w].push(await loadFont(fontFile(family, w, subset)));
   }
   let missing = 0;
   const out = svg.replace(/<text\b([^>]*)>([\s\S]*?)<\/text>/g, (whole, attrSrc: string, content: string) => {

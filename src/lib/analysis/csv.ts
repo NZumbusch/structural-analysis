@@ -8,6 +8,8 @@ export interface Column<T> {
   /** What is shown and exported; defaults to the raw value. */
   text?: (row: T) => string;
   align?: 'left' | 'right';
+  /** A bar position; `value` is the decimal bar number (42.5 = bar 42, beat 3 in 4/4). */
+  position?: boolean;
 }
 
 export function formatNumber(n: number, lang: Lang, digits = 2): string {
@@ -27,8 +29,15 @@ function cell(text: string, sep: string): string {
 /** Excel in German locales expects ';' and decimal commas, so exports follow the UI language. */
 export function toCsv<T>(columns: Column<T>[], rows: T[], lang: Lang): string {
   const sep = lang === 'de' ? ';' : ',';
-  const head = columns.map((c) => cell(c.label, sep)).join(sep);
-  const body = rows.map((r) => columns.map((c) => cell(c.text ? c.text(r) : String(c.value(r)), sep)).join(sep));
+  const suffix = lang === 'de' ? 'dezimal' : 'decimal';
+  // Positions like "42:3" are read as a time by spreadsheets, so a column with beats gets a plain decimal twin.
+  const withTwins = columns.flatMap((c) => {
+    if (!c.position || !c.text || rows.every((r) => c.text!(r) === String(c.value(r)))) return [c];
+    const twin: Column<T> = { key: `${c.key}-decimal`, label: `${c.label} (${suffix})`, value: c.value, text: (r) => formatNumber(Number(c.value(r)), lang, 4) };
+    return [c, twin];
+  });
+  const head = withTwins.map((c) => cell(c.label, sep)).join(sep);
+  const body = rows.map((r) => withTwins.map((c) => cell(c.text ? c.text(r) : String(c.value(r)), sep)).join(sep));
   return '﻿' + [head, ...body].join('\r\n') + '\r\n';
 }
 

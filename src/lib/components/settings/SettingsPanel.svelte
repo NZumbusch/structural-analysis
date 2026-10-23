@@ -93,7 +93,7 @@
     <section class="row" data-setting={s.id}>
       {#if searching}<span class="badge">{groupLabel(s.group)}</span>{/if}
       {#if c.type === 'custom'}
-        {#if !NO_HEADING.includes(c.id)}<h4>{t(s.label)}</h4>{/if}
+        {#if !NO_HEADING.includes(c.id)}<h3 class="sub">{t(s.label)}</h3>{/if}
         {#if c.id === 'presets'}{#if exp}<PresetsBlock {piece} {exp} {range} />{/if}
         {:else if c.id === 'widths'}{#if exp}<WidthsBlock {exp} {simple} />{/if}
         {:else if c.id === 'fit'}{#if exp}<FitBlock {piece} {exp} {range} />{/if}
@@ -141,7 +141,7 @@
   .list { display: grid; gap: 12px; grid-template-columns: minmax(0, 1fr); }
   .row { display: grid; gap: 6px; grid-template-columns: minmax(0, 1fr); padding-bottom: 12px; border-bottom: 1px solid var(--border); }
   .row:last-child { border-bottom: 0; padding-bottom: 0; }
-  h4 { margin: 0; font-size: 0.95rem; }
+  .sub { margin: 0; font-size: 0.95rem; }
   .badge { justify-self: start; font-size: 0.72rem; color: var(--muted); background: var(--surface-2); border: 1px solid var(--border); border-radius: 99px; padding: 0 8px; }
   p { margin: 0; }
   .foot { display: flex; }

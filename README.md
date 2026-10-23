@@ -1,10 +1,10 @@
-# Tonartenverlauf
+# Tonartenverlauf (English interface: Key Plot)
 
 Web app for drawing key-plan charts of a piece of music: which keys are reached in which bars, and how far
 they sit from the home key on the circle of fifths. Runs entirely in the browser; data is stored in
 `localStorage` and can be saved to / loaded from `.tonart.json` files.
 
-Workflow: **Bibliothek** (new / open / import) → **Angaben** (title, composer, year, home key, note names …) →
+A short “getting started” guide appears on the empty library. Workflow: **Bibliothek** (new / open / import) → **Angaben** (title, composer, year, home key, note names …) →
 **Taktgerüst** (bars, meter, repeats, sections, form terms) → **Tonarten** (enter the modulations) →
 **Auswertung** (statistics) → **Darstellung** (colours, title, legend, what is shown) →
 **Export** (print size, checklist, SVG, PNG, PDF, project file). The gear in the header holds app settings
@@ -64,7 +64,7 @@ Set the time signature under **Taktgerüst** so beat positions and the beat grid
   rows (default; relative keys share a row), fifths of the tonics (same-tonic keys are 0 apart), or the fewest steps
   over fifth / relative / same-tonic relations. The chart's rows always use the first. A caption and a method note
   describing the conventions are generated under Export → Bildunterschrift & Methode.
-- **Fonts and PDF:** the charts use bundled open fonts (Inter, Source Serif 4, JetBrains Mono; SIL OFL). SVG and PNG
+- **Fonts and PDF:** the charts use bundled open fonts (Inter, Source Serif 4, JetBrains Mono; SIL OFL; Latin, Latin Extended, Cyrillic and Greek). The export checklist warns about other scripts (e.g. CJK), which the fonts cannot draw. SVG and PNG
   embed the font, so figures look the same everywhere; "text to outlines" is available for journals that ask for it.
   PDF is written by the app itself (vector, TrueType fonts embedded, selectable text, page size = chart size or the
   chosen width in cm). Accidentals are drawn shapes because the fonts have no ♭ ♯ ♮.
@@ -74,7 +74,8 @@ Set the time signature under **Taktgerüst** so beat positions and the beat grid
 - **Tonicisation types:** besides `>` (secondary dominant) there are `>L` (secondary leading-tone chord), `>N`
   (Neapolitan) and `>T` (other tonicisation); each has its own dash pattern, legend entry and rows in the statistics.
 - **Data export:** every table as CSV (Excel-friendly) or LaTeX (booktabs), all tables as a ZIP, and the analysis as
-  JSON without chart settings ([format](docs/analysis-format.md)).
+  JSON without chart settings; the decimal separator is selectable, and CSV adds decimal-bar columns next to positions
+  with beats ("42:3" would be read as a time by spreadsheets) ([format](docs/analysis-format.md)).
 - **Provenance:** optional source / analyst / date fields; exported SVG, PDF and PNG carry the app version and export
   date in their metadata (switchable); project files record the app version too.
 - **Backups:** the app saves to the browser automatically, asks the browser to keep that data, and reminds you

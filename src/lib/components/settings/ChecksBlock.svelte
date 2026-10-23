@@ -5,11 +5,12 @@
   import type { ExportPrefs } from '../../export/prefs';
   import type { ViewRange } from '../../render/chart';
   import { t } from '../../i18n/index.svelte';
+  import { app } from '../../stores/app.svelte';
 
   let { piece, exp, range }: { piece: Piece; exp: ExportPrefs; range: ViewRange | null } = $props();
 
   const problems = $derived(validate(piece).filter((i) => i.severity !== 'info').length);
-  const checks = $derived(publicationChecks(piece, { widthCm: exp.widthCm, fonts: exp.fonts, problems, view: range }));
+  const checks = $derived(publicationChecks(piece, { widthCm: exp.widthCm, fonts: exp.fonts, problems, view: range, lang: app.prefs.uiLang }));
   const notes = $derived(countNotes(checks));
 </script>
 

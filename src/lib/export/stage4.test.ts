@@ -123,10 +123,10 @@ describe('tables and data export', () => {
   it('writes the segments as CSV with German conventions', () => {
     const csv = toCsv(tables.segments.columns as Column<unknown>[], tables.segments.rows, 'de');
     const lines = csv.trim().split('\r\n');
-    expect(lines[0]).toBe('tbl.nr;tbl.from;tbl.to;tbl.len;tbl.key;tbl.mode;tbl.row;tbl.distance;tbl.kind;tbl.label');
-    expect(lines[1]).toBe('1;1;9;8;c-Moll;tbl.minor;Es · c;0;kind.key;');
+    expect(lines[0]).toBe('tbl.nr;tbl.from;tbl.from (dezimal);tbl.to;tbl.to (dezimal);tbl.len;tbl.key;tbl.mode;tbl.row;tbl.distance;tbl.kind;tbl.label');
+    expect(lines[1]).toBe('1;1;1;9;9;8;c-Moll;tbl.minor;Es · c;0;kind.key;');
     expect(lines).toHaveLength(p.segments.length + 1);
-    expect(lines.find((l) => l.startsWith('7;41;42:3;'))).toBeDefined(); // beat notation survives
+    expect(lines.find((l) => l.startsWith('7;41;41;42:3;42,5;'))).toBeDefined(); // beat notation survives, next to a decimal column
   });
   it('writes booktabs LaTeX with escaped text', () => {
     const tex = toLatex(tables.keys, { floating: true, caption: 'Tonarten & Zeit', label: 'tab:keys' });

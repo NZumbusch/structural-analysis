@@ -103,6 +103,7 @@ input[type='checkbox'] { width: 18px; height: 18px; accent-color: var(--accent);
 .line > .sel { flex: 0 0 96px; }
 .line > .btn.toggle.on { background: var(--accent-soft); border-color: var(--accent); }
 .line label.check { display: inline-flex; align-items: center; gap: 6px; font-size: 0.9rem; white-space: nowrap; }
+input::placeholder, textarea::placeholder { color: var(--muted); opacity: 0.9; }
 .mono { font-family: ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace; font-size: 0.9rem; }
 .line.selected { outline: 2px solid #0a84ff; outline-offset: 3px; border-radius: 8px; }
 .line > .tiny { flex: 0 0 64px; }

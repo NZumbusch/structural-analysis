@@ -6,7 +6,11 @@
   import SyncPanel from './SyncPanel.svelte';
 
   let closeButton: HTMLButtonElement | undefined = $state();
-  onMount(() => closeButton?.focus());
+  onMount(() => {
+    closeButton?.focus();
+    // hand focus back to the gear that opened the drawer
+    return () => document.querySelector<HTMLElement>('button.gear')?.focus();
+  });
 
   const close = () => (app.settingsOpen = false);
   const defaults = $derived(app.defaults);
@@ -22,10 +26,10 @@
 <!-- Laptop: a drawer at the right that closes when you click outside; elsewhere: a page of its own. -->
 <button class="scrim" aria-label={t('set.close')} tabindex="-1" onclick={close}></button>
 <div class="drawer" role="dialog" aria-modal="false" aria-label={t('set.title')}>
-  <header>
+  <div class="dhead">
     <h2>{t('set.title')}</h2>
     <button class="btn small" bind:this={closeButton} onclick={close}>{t('set.close')}</button>
-  </header>
+  </div>
 
   <div class="body">
     <section class="card group">
@@ -81,8 +85,8 @@
     position: fixed; z-index: 30; top: var(--header-h); left: 0; right: 0; bottom: 0;
     display: flex; flex-direction: column; background: var(--bg, var(--surface)); overflow: hidden;
   }
-  header { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 10px 16px; border-bottom: 1px solid var(--border); background: var(--surface); }
-  header h2 { margin: 0; font-size: 1.1rem; }
+  .dhead { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 10px 16px; border-bottom: 1px solid var(--border); background: var(--surface); }
+  .dhead h2 { margin: 0; font-size: 1.1rem; }
   .body { display: grid; gap: 14px; align-content: start; padding: 16px; overflow-y: auto; flex: 1; grid-template-columns: minmax(0, 1fr); }
   .group { display: grid; grid-template-columns: minmax(0, 1fr); gap: 10px; padding: 14px; }
   .group :global(.btn) { white-space: normal; height: auto; }
@@ -98,6 +102,6 @@
     /* laptop: full height, over the top bar too */
     .scrim { display: block; inset: 0; }
     .drawer { top: 0; left: auto; width: 440px; border-left: 1px solid var(--border); box-shadow: -8px 0 24px rgba(0, 0, 0, 0.12); }
-    header { min-height: var(--header-h); box-sizing: border-box; }
+    .dhead { min-height: var(--header-h); box-sizing: border-box; }
   }
 </style>

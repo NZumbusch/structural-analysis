@@ -56,8 +56,8 @@ export function buildTables(piece: Piece, stats: Stats, tr: Tr, lang: Lang): Tab
     rows: [...piece.segments].sort((a, b) => a.from - b.from || a.to - b.to).map((s, i) => ({ ...s, nr: i + 1 })),
     columns: [
       { key: 'nr', label: tr('tbl.nr'), value: (r) => r.nr, align: R },
-      { key: 'from', label: tr('tbl.from'), value: (r) => r.from, text: (r) => pos(r.from), align: R },
-      { key: 'to', label: tr('tbl.to'), value: (r) => r.to, text: (r) => pos(r.to), align: R },
+      { key: 'from', label: tr('tbl.from'), value: (r) => r.from, text: (r) => pos(r.from), align: R, position: true },
+      { key: 'to', label: tr('tbl.to'), value: (r) => r.to, text: (r) => pos(r.to), align: R, position: true },
       { key: 'len', label: tr('tbl.len'), value: (r) => r.to - r.from, text: (r) => num(r.to - r.from), align: R },
       { key: 'key', label: tr('tbl.key'), value: (r) => keyDisplay(r.key, piece) },
       { key: 'mode', label: tr('tbl.mode'), value: (r) => r.key.mode, text: (r) => (r.key.mode === 'major' ? tr('tbl.major') : tr('tbl.minor')) },
@@ -79,7 +79,7 @@ export function buildTables(piece: Piece, stats: Stats, tr: Tr, lang: Lang): Tab
       { key: 'dominant', label: tr('tbl.dominantBars'), value: (r) => r.dominant, text: (r) => num(r.dominant), align: R },
       { key: 'visits', label: tr('tbl.visits'), value: (r) => r.visits, align: R },
       { key: 'longest', label: tr('tbl.longest'), value: (r) => r.longest, text: (r) => num(r.longest), align: R },
-      { key: 'first', label: tr('tbl.first'), value: (r) => r.first, text: (r) => pos(r.first), align: R },
+      { key: 'first', label: tr('tbl.first'), value: (r) => r.first, text: (r) => pos(r.first), align: R, position: true },
     ],
   };
 
@@ -99,7 +99,7 @@ export function buildTables(piece: Piece, stats: Stats, tr: Tr, lang: Lang): Tab
     id: 'modulations', name: t('modulations'), rows: stats.modulations.map((m, i) => ({ ...m, nr: i + 1 })),
     columns: [
       { key: 'nr', label: tr('tbl.nr'), value: (r) => r.nr, align: R },
-      { key: 'pos', label: tr('tbl.pos'), value: (r) => r.pos, text: (r) => pos(r.pos), align: R },
+      { key: 'pos', label: tr('tbl.pos'), value: (r) => r.pos, text: (r) => pos(r.pos), align: R, position: true },
       { key: 'from', label: tr('tbl.fromKey'), value: (r) => keyDisplay(r.from, piece) },
       { key: 'to', label: tr('tbl.toKey'), value: (r) => keyDisplay(r.to, piece) },
       { key: 'step', label: tr('tbl.step'), value: (r) => r.step, text: (r) => step(r.step), align: R },
@@ -111,8 +111,8 @@ export function buildTables(piece: Piece, stats: Stats, tr: Tr, lang: Lang): Tab
   const tonicizations: Table<Span> = {
     id: 'tonicizations', name: t('tonicizations'), rows: stats.spans.filter((s) => s.kind !== 'key'),
     columns: [
-      { key: 'from', label: tr('tbl.pos'), value: (r) => r.from, text: (r) => pos(r.from), align: R },
-      { key: 'to', label: tr('tbl.to'), value: (r) => r.to, text: (r) => pos(r.to), align: R },
+      { key: 'from', label: tr('tbl.pos'), value: (r) => r.from, text: (r) => pos(r.from), align: R, position: true },
+      { key: 'to', label: tr('tbl.to'), value: (r) => r.to, text: (r) => pos(r.to), align: R, position: true },
       { key: 'kind', label: tr('tbl.kind'), value: (r) => kindName(r.kind) },
       { key: 'target', label: tr('tbl.target'), value: (r) => keyDisplay(r.key, piece) },
       { key: 'len', label: tr('tbl.len'), value: (r) => r.to - r.from, text: (r) => num(r.to - r.from), align: R },
@@ -135,7 +135,7 @@ export function buildTables(piece: Piece, stats: Stats, tr: Tr, lang: Lang): Tab
   const passing: Table<PassingChord> = {
     id: 'passing', name: t('passing'), rows: [...piece.passing].sort((a, b) => a.pos - b.pos),
     columns: [
-      { key: 'pos', label: tr('tbl.pos'), value: (r) => r.pos, text: (r) => pos(r.pos), align: R },
+      { key: 'pos', label: tr('tbl.pos'), value: (r) => r.pos, text: (r) => pos(r.pos), align: R, position: true },
       { key: 'key', label: tr('tbl.key'), value: (r) => keyDisplay(r.key, piece) },
       { key: 'row', label: tr('tbl.row'), value: (r) => rowOf(r.key), text: (r) => rowName(rowOf(r.key)) },
     ],
@@ -144,7 +144,7 @@ export function buildTables(piece: Piece, stats: Stats, tr: Tr, lang: Lang): Tab
   const annotations: Table<Annotation> = {
     id: 'annotations', name: t('annotations'), rows: [...piece.annotations].sort((a, b) => a.pos - b.pos),
     columns: [
-      { key: 'pos', label: tr('tbl.pos'), value: (r) => r.pos, text: (r) => pos(r.pos), align: R },
+      { key: 'pos', label: tr('tbl.pos'), value: (r) => r.pos, text: (r) => pos(r.pos), align: R, position: true },
       { key: 'key', label: tr('tbl.key'), value: (r) => keyName(r.key, names) },
       { key: 'text', label: tr('tbl.label'), value: (r) => r.text },
     ],
@@ -165,7 +165,7 @@ export function buildTables(piece: Piece, stats: Stats, tr: Tr, lang: Lang): Tab
   const events: Table<StructEvent> = {
     id: 'events', name: t('events'), rows: sortedEvents(piece),
     columns: [
-      { key: 'pos', label: tr('tbl.pos'), value: (r) => r.pos, text: (r) => pos(r.pos), align: R },
+      { key: 'pos', label: tr('tbl.pos'), value: (r) => r.pos, text: (r) => pos(r.pos), align: R, position: true },
       { key: 'kind', label: tr('tbl.kind'), value: (r) => r.kind, text: (r) => tr(`ev.${r.kind}`) },
       { key: 'details', label: tr('tbl.details'), value: (r) => detail(r) },
     ],

@@ -3,7 +3,7 @@
   import { renderChart } from '../render/chart';
   import { APP_VERSION } from '../export/stamp';
   import { app } from '../stores/app.svelte';
-  import { t } from '../i18n/index.svelte';
+  import { t, type TKey } from '../i18n/index.svelte';
   import type { Piece } from '../domain/types';
 
   function title(p: Piece): string {
@@ -11,7 +11,7 @@
   }
 
   function date(p: Piece): string {
-    return new Date(p.updatedAt).toLocaleString(app.prefs.uiLang, { dateStyle: 'medium', timeStyle: 'short' });
+    return new Date(p.updatedAt).toLocaleString(app.prefs.uiLang === 'en' ? 'en-GB' : 'de-DE', { dateStyle: 'medium', timeStyle: 'short' });
   }
 
   function remove(p: Piece) {
@@ -32,6 +32,18 @@
         <button class="btn primary" onclick={() => app.create()}>{t('lib.new')}</button>
         <button class="btn" onclick={() => app.createExample()}>{t('lib.example')}</button>
       </div>
+    </div>
+    <div class="guide card">
+      <h3>{t('guide.title')}</h3>
+      <ol class="steps">
+        {#each [1, 2, 3, 4] as n (n)}
+          <li>
+            <strong>{t(`guide.s${n}.title` as TKey)}</strong>
+            <span class="muted small">{t(`guide.s${n}.text` as TKey)}</span>
+          </li>
+        {/each}
+      </ol>
+      <p class="muted small">{t('guide.syntax')} <code>9-11 &gt;As</code></p>
     </div>
   {:else}
     <ul class="cards">
@@ -73,6 +85,14 @@
   .wrap { display: grid; gap: 16px; max-width: 1200px; margin: 0 auto; padding: 16px; }
   .head { display: grid; gap: 4px; }
   .empty { padding: 20px; display: grid; gap: 14px; }
+  .guide { padding: 20px; display: grid; gap: 12px; }
+  .guide h3 { margin: 0; }
+  .steps { margin: 0; padding: 0; list-style: none; display: grid; gap: 12px; counter-reset: step; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); }
+  .steps li { display: grid; gap: 4px; align-content: start; counter-increment: step; }
+  .steps li::before {
+    content: counter(step); display: grid; place-items: center; width: 24px; height: 24px; border-radius: 50%;
+    background: var(--accent-soft); color: var(--accent); font-weight: 700; font-size: 0.85rem;
+  }
   .cards {
     list-style: none; margin: 0; padding: 0; display: grid; gap: 14px;
     grid-template-columns: repeat(auto-fill, minmax(min(100%, 340px), 1fr));
@@ -84,7 +104,9 @@
   }
   .thumb :global(svg) { display: block; width: 100%; height: auto; }
   .info { display: grid; gap: 2px; }
-  .tools { gap: 6px; }
+  .tools { gap: 6px; flex-wrap: wrap; }
+  .tools :global(.btn) { padding-inline: 10px; }
+  .guide code { font-family: 'JetBrains Mono', ui-monospace, Menlo, Consolas, monospace; font-size: 0.85rem; padding: 1px 6px; border-radius: 4px; background: var(--surface-2); border: 1px solid var(--border); color: var(--text); }
   .about { margin-top: 8px; }
   .about a { color: inherit; }
 </style>

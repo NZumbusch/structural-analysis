@@ -1,6 +1,7 @@
 <script lang="ts">
   import type { Piece } from '../../domain/types';
   import { fitFontScale, fitRowHeight, labelPoints } from '../../export/fit';
+  import { formatNumber } from '../../analysis/csv';
   import type { ExportPrefs } from '../../export/prefs';
   import { renderChart, type ViewRange } from '../../render/chart';
   import { t } from '../../i18n/index.svelte';
@@ -25,8 +26,8 @@
 </script>
 
 <p class="facts">
-  <strong>{t('set.fit.size', { w: String(Math.round(exp.widthCm * 10) / 10), h: String(Math.round(heightCm * 10) / 10) })}</strong><br />
-  {t('set.fit.pt', { pt: pt.toFixed(1) })}
+  <strong>{t('set.fit.size', { w: String(formatNumber(exp.widthCm, app.prefs.uiLang, 1)), h: String(formatNumber(heightCm, app.prefs.uiLang, 1)) })}</strong><br />
+  {t('set.fit.pt', { pt: formatNumber(pt, app.prefs.uiLang, 1) })}
 </p>
 <div class="line">
   <label class="inline"><span class="muted small">{t('ex.targetPt')}</span>

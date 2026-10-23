@@ -53,10 +53,10 @@
     { label: t('stats.modulations'), value: String(s.modulations), hint: '' },
     {
       label: t('stats.farthest'),
-      value: s.farthest ? t('stats.fifths', { n: s.maxDistance, unit: unitPlural(stats.measure, piece.style.language) }) : '–',
+      value: s.farthest ? t('stats.fifths', { n: s.maxDistance, unit: unitPlural(stats.measure, lang) }) : '–',
       hint: s.farthest ? `${keyDisplay(s.farthest.key, piece)} · ${t('common.bar')} ${pos(s.farthest.pos)}` : '',
     },
-    { label: t('stats.meanDist'), value: num(s.meanDistance), hint: t('stats.fifthsUnit', { unit: unitPlural(stats.measure, piece.style.language) }) },
+    { label: t('stats.meanDist'), value: num(s.meanDistance), hint: t('stats.fifthsUnit', { unit: unitPlural(stats.measure, lang) }) },
     { label: t('stats.home'), value: pct(s.homeShare), hint: t(`stats.homeHint.${stats.measure}` as TKey) },
     ...(exactHome ? [{ label: t('stats.exactHome'), value: pct(s.exactHomeShare), hint: keyDisplay(piece.meta.center, piece) }] : []),
     { label: t('stats.majorMinor'), value: `${pct(s.majorShare)} / ${pct(s.minorShare)}`, hint: '' },
@@ -71,7 +71,10 @@
 
 <div class="page">
   {#if piece.segments.length === 0}
-    <p class="card empty">{t('stats.empty')}</p>
+    <div class="card empty">
+      <p>{t('stats.empty')}</p>
+      <div><button class="btn primary small" onclick={() => (app.tab = 'analysis')}>{t('stats.emptyGo')}</button></div>
+    </div>
   {:else}
     <details class="card optbox" use:remember={'stats.options'}>
       <summary class="head"><span class="chev" aria-hidden="true"></span><h3>{t('stats.options')}</h3></summary>
@@ -143,16 +146,17 @@
 
 <style>
   .page { display: grid; gap: 16px; padding: 16px; max-width: 1100px; margin: 0 auto; }
-  .empty { padding: 20px; }
+  .empty { padding: 20px; display: grid; gap: 12px; }
+  .empty p { margin: 0; }
   .cards { display: grid; gap: 10px; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); }
   @media (max-width: 700px) {
     .cards { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
     .stat { padding: 10px 12px; }
-    .stat strong { font-size: 1.2rem; }
+    .stat strong { font-size: 1rem; }
     .page { padding: 12px; }
   }
   .stat { padding: 12px 14px; display: grid; gap: 2px; align-content: start; }
-  .stat strong { font-size: 1.5rem; line-height: 1.2; font-variant-numeric: tabular-nums; }
+  .stat strong { font-size: 1.5rem; line-height: 1.2; font-variant-numeric: tabular-nums; white-space: nowrap; }
   .optbody { padding: 0 14px 14px; display: grid; gap: 10px; }
   .check { display: flex; align-items: center; gap: 8px; }
   .methodtext { margin: 0; font-size: 0.9rem; }

@@ -8,6 +8,7 @@
   import { defaultExportPrefs } from '../export/prefs';
   import { LINK_WARN_LENGTH, shareLink } from '../export/share';
   import { app } from '../stores/app.svelte';
+  import { formatNumber } from '../analysis/csv';
   import { t } from '../i18n/index.svelte';
   import CaptionPanel from './CaptionPanel.svelte';
   import DataExportPanel from './DataExportPanel.svelte';
@@ -129,7 +130,7 @@
         <button class="btn primary" onclick={pdf} disabled={busy}>PDF</button>
       </div>
       <p class="hint">
-        {#if physical}{t('set.fit.size', { w: String(Math.round(exp.widthCm * 10) / 10), h: String(Math.round(heightCm * 10) / 10) })} · {/if}{t('ex.pngSize', { w: pixelWidth, h: pixelHeight })}
+        {#if physical}{t('set.fit.size', { w: formatNumber(exp.widthCm, app.prefs.uiLang, 1), h: formatNumber(heightCm, app.prefs.uiLang, 1) })} · {/if}{t('ex.pngSize', { w: pixelWidth, h: pixelHeight })}
       </p>
       <p class="hint">{t('ex.svgHelp')} {t('ex.pdfHelp')}</p>
 

@@ -4,8 +4,8 @@ title: "Tonartenverlauf: key-plan charts for music analysis"
 type: software
 authors:
   - name: "NZumbusch"
-version: 1.1.0
-date-released: 2026-10-20
+version: 1.2.0
+date-released: 2026-10-23
 license: MIT
 repository-code: "https://github.com/NZumbusch/structural-analysis"
 keywords:

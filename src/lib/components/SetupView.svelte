@@ -314,6 +314,56 @@
     </details>
 
     <div class="card box">
+      <div class="gridhead">
+        <h3>{t('setup.grid')}</h3>
+        <span class="muted small">{sel ? t('setup.selected', { n: selCount }) : t('setup.pickHint')}</span>
+      </div>
+      <div class="barscroll">
+      <div class="bars" role="group" aria-label={t('setup.grid')}>
+        {#each cells as c (c.bar)}
+          {#if c.bar === 0}
+            <div class="cell pickup" title={t('setup.pickup')}>
+              <span class="num">0</span>
+              {#if c.meter}<span class="meter">{c.meter}</span>{/if}
+            </div>
+          {:else}
+            <button
+              class="cell"
+              class:selected={inSel(c.bar)}
+              class:rs={c.repeatStart}
+              class:re={c.repeatEnd > 0}
+              class:volta={!!c.volta}
+              style:--sec={c.secColor}
+              style:--sub={c.subColor}
+              aria-pressed={inSel(c.bar)}
+              aria-label={`${t('common.bar')} ${c.bar}`}
+              onclick={(e) => pick(c.bar, e)}
+            >
+              <span class="num">{c.bar}</span>
+              {#if c.meter}<span class="meter">{c.meter}</span>{/if}
+              {#if c.repeatStart}<span class="rep">‖:</span>{/if}
+              {#if c.repeatEnd > 0}<span class="rep end">:‖{c.repeatEnd !== 2 ? c.repeatEnd + '×' : ''}</span>{/if}
+              {#if c.voltaStart}<span class="volta-label">{c.volta}</span>{/if}
+              {#if c.section}<span class="sec">{c.section}</span>{/if}
+              {#if c.sub}<span class="subname">{c.sub}</span>{/if}
+              {#each c.chips as chip, i (i)}<span class="chip">{chip}</span>{/each}
+            </button>
+          {/if}
+        {/each}
+      </div>
+      </div>
+
+      <div class="line ops">
+        <label class="inline"><span class="muted small">{t('setup.count')}</span>
+          <input class="count" type="number" min="1" max="500" bind:value={count} aria-label={t('setup.count')} />
+        </label>
+        <button class="btn small" disabled={!sel} onclick={() => insert('before')}>{t('setup.insertBefore')}</button>
+        <button class="btn small" disabled={!sel} onclick={() => insert('after')}>{t('setup.insertAfter')}</button>
+        <button class="btn small danger" disabled={!sel} onclick={remove}>{t('setup.delete')}</button>
+        <button class="btn small toggle" class:on={extend} disabled={anchor === null} onclick={() => (extend = !extend)}>{t('setup.extend')}</button>
+      </div>
+
+      <p class="muted small palettehint">{sel ? t('setup.palette') : t('setup.paletteLocked')}</p>
       <div class="palette" role="toolbar" aria-label={t('setup.palette')}>
         {#each tools as k (k)}
           <button class="btn small" class:on={tool === k} disabled={!sel} onclick={() => choose(k)}>{kindLabel(k)}</button>
@@ -387,55 +437,6 @@
           </div>
         {/if}
       {/if}
-    </div>
-
-    <div class="card box">
-      <div class="gridhead">
-        <h3>{t('setup.grid')}</h3>
-        <span class="muted small">{sel ? t('setup.selected', { n: selCount }) : t('setup.pickHint')}</span>
-      </div>
-      <div class="bars" role="group" aria-label={t('setup.grid')}>
-        {#each cells as c (c.bar)}
-          {#if c.bar === 0}
-            <div class="cell pickup" title={t('setup.pickup')}>
-              <span class="num">0</span>
-              {#if c.meter}<span class="meter">{c.meter}</span>{/if}
-            </div>
-          {:else}
-            <button
-              class="cell"
-              class:selected={inSel(c.bar)}
-              class:rs={c.repeatStart}
-              class:re={c.repeatEnd > 0}
-              class:volta={!!c.volta}
-              style:--sec={c.secColor}
-              style:--sub={c.subColor}
-              aria-pressed={inSel(c.bar)}
-              aria-label={`${t('common.bar')} ${c.bar}`}
-              onclick={(e) => pick(c.bar, e)}
-            >
-              <span class="num">{c.bar}</span>
-              {#if c.meter}<span class="meter">{c.meter}</span>{/if}
-              {#if c.repeatStart}<span class="rep">‖:</span>{/if}
-              {#if c.repeatEnd > 0}<span class="rep end">:‖{c.repeatEnd !== 2 ? c.repeatEnd + '×' : ''}</span>{/if}
-              {#if c.voltaStart}<span class="volta-label">{c.volta}</span>{/if}
-              {#if c.section}<span class="sec">{c.section}</span>{/if}
-              {#if c.sub}<span class="subname">{c.sub}</span>{/if}
-              {#each c.chips as chip, i (i)}<span class="chip">{chip}</span>{/each}
-            </button>
-          {/if}
-        {/each}
-      </div>
-
-      <div class="line ops">
-        <label class="inline"><span class="muted small">{t('setup.count')}</span>
-          <input class="count" type="number" min="1" max="500" bind:value={count} aria-label={t('setup.count')} />
-        </label>
-        <button class="btn small" disabled={!sel} onclick={() => insert('before')}>{t('setup.insertBefore')}</button>
-        <button class="btn small" disabled={!sel} onclick={() => insert('after')}>{t('setup.insertAfter')}</button>
-        <button class="btn small danger" disabled={!sel} onclick={remove}>{t('setup.delete')}</button>
-        <button class="btn small toggle" class:on={extend} disabled={anchor === null} onclick={() => (extend = !extend)}>{t('setup.extend')}</button>
-      </div>
     </div>
 
     <div class="card box">
@@ -513,13 +514,15 @@
   .toolform .grow { flex: 1 1 160px; }
   .terms { display: grid; gap: 8px; padding-top: 8px; }
   .chips { display: flex; flex-wrap: wrap; gap: 6px; }
-  .chip { padding: 4px 12px; border-radius: 99px; border: 1px solid var(--border); background: var(--surface); cursor: pointer; font-weight: 500; }
-  .chip:hover { border-color: var(--accent); background: var(--accent-soft); }
+  .chips .chip { padding: 4px 12px; border-radius: 99px; border: 1px solid var(--border); background: var(--surface); cursor: pointer; font-weight: 500; }
+  .chips .chip:hover { border-color: var(--accent); background: var(--accent-soft); }
   .check { display: inline-flex; align-items: center; gap: 6px; font-size: 0.9rem; }
   .gridhead { display: flex; justify-content: space-between; gap: 8px; align-items: baseline; flex-wrap: wrap; }
-  .bars { display: grid; gap: 4px; grid-template-columns: repeat(auto-fill, minmax(84px, 1fr)); }
+  .barscroll { max-height: min(44vh, 360px); overflow: auto; padding: 2px; margin: -2px; border-radius: 8px; }
+  .bars { display: grid; gap: 4px; grid-template-columns: repeat(auto-fill, minmax(68px, 1fr)); }
+  .palettehint { margin: 0; }
   .cell {
-    position: relative; display: flex; flex-direction: column; align-items: flex-start; gap: 1px; min-height: 62px; padding: 8px 6px 4px;
+    position: relative; display: flex; flex-direction: column; align-items: flex-start; gap: 1px; min-height: 52px; padding: 8px 5px 3px;
     background: var(--surface); border: 1px solid var(--border); border-radius: 6px; cursor: pointer; text-align: left; overflow: hidden;
     background-image: linear-gradient(var(--sec, transparent), var(--sec, transparent)), linear-gradient(var(--sub, transparent), var(--sub, transparent));
     background-size: 100% 4px, 100% 3px; background-position: top, 0 4px; background-repeat: no-repeat;
@@ -538,7 +541,7 @@
   .volta-label { font-size: 0.75rem; font-weight: 600; }
   .sec { font-size: 0.72rem; font-weight: 600; line-height: 1.1; overflow-wrap: anywhere; }
   .subname { font-size: 0.68rem; color: var(--muted); line-height: 1.1; overflow-wrap: anywhere; }
-  .chip { font-size: 0.7rem; padding: 0 4px; border: 1px solid var(--border); border-radius: 4px; background: var(--surface-2); }
+  .cell .chip { font-size: 0.7rem; padding: 0 4px; border: 1px solid var(--border); border-radius: 4px; background: var(--surface-2); }
   .ops { gap: 8px; }
   .count { width: 64px; }
   .kind { flex: 0 0 120px; font-size: 0.85rem; font-weight: 600; }

@@ -6,6 +6,7 @@
   import LibraryView from './lib/components/LibraryView.svelte';
   import PieceView from './lib/components/PieceView.svelte';
   import SetupView from './lib/components/SetupView.svelte';
+  import TabIcon from './lib/components/TabIcon.svelte';
   import StatsView from './lib/components/StatsView.svelte';
   import { displayTitle } from './lib/domain/piece';
   import { validate } from './lib/domain/validate';
@@ -19,13 +20,13 @@
   import SettingsView from './lib/components/SettingsView.svelte';
   import { sync } from './lib/stores/sync.svelte';
 
-  const tabs: { id: Tab; icon: string }[] = [
-    { id: 'piece', icon: '✎' },
-    { id: 'setup', icon: '▦' },
-    { id: 'analysis', icon: '≣' },
-    { id: 'stats', icon: '▥' },
-    { id: 'look', icon: 'Aa' },
-    { id: 'export', icon: '⤓' },
+  const tabs: { id: Exclude<Tab, 'library'> }[] = [
+    { id: 'piece' },
+    { id: 'setup' },
+    { id: 'analysis' },
+    { id: 'stats' },
+    { id: 'look' },
+    { id: 'export' },
   ];
 
   let fileInput: HTMLInputElement | undefined = $state();
@@ -155,7 +156,7 @@
       aria-current={app.tab === tab.id ? 'page' : undefined}
       onclick={() => go(tab.id)}
     >
-      <span class="ico" aria-hidden="true">{tab.icon}</span>
+      <span class="ico"><TabIcon id={tab.id} /></span>
       <span class="full">{t(`tab.${tab.id}` as TKey)}</span><span class="short">{t(`tab.${tab.id}.short` as TKey)}</span>
       {#if badges[tab.id]}<span class="badge" title={t('val.title')}>{badges[tab.id]}</span>{/if}
     </button>
@@ -182,6 +183,8 @@
 {/if}
 
 <main>
+  <h1 class="sr-only">{piece ? displayTitle(piece) || t('common.untitled') : t('appName')}</h1>
+  {#if piece && (app.tab === 'setup' || app.tab === 'analysis' || app.tab === 'stats')}<h2 class="sr-only">{t(`tab.${app.tab}` as TKey)}</h2>{/if}
   {#if app.tab === 'library'}
     <LibraryView />
   {:else if piece}
@@ -239,7 +242,7 @@
   .tab:hover { color: var(--text); }
   .tab.active { color: var(--text); border-bottom-color: var(--accent); font-weight: 700; }
   .tab.disabled { opacity: 0.4; }
-  .ico { font-size: 1.1rem; }
+  .ico { display: inline-flex; }
   .tab .short { display: none; }
   .badge { min-width: 18px; height: 18px; padding: 0 5px; border-radius: 9px; background: var(--danger); color: #fff; font-size: 0.7rem; font-weight: 700; line-height: 18px; text-align: center; }
 
