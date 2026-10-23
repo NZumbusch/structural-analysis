@@ -1,5 +1,7 @@
 <script lang="ts">
   import { t } from '../../i18n/index.svelte';
+  import { formatNumber } from '../../analysis/csv';
+  import { app } from '../../stores/app.svelte';
   import { getValue, setValue, type Roots, type Setting } from '../../settings/registry';
   import NumInput from '../NumInput.svelte';
 
@@ -13,7 +15,7 @@
   function shown(v: unknown): string {
     if (c.type !== 'range') return '';
     const n = Number(v);
-    return c.format === 'pct' ? `${Math.round(n * 100)} %` : String(Math.round(n * 100) / 100);
+    return c.format === 'pct' ? `${Math.round(n * 100)} %` : formatNumber(n, app.prefs.uiLang, 2);
   }
 </script>
 

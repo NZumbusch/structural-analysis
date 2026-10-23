@@ -51,6 +51,7 @@
   header { display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: center; justify-content: space-between; }
   .chart { overflow-x: auto; border: 1px solid var(--border); border-radius: 8px; background: #fff; }
   .chart :global(svg) { display: block; width: 100%; height: auto; max-width: 900px; margin: 0 auto; }
+  @media (max-width: 700px) { .chart :global(svg) { min-width: 560px; max-width: none; } }
   .line { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
   .line :global(select) { width: auto; min-height: 32px; padding: 2px 8px; }
   .line :global(label) { display: inline-flex; align-items: center; gap: 6px; font-size: 0.9rem; }

@@ -1,10 +1,10 @@
-# Tonartenverlauf
+# Tonartenverlauf (English interface: Key Plot)
 
 Web app for drawing key-plan charts of a piece of music: which keys are reached in which bars, and how far
 they sit from the home key on the circle of fifths. Runs entirely in the browser; data is stored in
 `localStorage` and can be saved to / loaded from `.tonart.json` files.
 
-Workflow: **Bibliothek** (new / open / import) → **Angaben** (title, composer, year, home key, note names …) →
+A short “getting started” guide appears on the empty library. Workflow: **Bibliothek** (new / open / import) → **Angaben** (title, composer, year, home key, note names …) →
 **Taktgerüst** (bars, meter, repeats, sections, form terms) → **Tonarten** (enter the modulations) →
 **Auswertung** (statistics) → **Darstellung** (colours, title, legend, what is shown) →
 **Export** (print size, checklist, SVG, PNG, PDF, project file). The gear in the header holds app settings
