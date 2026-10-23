@@ -8,7 +8,7 @@ keep editing in the app, including appearance settings.
 {
   "format": "tonartenverlauf-analysis",
   "version": 1,
-  "generator": { "name": "Tonartenverlauf", "version": "1.1.0" },
+  "generator": { "name": "Tonartenverlauf", "version": "1.2.0" },
   "exportedAt": "2026-10-20T08:00:00.000Z",
   "work": { "composer": "", "title": "", "movement": "", "catalog": "", "year": "",
             "source": "", "analyst": "", "analysisDate": "" },
