@@ -15,8 +15,10 @@
 
   let which = $state<TableId>('segments');
   let floating = $state(false);
+  /** Decimal separator of the exported numbers; 'auto' follows the interface language. */
+  let decimal = $state<'auto' | 'comma' | 'point'>('auto');
 
-  const lang = $derived(app.prefs.uiLang);
+  const lang = $derived(decimal === 'auto' ? app.prefs.uiLang : decimal === 'comma' ? 'de' : 'en');
   const stats = $derived(computeStats(piece, { countRepeats: piece.style.repeatDisplay === 'expanded' }));
   const tables = $derived(buildTables(piece, stats, (k, p) => t(k as TKey, p), lang));
   const current = $derived(tables[which] as Table<unknown>);
@@ -60,6 +62,15 @@
           <option value={id}>{t(`tbl.set.${id}` as TKey)} ({tables[id].rows.length})</option>
         {/each}
       </select>
+    </label>
+    <label class="field">
+      <span>{t('data.decimal')}</span>
+      <select bind:value={decimal}>
+        <option value="auto">{t('data.decimal.auto')}</option>
+        <option value="comma">{t('data.decimal.comma')}</option>
+        <option value="point">{t('data.decimal.point')}</option>
+      </select>
+      <span class="hint">{t('data.decimalHint')}</span>
     </label>
     <label class="check"><input type="checkbox" bind:checked={floating} />{t('data.floating')}</label>
     <div class="line">

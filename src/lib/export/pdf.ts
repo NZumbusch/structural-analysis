@@ -1,5 +1,5 @@
 import * as opentype from 'opentype.js';
-import { FAMILY_NAME, fontFile, type Subset, type Weight } from '../render/fonts';
+import { FAMILY_NAME, SUBSETS, fontFile, type Subset, type Weight } from '../render/fonts';
 import { HATCH_SIZE } from '../render/hatch';
 import { loadFont, fontBytes, parseAttrs, svgFamily, unescapeXml, woffToSfnt } from './fontdata';
 
@@ -178,7 +178,7 @@ export async function svgToPdf(svg: string, options: PdfOptions = {}): Promise<U
   const fontSets: Record<string, PdfFont> = {};
   const loaded = new Map<string, opentype.Font>();
   for (const w of [400, 500] as Weight[]) {
-    for (const sub of ['latin', 'latin-ext'] as Subset[]) loaded.set(`${w}:${sub}`, await loadFont(fontFile(family, w, sub)));
+    for (const sub of SUBSETS) loaded.set(`${w}:${sub}`, await loadFont(fontFile(family, w, sub)));
   }
   const pdfFont = (weight: Weight, subset: Subset): PdfFont => {
     const key = `${weight}:${subset}`;
@@ -323,7 +323,7 @@ export async function svgToPdf(svg: string, options: PdfOptions = {}): Promise<U
     const runs: { pf: PdfFont; gids: number[]; width: number }[] = [];
     for (const ch of content) {
       const cp = ch.codePointAt(0)!;
-      const subset: Subset | null = loaded.get(`${weight}:latin`)!.charToGlyphIndex(ch) > 0 ? 'latin' : loaded.get(`${weight}:latin-ext`)!.charToGlyphIndex(ch) > 0 ? 'latin-ext' : null;
+      const subset: Subset | null = SUBSETS.find((sub) => loaded.get(`${weight}:${sub}`)!.charToGlyphIndex(ch) > 0) ?? null;
       if (!subset) continue;
       const pf = pdfFont(weight, subset);
       const gid = pf.font.charToGlyphIndex(ch);
@@ -409,7 +409,7 @@ export async function svgToPdf(svg: string, options: PdfOptions = {}): Promise<U
     const upm = pf.font.unitsPerEm;
     const k = 1000 / upm;
     const head = pf.font.tables.head;
-    const baseName = `${FAMILY_NAME[family].replace(/\s+/g, '')}-${pf.weight === 500 ? 'Medium' : 'Regular'}${pf.subset === 'latin-ext' ? 'Ext' : ''}`;
+    const baseName = `${FAMILY_NAME[family].replace(/\s+/g, '')}-${pf.weight === 500 ? 'Medium' : 'Regular'}${{ latin: '', 'latin-ext': 'Ext', cyrillic: 'Cyrillic', greek: 'Greek' }[pf.subset]}`;
     const gids = [...pf.used.keys()].sort((a, b) => a - b);
     const widths = gids.map((g) => `${g} [${f(pf.font.glyphs.get(g).advanceWidth * k)}]`).join(' ');
     w.object(type0, `<< /Type /Font /Subtype /Type0 /BaseFont /${baseName} /Encoding /Identity-H /DescendantFonts [${cid} 0 R] /ToUnicode ${uni} 0 R >>`);

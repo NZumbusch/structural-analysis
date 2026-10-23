@@ -2,7 +2,7 @@ import { displayTitle } from '../domain/piece';
 import type { Piece } from '../domain/types';
 import { computeStats } from '../analysis/stats';
 import { FS, renderChart, type ViewRange } from '../render/chart';
-import { UNICODE_RANGE } from '../render/fonts';
+import { subsetOf } from '../render/fonts';
 import { activePalette } from '../render/palettes';
 import type { TKey } from '../i18n/index.svelte';
 import type { FontMode } from './files';
@@ -32,10 +32,7 @@ const dec = (n: number, digits: number, lang?: 'de' | 'en') => {
   return lang === 'de' ? text.replace('.', ',') : text;
 };
 
-const COVERED = Object.values(UNICODE_RANGE)
-  .flatMap((r) => r.split(','))
-  .map((part) => part.replace('U+', '').split('-').map((h) => parseInt(h, 16)) as [number, number?]);
-const covered = (cp: number) => cp < 32 || COVERED.some(([a, b]) => cp >= a && cp <= (b ?? a));
+const covered = (cp: number) => cp < 32 || subsetOf(cp) !== null;
 
 const ENTITIES: Record<string, string> = { amp: '&', lt: '<', gt: '>', quot: '"', apos: "'" };
 

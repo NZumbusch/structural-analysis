@@ -87,3 +87,14 @@ describe('alt text unit', () => {
     expect(buildAltText(p)).toMatch(/\d+ Schritte, ab Takt/);
   });
 });
+
+describe('csv positions', () => {
+  it('adds a decimal twin for positions with beats so spreadsheets do not read them as times', () => {
+    type R = { pos: number };
+    const col = { key: 'pos', label: 'Takt', value: (r: R) => r.pos, text: (r: R) => (r.pos % 1 ? `${Math.floor(r.pos)}:${Math.round((r.pos % 1) * 4) + 1}` : String(r.pos)), position: true };
+    const withBeats = toCsv([col], [{ pos: 41 }, { pos: 42.5 }], 'de').split('\r\n');
+    expect(withBeats[0]).toBe('﻿Takt;Takt (dezimal)');
+    expect(withBeats[2]).toBe('42:3;42,5');
+    expect(toCsv([col], [{ pos: 41 }, { pos: 42 }], 'en').split('\r\n')[0]).toBe('﻿Takt'); // whole bars only: no twin
+  });
+});
