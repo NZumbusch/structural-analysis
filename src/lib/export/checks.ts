@@ -2,6 +2,7 @@ import { displayTitle } from '../domain/piece';
 import type { Piece } from '../domain/types';
 import { computeStats } from '../analysis/stats';
 import { FS, renderChart, type ViewRange } from '../render/chart';
+import { UNICODE_RANGE } from '../render/fonts';
 import { activePalette } from '../render/palettes';
 import type { TKey } from '../i18n/index.svelte';
 import type { FontMode } from './files';
@@ -31,6 +32,26 @@ const dec = (n: number, digits: number, lang?: 'de' | 'en') => {
   return lang === 'de' ? text.replace('.', ',') : text;
 };
 
+const COVERED = Object.values(UNICODE_RANGE)
+  .flatMap((r) => r.split(','))
+  .map((part) => part.replace('U+', '').split('-').map((h) => parseInt(h, 16)) as [number, number?]);
+const covered = (cp: number) => cp < 32 || COVERED.some(([a, b]) => cp >= a && cp <= (b ?? a));
+
+const ENTITIES: Record<string, string> = { amp: '&', lt: '<', gt: '>', quot: '"', apos: "'" };
+
+/** Characters in the drawn text that the bundled fonts have no glyph for (they would be missing in PDF and outlines). */
+export function uncoveredCharacters(svg: string): string[] {
+  const text = [...svg.matchAll(/<text\b[^>]*>([\s\S]*?)<\/text>/g)]
+    .map((m) => m[1].replace(/<[^>]+>/g, ''))
+    .join('')
+    .replace(/&(#x[0-9a-f]+|#\d+|\w+);/gi, (_, e: string) =>
+      e[0] === '#' ? String.fromCodePoint(e[1].toLowerCase() === 'x' ? parseInt(e.slice(2), 16) : parseInt(e.slice(1), 10)) : (ENTITIES[e] ?? ''),
+    );
+  const out = new Set<string>();
+  for (const ch of text) if (!covered(ch.codePointAt(0)!) && !/\s/.test(ch)) out.add(ch);
+  return [...out];
+}
+
 /** Things that go wrong in print and in papers, checked against the current settings. */
 export function publicationChecks(piece: Piece, ctx: CheckContext): Check[] {
   const st = piece.style;
@@ -52,6 +73,8 @@ export function publicationChecks(piece: Piece, ctx: CheckContext): Check[] {
   add('lines', thinnest >= MIN_LINE_PT ? 'ok' : 'warn', { pt: dec(thinnest, 2, ctx.lang) });
 
   add('fonts', ctx.fonts === 'none' ? 'warn' : 'ok');
+  const missing = uncoveredCharacters(chart.svg);
+  if (missing.length > 0) add('glyphs', 'warn', { chars: missing.slice(0, 8).join(' ') });
   add('valid', ctx.problems > 0 ? 'warn' : 'ok', { n: ctx.problems });
   add('source', piece.meta.source.trim() ? 'ok' : 'warn');
 

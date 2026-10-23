@@ -117,6 +117,7 @@ export const en: Record<keyof typeof de, string> = {
   'chk.measure.warn': 'The distance measure “{measure}” differs from the fifths column in the picture (it counts rows).',
   'chk.color.ok': 'Major and minor are distinguishable without colour.',
   'chk.color.warn': 'Major and minor differ by colour only – for b/w print turn on “Hatch minor” or pick a b/w scheme.',
+  'chk.glyphs.warn': 'Characters with no glyph in the bundled fonts: {chars}. They are missing in the PDF and with “text to outlines”; in the on-screen SVG the browser substitutes a system font.',
   'chk.title.info': 'The title is in the picture. In texts the caption usually carries it; “Title in the picture” can be switched off.',
 
   'set.s.colorsEach': 'Adjust single colours',

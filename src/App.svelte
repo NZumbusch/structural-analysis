@@ -183,6 +183,8 @@
 {/if}
 
 <main>
+  <h1 class="sr-only">{piece ? displayTitle(piece) || t('common.untitled') : t('appName')}</h1>
+  {#if piece && (app.tab === 'setup' || app.tab === 'analysis' || app.tab === 'stats')}<h2 class="sr-only">{t(`tab.${app.tab}` as TKey)}</h2>{/if}
   {#if app.tab === 'library'}
     <LibraryView />
   {:else if piece}

@@ -115,6 +115,7 @@ export const de = {
   'chk.measure.warn': 'Das Abstandsmaß „{measure}“ weicht von der Quinten-Spalte im Bild ab (sie zählt Zeilen).',
   'chk.color.ok': 'Dur und Moll sind auch ohne Farbe unterscheidbar.',
   'chk.color.warn': 'Dur und Moll unterscheiden sich nur durch Farbe – für s/w-Druck „Moll schraffieren“ oder ein s/w-Schema wählen.',
+  'chk.glyphs.warn': 'Zeichen ohne Glyphe in den mitgelieferten Schriften: {chars}. In PDF und bei „Text in Kurven“ fehlen sie; im Bildschirm-SVG ersetzt der Browser sie durch eine Systemschrift.',
   'chk.title.info': 'Der Titel steht im Bild. In Texten trägt ihn meist die Bildunterschrift; „Titel im Bild“ lässt sich ausschalten.',
 
   'set.s.colorsEach': 'Einzelne Farben anpassen',
